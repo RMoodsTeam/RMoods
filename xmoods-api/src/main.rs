@@ -1,3 +1,5 @@
+/// Entry point of the XMoods server.
+/// Initializes the HTTP server and runs it.
 fn main() {
     println!("Hello, world!");
 }
