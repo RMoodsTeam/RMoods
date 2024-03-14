@@ -13,11 +13,12 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./xmoods-api
 
     steps:
     - uses: actions/checkout@v3
-    - name: CD into Backend
-      run: cd xmoods-api
     - name: Build
       run: cargo build --verbose
     - name: Run tests
