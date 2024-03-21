@@ -1,0 +1,51 @@
+body {
+  text-align: center;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  background-color: #222831;
+  color: #aaa;
+}
+
+h1 {
+  text-align: center;
+  align-items: center;
+  font-size: 3em;
+}
+
+/* Define the underline animation */
+@keyframes underline {
+  0% {
+    width: 0;
+    margin-left: 50%;
+  }
+  100% {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+/* Apply the animation to the link */
+a {
+  position: relative;
+  color: #4db8ff; /* Default link color */
+  text-decoration: none; /* Remove default underline */
+}
+
+/* Create a pseudo-element for the underline */
+a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px; /* Thickness of the underline */
+  background-color: #4db8ff; /* Color of the underline */
+  transition: width 0.3s, margin-left 0.3s; /* Smooth transition for width and margin */
+}
+
+/* Define the hover effect */
+a:hover::after {
+  width: 100%;
+  margin-left: 0;
+  animation: underline 0.3s ease-in-out forwards; /* Apply the underline animation on hover */
+}
+
