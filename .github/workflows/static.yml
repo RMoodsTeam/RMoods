@@ -4,7 +4,7 @@ name: Deploy static content to Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["mmilek/backend-setup"]
+    branches: ["main"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -40,11 +40,7 @@ jobs:
         working-directory: xmoods-api
         run: cargo doc --document-private-items --no-deps
         
-      # - name: Prepare a routing file
-      #   working-directory: xmoods-api
-      #   run: echo "<meta http-equiv=\"refresh\" content=\"0; url=xmoods_api\">" > target/doc/index.html
-
-      - name: Fix permission
+      - name: Fix permissions
         working-directory: xmoods-api
         run: |
           chmod -c -R +rX "target/doc/" | while read line; do
