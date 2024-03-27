@@ -52,6 +52,32 @@ jobs:
         run: cp -r target/doc ../docs
         
 ### END BACKEND ###
+### NLP SETUP ###
+
+      - name: Install dependencies
+        working-directory: xmoods-nlp
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Setup sphinx
+        run: |
+          sphinx-quickstart --sep --project="xmoods-nlp" --author="Sebastian" --release="0.1.0" --language="en" src/docs
+          cd ..
+          sphinx-apidoc -o docs .
+
+      - name: Make the sphinx docs
+        working-directory: xmoods-nlp
+        run: |
+          cd src/docs
+          make clean
+          make html
+
+      - name: Copy documentation to docs directory
+        working-directory: xmoods-nlp
+        run: cp -r src/docs/build/html/ ../docs
+
+### NLP SETUP ###
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

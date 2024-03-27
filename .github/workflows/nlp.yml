@@ -58,12 +58,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Make the sphinx docs
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Setup sphinx
         run: |
           sphinx-quickstart --sep --project="xmoods-nlp" --author="Sebastian" --release="0.1.0" --language="en" src/docs
           cd ..
           sphinx-apidoc -o docs .
-          
-          
-          
 
+      - name: Make the sphinx docs
+        working-directory: xmoods-nlp
+        run: |
+          cd src/docs
+          make clean
+          make html
+
+      - name: Copy documentation to docs directory
+        working-directory: xmoods-nlp
+        run: |
+          ls src/docs
+          cp -r src/docs/build/html/ ../docs
