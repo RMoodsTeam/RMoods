@@ -48,3 +48,22 @@ jobs:
 
       - name: Run tests
         run: pytest
+
+  doc:
+    runs-on: ubuntu-latest
+    needs: build
+    defaults:
+      run:
+        working-directory: xmoods-nlp
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Make the sphinx docs
+        run: |
+          sphinx-quickstart --sep --project="xmoods-nlp" --author="Sebastian" --release="0.1.0" --language="en" src/docs
+          cd ..
+          sphinx-apidoc -o docs .
+          
+          
+          
+
