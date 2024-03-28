@@ -7,7 +7,7 @@ on:
     branches: [ "**" ]
 
 jobs:
-  run-defined-frontend-tests:
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -18,5 +18,33 @@ jobs:
         with:
           node-version: 21.x
       - run: npm ci
+      - run: npm run build
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    defaults:
+      run:
+        working-directory: ./xmoods-frontend
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 21.x
+      - run: npm ci
       - run: npm run test
+
+  docs:
+    runs-on: ubuntu-latest
+    needs: build
+    defaults:
+      run:
+        working-directory: ./xmoods-frontend
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 21.x
+      - run: npm ci
       - run: npm run build-docs
+
