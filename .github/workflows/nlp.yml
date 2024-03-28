@@ -65,20 +65,12 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup sphinx
+        working-directory: xmoods-nlp/src
         run: |
-          sphinx-quickstart --sep --project="xmoods-nlp" --author="Sebastian" --release="0.1.0" --language="en" src/docs
-          cd ..
           sphinx-apidoc -o docs .
 
       - name: Make the sphinx docs
-        working-directory: xmoods-nlp
+        working-directory: xmoods-nlp/src/docs
         run: |
-          cd src/docs
           make clean
           make html
-
-      - name: Copy documentation to docs directory
-        working-directory: xmoods-nlp
-        run: |
-          ls src/docs
-          cp -r src/docs/build/html/ ../docs
