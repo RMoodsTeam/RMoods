@@ -11,3 +11,6 @@ def inc(x):
     :return: Incremented value.
     """
     return x + 1
+
+
+print("Hello Docker")
