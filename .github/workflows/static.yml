@@ -33,7 +33,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 21.x
 ### BEGIN BACKEND ###
 
       - name: Build Backend API Docs
@@ -52,6 +55,17 @@ jobs:
         run: cp -r target/doc ../docs
         
 ### END BACKEND ###
+
+### START FRONTEND ###
+      - name: Build Frontend API Docs
+        working-directory: xmoods-frontend
+        run: npm ci && npm run build-docs
+
+      - name: Copy Frontend API Docs into the docs dir
+        working-directory: xmoods-frontend
+        run: cp -r ./docs/ ../docs/xmoods-frontend
+
+### END FRONTEND ###
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
