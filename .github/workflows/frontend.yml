@@ -1,0 +1,44 @@
+name: NextJS
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: xmoods-frontend
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install
+      run: npm install
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    defaults:
+      run:
+        working-directory: xmoods-frontend
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: NextJS tests
+      run: npm run test
+
+  doc:
+    runs-on: ubuntu-latest
+    needs: build
+    defaults:
+      run:
+        working-directory: xmoods-frontend
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build docs
+      run: npm run build-docs
+  

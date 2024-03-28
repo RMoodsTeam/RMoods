@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 
+/**
+ * Home function, returns main content
+ * @returns {TSX}
+ */
 export default function Home() {
   const [count, setCount] = useState(0);
   return (
