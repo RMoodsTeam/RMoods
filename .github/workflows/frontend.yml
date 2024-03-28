@@ -7,38 +7,16 @@ on:
     branches: [ "**" ]
 
 jobs:
-  build:
+  run-defined-frontend-tests:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: xmoods-frontend
-
+        working-directory: ./xmoods-frontend
     steps:
-    - uses: actions/checkout@v3
-    - name: Install
-      run: npm install
-
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    defaults:
-      run:
-        working-directory: xmoods-frontend
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: NextJS tests
-      run: npm run test
-
-  doc:
-    runs-on: ubuntu-latest
-    needs: build
-    defaults:
-      run:
-        working-directory: xmoods-frontend
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Build docs
-      run: npm run build-docs
-  
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 21.x
+      - run: npm ci
+      - run: npm run test
+      - run: npm run build-docs
