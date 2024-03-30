@@ -1,4 +1,4 @@
-name: Python CI
+name: Python-NLP CI
 
 on:
   push:
@@ -65,9 +65,15 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup sphinx
-        working-directory: xmoods-nlp/src
         run: |
+          mkdir src/docs && cd src/docs
+          sphinx-quickstart -q --no-sep -p xmoods-nlp -a Xmoods -r 0.1.0 -l en --ext-autodoc --ext-todo --ext-viewcode
+          sed -i "s|#*html_theme = '.*'|html_theme = 'sphinx_rtd_theme'|g" conf.py
+          sed -i "1i \import os\nimport sys\nsys.path.insert(0, os.path.abspath('..'))" conf.py
+          cd ..
           sphinx-apidoc -o docs .
+          cd docs
+          sed -i "/:caption: Contents:/a\\\n   modules" index.rst
 
       - name: Make the sphinx docs
         working-directory: xmoods-nlp/src/docs
