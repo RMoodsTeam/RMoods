@@ -1,0 +1,12 @@
+# Main folder
+.pytest_cache
+.idea/
+docs
+
+# Source folder
+src/__pycache__
+src/.pytest_cache
+
+# Tests folder
+tests/__pycache__
+tests/.pytest_cache
