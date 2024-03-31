@@ -60,6 +60,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup sphinx
+        working-directory: xmoods-nlp
         run: |
           mkdir src/docs && cd src/docs
           sphinx-quickstart -q --no-sep -p xmoods-nlp -a Xmoods -r 0.1.0 -l en --ext-autodoc --ext-todo --ext-viewcode
