@@ -2,7 +2,7 @@
 //!
 //! Verify the user's identity
 
-use actix_web::{get, web::{self, ServiceConfig}, HttpResponse, Responder};
+use actix_web::{get, web::ServiceConfig, HttpResponse, Responder};
 
 /// Index route for the `auth/` module
 /// Returns a welcome message

@@ -41,6 +41,6 @@ async fn main() -> std::io::Result<()> {
 mod tests {
     #[test]
     fn example_test() {
-        assert!(2 + 2 == 4)
+        assert_eq!(2 + 2, 4);
     }
 }
