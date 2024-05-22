@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: xmoods-nlp
+        working-directory: nlp
 
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
     needs: build
     defaults:
       run:
-        working-directory: xmoods-nlp
+        working-directory: nlp
     steps:
       - uses: actions/checkout@v4
 
