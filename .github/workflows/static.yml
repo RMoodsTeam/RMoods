@@ -49,7 +49,9 @@ jobs:
 
       - name: Copy Backend API Docs into the docs dir
         working-directory: backend
-        run: cp -r target/doc ../docs
+        run: |
+          mv target/doc target/backend
+          cp -r target/backend ../docs
 ### END BACKEND ###
 
 ### BEGIN NLP ###
