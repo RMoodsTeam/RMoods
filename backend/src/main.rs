@@ -1,40 +1,36 @@
-use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
-use serde_json::json;
+use axum::{routing::get, Json, Router};
+use log::info;
+use serde_json::{json, Value};
 
-mod api;
-mod auth;
+/// The port on which the server starts.
+const PORT: u16 = 3000;
 
-/// Index route of the XMoods server.
-/// # Returns
-/// JSON object with a welcome message and a link to the API documentation.
-#[get("/")]
-async fn index() -> impl Responder {
-    let res = json!({
-        "message": "Welcome to XMoods API!",
-        "documentation": "https://xmoods.github.io/XMoods/doc/xmoods_api/index.html"
-    });
-    HttpResponse::Ok().json(res)
+/// Returns a welcome message and a link to our documentation   
+async fn hello() -> Json<Value> {
+    json!({
+        "message" : "Welcome to the RMoods Backend!",
+            "docs": "https://xmoods.github.io/XMoods/backend/xmoods_backend/index.html"
+    }).into()
 }
 
 /// Entry point of the XMoods server.
 /// Initializes the HTTP server and runs it.
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
     
-    HttpServer::new(|| {
-        let logger = Logger::default();
-        App::new()
-            .wrap(logger)
-            .service(index)
-            .service(web::scope("/api").configure(api::router))
-            .service(web::scope("/auth").configure(auth::router))
-    })
-    .bind(("127.0.0.1", 8000))?
-    .run()
-    .await
+    let app = Router::new().route("/", get(hello));
+
+    let addr = format!("0.0.0.0:{PORT}");
+
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+
+    info!("Starting the XMoods server");
+    axum::serve(listener, app).await.unwrap();
+
+    Ok(())
 }
 
 #[cfg(test)]
