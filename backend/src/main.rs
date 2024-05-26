@@ -9,10 +9,12 @@ use tower_http::{
 /// The port on which the server starts.
 const PORT: u16 = 3000;
 
+mod auth;
+
 /// Returns a welcome message and a link to our documentation   
 async fn hello() -> Json<Value> {
     json!({
-        "message" : "Welcome to the RMoods Backend!",
+        "message" : "Welcome to the XMoods Backend!",
         "docs": "https://xmoods.github.io/XMoods/backend/xmoods_backend/index.html"
     })
     .into()
@@ -36,15 +38,16 @@ async fn main() -> std::io::Result<()> {
 
     let app = Router::new()
         .route("/", get(hello))
+        .nest("/auth", auth::router::router())
         .layer(tracing)
         .layer(cors);
 
     // Listen on all addresses
     let addr = format!("0.0.0.0:{PORT}");
 
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
-    info!("Starting the XMoods server");
+    info!("Starting the XMoods server at {}", addr);
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
