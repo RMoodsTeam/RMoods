@@ -1,6 +1,10 @@
-use axum::{routing::get, Json, Router};
+use axum::{http::Method, routing::get, Json, Router};
 use log::info;
 use serde_json::{json, Value};
+use tower_http::{
+    cors::{Any, CorsLayer},
+    trace::TraceLayer,
+};
 
 /// The port on which the server starts.
 const PORT: u16 = 3000;
@@ -9,8 +13,9 @@ const PORT: u16 = 3000;
 async fn hello() -> Json<Value> {
     json!({
         "message" : "Welcome to the RMoods Backend!",
-            "docs": "https://xmoods.github.io/XMoods/backend/xmoods_backend/index.html"
-    }).into()
+        "docs": "https://xmoods.github.io/XMoods/backend/xmoods_backend/index.html"
+    })
+    .into()
 }
 
 /// Entry point of the XMoods server.
@@ -20,9 +25,21 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
-    
-    let app = Router::new().route("/", get(hello));
 
+    // Allow browsers to use GET and PUT from any origin
+    let cors = CorsLayer::new()
+        .allow_methods([Method::GET, Method::PUT])
+        .allow_origin(Any);
+
+    // Add logging
+    let tracing = TraceLayer::new_for_http();
+
+    let app = Router::new()
+        .route("/", get(hello))
+        .layer(tracing)
+        .layer(cors);
+
+    // Listen on all addresses
     let addr = format!("0.0.0.0:{PORT}");
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
