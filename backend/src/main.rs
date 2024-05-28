@@ -1,21 +1,37 @@
-use axum::{http::Method, routing::get, Json, Router};
+use axum::{
+    http::Method, routing::get, Json, Router
+};
 use log::info;
 use serde_json::{json, Value};
 use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
+
+mod auth;
+
+/// OpenAPI documentation for the XMoods server
+#[derive(OpenApi)]
+#[openapi(paths(hello))]
+struct ApiDoc;
 
 /// The port on which the server starts.
 const PORT: u16 = 3000;
 
-mod auth;
-
-/// Returns a welcome message and a link to our documentation   
+/// Returns a welcome message and a link to our documentation
+#[utoipa::path(
+    get,
+    path = "/",
+    responses(
+        (status = 200, description = "Always"),
+    ),
+)]
 async fn hello() -> Json<Value> {
     json!({
         "message" : "Welcome to the XMoods Backend!",
-        "docs": "https://xmoods.github.io/XMoods/backend/xmoods_backend/index.html"
+        "docs": "https://xmoods.github.io/XMoods/backend/xmoods_backend/index.html",
     })
     .into()
 }
@@ -38,9 +54,10 @@ async fn main() -> std::io::Result<()> {
 
     let app = Router::new()
         .route("/", get(hello))
-        .nest("/auth", auth::router::router())
+        .nest("/auth", auth::router())
         .layer(tracing)
-        .layer(cors);
+        .layer(cors)
+        .merge(SwaggerUi::new("/doc/ui").url("/doc/api.json", ApiDoc::openapi()));
 
     // Listen on all addresses
     let addr = format!("0.0.0.0:{PORT}");
