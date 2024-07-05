@@ -31,7 +31,7 @@ const PORT: u16 = 3000;
 async fn hello() -> Json<Value> {
     json!({
         "message" : "Welcome to the RMoods Backend!",
-        "docs": "https://xmoods.github.io/XMoods/backend/xmoods_backend/index.html",
+        "docs": "https://xmoods.github.io/XMoods/backend/rmoods_backend/index.html",
     })
     .into()
 }
