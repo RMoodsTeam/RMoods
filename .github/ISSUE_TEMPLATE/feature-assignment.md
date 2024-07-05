@@ -7,10 +7,10 @@ assignees: ''
 
 ---
 
-**Why is that feature needed? How does it fit into XMoods?**
+**What needs to be done?**
 Your description
 
-**(OPTIONAL) If your assignment is complex, what are the stages of it?**
+**If your assignment is complex, what are the stages of it?**
 1. Foo
 2. Bar
 
