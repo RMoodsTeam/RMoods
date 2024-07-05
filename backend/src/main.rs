@@ -12,7 +12,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 mod auth;
 
-/// OpenAPI documentation for the XMoods server
+/// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
 #[openapi(paths(hello))]
 struct ApiDoc;
@@ -30,13 +30,13 @@ const PORT: u16 = 3000;
 )]
 async fn hello() -> Json<Value> {
     json!({
-        "message" : "Welcome to the XMoods Backend!",
+        "message" : "Welcome to the RMoods Backend!",
         "docs": "https://xmoods.github.io/XMoods/backend/xmoods_backend/index.html",
     })
     .into()
 }
 
-/// Entry point of the XMoods server.
+/// Entry point of the RMoods server.
 /// Initializes the HTTP server and runs it.
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -64,7 +64,7 @@ async fn main() -> std::io::Result<()> {
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
-    info!("Starting the XMoods server at {}", addr);
+    info!("Starting the RMoods server at {}", addr);
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
