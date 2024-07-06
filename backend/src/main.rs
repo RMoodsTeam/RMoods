@@ -11,6 +11,7 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 mod auth;
+mod reddit;
 
 /// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
@@ -19,6 +20,11 @@ struct ApiDoc;
 
 /// The port on which the server starts.
 const PORT: u16 = 3000;
+
+lazy_static::lazy_static! {
+    /// The Reddit Connection used to aggregate clients and use their tokens
+    static ref REDDIT_CONNECTION: reddit::RedditConnection = reddit::RedditConnection::new();
+}
 
 /// Returns a welcome message and a link to our documentation
 #[utoipa::path(
@@ -44,6 +50,11 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
+    info!("Loaded client credentials");
+    for (i, client) in REDDIT_CONNECTION.clients.iter().enumerate() {
+        info!("Client ID no. {i}: {}", client.client_id);
+    }
+    
     // Allow browsers to use GET and PUT from any origin
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::PUT])
