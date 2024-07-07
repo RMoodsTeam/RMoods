@@ -2,6 +2,7 @@ use axum::{
     http::Method, routing::get, Json, Router
 };
 use log::info;
+use reqwest::Client;
 use serde_json::{json, Value};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -24,6 +25,7 @@ const PORT: u16 = 3000;
 lazy_static::lazy_static! {
     /// The Reddit Connection used to aggregate clients and use their tokens
     static ref REDDIT_CONNECTION: reddit::RedditConnection = reddit::RedditConnection::new();
+    static ref REQWEST_CLIENT: Client = reqwest::ClientBuilder::new().user_agent("RMoods").build().unwrap();
 }
 
 /// Returns a welcome message and a link to our documentation
@@ -45,15 +47,10 @@ async fn hello() -> Json<Value> {
 /// Entry point of the RMoods server.
 /// Initializes the HTTP server and runs it.
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
-    std::env::set_var("RUST_BACKTRACE", "1");
+    std::env::set_var("RUST_BACKTRACE", "0");
     env_logger::init();
-
-    info!("Loaded client credentials");
-    for (i, client) in REDDIT_CONNECTION.clients.iter().enumerate() {
-        info!("Client ID no. {i}: {}", client.client_id);
-    }
     
     // Allow browsers to use GET and PUT from any origin
     let cors = CorsLayer::new()
@@ -74,6 +71,10 @@ async fn main() -> std::io::Result<()> {
     let addr = format!("0.0.0.0:{PORT}");
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+
+    for client in REDDIT_CONNECTION.clients.iter()  {
+        info!("{:?}", client.0.fetch_access_token().await)
+    }
 
     info!("Starting the RMoods server at {}", addr);
     axum::serve(listener, app).await.unwrap();
