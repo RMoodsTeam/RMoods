@@ -11,6 +11,8 @@ use std::{
 
 use crate::REQWEST_CLIENT;
 
+pub mod model;
+
 /// Get the current system time in seconds since UNIX EPOCH
 fn get_sys_time_in_secs() -> u64 {
     match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
