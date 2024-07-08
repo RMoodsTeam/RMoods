@@ -11,8 +11,8 @@ use tower_http::{
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-mod auth;
-mod reddit;
+pub mod auth;
+pub mod reddit;
 
 /// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
