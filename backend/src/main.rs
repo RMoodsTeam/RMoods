@@ -60,6 +60,7 @@ async fn main() -> anyhow::Result<()> {
     // Add logging
     let tracing = TraceLayer::new_for_http();
 
+    // Routes after the layers won't have the layers applied
     let app = Router::new()
         .route("/", get(hello))
         .nest("/auth", auth::router())
@@ -71,10 +72,6 @@ async fn main() -> anyhow::Result<()> {
     let addr = format!("0.0.0.0:{PORT}");
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-
-    for client in REDDIT_CONNECTION.clients.iter()  {
-        info!("{:?}", client.0.fetch_access_token().await)
-    }
 
     info!("Starting the RMoods server at {}", addr);
     axum::serve(listener, app).await.unwrap();

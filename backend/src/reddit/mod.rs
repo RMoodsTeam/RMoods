@@ -86,7 +86,7 @@ pub struct RedditConnection {
 
 impl RedditConnection {
     /// Reddit API URL
-    const API_URL: &'static str = "https://oauth.reddit.com";
+    const API_HOSTNAME: &'static str = "oauth.reddit.com";
 
     /// Read credentials and create a collection of client authentication data
     /// from .reddit-credentials.json in backend root (src/backend/)
@@ -120,8 +120,8 @@ impl RedditConnection {
     }
 
     /// Determine which token (from which app) will be used for the next request
-    fn current_app(&self) -> &RedditApp {
-        self.clients.keys().next().expect("There is one client")
+    fn pick_app(&self) -> &RedditApp {
+        self.clients.keys().next().expect("There is at least one client")
     }
 
     /// Execute a request to the Reddit API
@@ -132,8 +132,8 @@ impl RedditConnection {
         let token = match &self.access_token {
             Some(t) if !t.is_expired() => t.clone(),
             _ => {
-                warn!("Token expired, refetching...");
-                let t = self.current_app().fetch_access_token().await.unwrap();
+                warn!("Token invalid, refetching...");
+                let t = self.pick_app().fetch_access_token().await?;
                 self.access_token = Some(t.clone());
                 t
             }
@@ -142,10 +142,15 @@ impl RedditConnection {
             todo!("Handle expired tokens");
         }
 
+        // check if the request goes to the Reddit API
+        assert!(req.url().domain().is_some_and(|d| d == Self::API_HOSTNAME));
+
+        
         // Authorize the request
+        let value = format!("Bearer {}", token.token);
         req.headers_mut().insert(
             "Authorization",
-            HeaderValue::from_str(&token.token).expect("Valid token to header conversion"),
+            HeaderValue::from_str(&value).expect("Valid token to header conversion"),
         );
 
         Ok(REQWEST_CLIENT.execute(req).await?)
