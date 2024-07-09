@@ -32,4 +32,4 @@ jobs:
         with:
           node-version: 20.5.1
       - run: npm ci
-      - run: npm run test
+      - run: npm run component:headless
