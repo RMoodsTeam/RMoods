@@ -78,11 +78,3 @@ async fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn example_test() {
-        assert_eq!(2 + 2, 4);
-    }
-}

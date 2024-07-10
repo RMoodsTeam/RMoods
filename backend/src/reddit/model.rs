@@ -35,7 +35,8 @@ pub struct RedditPost {
     stickied: bool, 
 }
 
-// https://www.reddit.com/user/stonekeep/about.json
+/// Contains some properties of a Reddit user. For some real-world examples see
+/// [this u/spez profile request.](https://www.reddit.com/user/spez/about.json)
 pub struct RedditUser;
 
 // https://www.reddit.com/r/Polska/about.json
