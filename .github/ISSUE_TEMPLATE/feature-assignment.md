@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Why is that feature needed? How does it fit into XMoods?**
+**Why is that feature needed? How does it fit into RMoods?**
 Your description
 
 **(OPTIONAL) If your assignment is complex, what are the stages of it?**
