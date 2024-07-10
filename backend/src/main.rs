@@ -13,10 +13,11 @@ use utoipa_swagger_ui::SwaggerUi;
 
 pub mod auth;
 pub mod reddit;
+pub mod api;
 
 /// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
-#[openapi(paths(hello))]
+#[openapi(paths(hello, api::test::lorem, api::test::timeout))]
 struct ApiDoc;
 
 /// The port on which the server starts.
@@ -64,6 +65,7 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/", get(hello))
         .nest("/auth", auth::router())
+        .nest("/api", api::router())
         .layer(tracing)
         .layer(cors)
         .merge(SwaggerUi::new("/doc/ui").url("/doc/api.json", ApiDoc::openapi()));

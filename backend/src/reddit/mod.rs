@@ -118,6 +118,8 @@ impl RedditConnection {
         let json: Value =
             serde_json::from_reader(reader).expect("credentials should be valid JSON");
 
+        println!("{:?}", serde_json::to_string_pretty(&json).unwrap());
+
         // Parse the JSON into a collection of RedditApp clients
         json.as_array()
             .expect("credentials file should only contain an array")

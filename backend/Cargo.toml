@@ -20,3 +20,4 @@ anyhow = "1.0.86"
 reqwest = { version = "0.12.5", features = ["json"] }
 project-root = "0.2.2"
 derive-getters = "0.4.0"
+lipsum = "0.9.1"
