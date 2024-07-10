@@ -16,14 +16,10 @@
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 @layer utilities {
@@ -32,13 +28,12 @@ body {
   }
 }
 
-button{
-  border: 1px solid white;
-}
 
 body{
   display: flex;
-  justify-content: center;
   align-items: center;
   min-height: 100vh;
+  flex-direction: column;
+  background-color: #ccc;
+  border: 2px solid red;
 }
