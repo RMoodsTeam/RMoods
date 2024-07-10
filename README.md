@@ -1,4 +1,4 @@
-# XMoods
+# RMoods
 
 ## Documentation
-Complete documentation for each module is available [here](https://xmoods.github.io/XMoods)
+Complete documentation for each module is available [here](https://rmoodsteam.github.io/RMoods/)
