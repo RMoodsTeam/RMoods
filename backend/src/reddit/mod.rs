@@ -154,7 +154,7 @@ impl RedditConnection {
     /// Execute a request to the Reddit API
     ///
     /// This is probably a temporary solution and I'll write specific methods for each API endpoint we need
-    async fn execute(&mut self, mut req: Request) -> anyhow::Result<Response> {
+    async fn execute(&self, mut req: Request) -> anyhow::Result<Response> {
         // If the current token is fine, use the current one. Otherwise fetch a new one and set it as the current
         let token = if self.access_token.is_expired() {
             warn!("Token expired, refetching...");
@@ -212,13 +212,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_app_can_fetch_access_token() {
-        let conn = RedditConnection::new();
+        let conn = CONN.lock().unwrap();
         let _ = conn.client.fetch_access_token(&conn.http).await;
     }
 
     #[tokio::test]
     async fn test_fetch_subreddit() {
-        let mut conn = RedditConnection::new();
+        let mut conn = CONN.lock().unwrap();
         let res = conn
             .fetch_subreddit("all", FeedSorting::Hot)
             .await
@@ -232,7 +232,7 @@ mod tests {
     #[tokio::test]
     #[should_panic]
     async fn test_execute_invalid_hostname() {
-        let mut conn = RedditConnection::new();
+        let conn = CONN.lock().unwrap();
         let req = conn.http
             .get("https://www.reddit.com/api/v1/me")
             .build()
@@ -242,7 +242,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_valid_hostname() {
-        let mut conn = RedditConnection::new();
+        let conn = CONN.lock().unwrap();
         let req = conn.http
             .get("https://oauth.reddit.com/api/v1/me")
             .build()
