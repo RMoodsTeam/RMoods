@@ -189,7 +189,7 @@ impl RedditConnection {
             subreddit,
             feed_sorting.as_str()
         );
-        let req = .get(&url).build()?;
+        let req = self.http.get(&url).build()?;
         self.execute(req).await
     }
 }
@@ -213,7 +213,7 @@ mod tests {
     #[tokio::test]
     async fn test_app_can_fetch_access_token() {
         let conn = RedditConnection::new();
-        conn.client.fetch_access_token(&conn.http);
+        let _ = conn.client.fetch_access_token(&conn.http).await;
     }
 
     #[tokio::test]
