@@ -5,7 +5,7 @@ use project_root::get_project_root;
 use reqwest::{Client, Request, Response};
 use serde::Deserialize;
 use serde_json::Value;
-use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf, time::SystemTime};
+use std::{collections::HashMap, fs::File, io::BufReader, mem::MaybeUninit, path::PathBuf, time::SystemTime};
 
 pub mod model;
 
@@ -121,8 +121,6 @@ impl RedditConnection {
         let json: Value =
             serde_json::from_reader(reader).expect("credentials should be valid JSON");
 
-        println!("{:?}", serde_json::to_string_pretty(&json).unwrap());
-
         let app_json = json
             .as_array()
             .expect("credentials contains an array")
@@ -135,14 +133,14 @@ impl RedditConnection {
 
     /// Read credentials and create a collection of client authentication data
     /// from .reddit-credentials.json in backend root (src/backend/)
-    pub fn new() -> RedditConnection {
+    pub async fn new() -> RedditConnection {
         let http = reqwest::ClientBuilder::new()
             .user_agent("RMoods")
             .build()
             .expect("Build HTTP Client");
         let client = Self::read_credentials();
-        let access_token =
-            block_on(client.fetch_access_token(&http)).expect("Fetch initial access token");
+        let access_token = client.fetch_access_token(&http).await.expect("Fetch initial token");
+        println!("Before access token");
 
         RedditConnection {
             client,
@@ -154,21 +152,17 @@ impl RedditConnection {
     /// Execute a request to the Reddit API
     ///
     /// This is probably a temporary solution and I'll write specific methods for each API endpoint we need
-    async fn execute(&self, mut req: Request) -> anyhow::Result<Response> {
+    async fn execute(&mut self, mut req: Request) -> anyhow::Result<Response> {
         // If the current token is fine, use the current one. Otherwise fetch a new one and set it as the current
-        let token = if self.access_token.is_expired() {
-            warn!("Token expired, refetching...");
-            &self.client.fetch_access_token(&self.http).await?
-        } else {
-            debug!("Token still valid");
-            &self.access_token
-        };
+        if self.access_token.is_expired() {
+            self.access_token = self.client.fetch_access_token(&self.http).await?;
+        }
 
         // check if the request goes to the Reddit API
         assert!(req.url().domain().is_some_and(|d| d == Self::API_HOSTNAME));
 
         // Authorize the request
-        let value = format!("bearer {}", token.token);
+        let value = format!("bearer {}", self.access_token.token);
         req.headers_mut().insert(
             "Authorization",
             HeaderValue::from_str(&value).expect("Valid token to header conversion"),
@@ -198,41 +192,36 @@ impl RedditConnection {
 mod tests {
     use super::*;
     use lazy_static::lazy_static;
-    use std::sync::Mutex;
-
-    lazy_static! {
-        static ref CONN: Mutex<RedditConnection> = Mutex::new(RedditConnection::new());
-    }
 
     #[test]
     fn test_read_credentials() {
-        let creds = RedditConnection::read_credentials();
-        println!("{:?}", creds);
+        let _ = RedditConnection::read_credentials();
     }
 
     #[tokio::test]
     async fn test_app_can_fetch_access_token() {
-        let conn = CONN.lock().unwrap();
+        println!("Start");
+        let conn = RedditConnection::new().await;
+        println!("Conn created");
         let _ = conn.client.fetch_access_token(&conn.http).await;
     }
 
     #[tokio::test]
     async fn test_fetch_subreddit() {
-        let mut conn = CONN.lock().unwrap();
-        let res = conn
+        let mut conn = RedditConnection::new().await;
+        let _ = conn
             .fetch_subreddit("all", FeedSorting::Hot)
             .await
             .unwrap()
             .json::<Value>()
             .await
             .unwrap();
-        println!("{:?}", res);
     }
 
     #[tokio::test]
     #[should_panic]
     async fn test_execute_invalid_hostname() {
-        let conn = CONN.lock().unwrap();
+        let mut conn = RedditConnection::new().await;
         let req = conn.http
             .get("https://www.reddit.com/api/v1/me")
             .build()
@@ -242,7 +231,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_valid_hostname() {
-        let conn = CONN.lock().unwrap();
+        let mut conn = RedditConnection::new().await;
         let req = conn.http
             .get("https://oauth.reddit.com/api/v1/me")
             .build()

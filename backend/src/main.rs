@@ -1,6 +1,7 @@
 use axum::{
     http::Method, routing::get, Json, Router
 };
+use futures::executor::block_on;
 use log::info;
 use reqwest::Client;
 use serde_json::{json, Value};
@@ -10,6 +11,7 @@ use tower_http::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use reddit::RedditConnection;
 
 mod auth;
 mod reddit;
@@ -25,7 +27,9 @@ const PORT: u16 = 8001;
 
 lazy_static::lazy_static! {
     /// The Reddit Connection used to aggregate clients and use their tokens
-    static ref REDDIT_CONNECTION: reddit::RedditConnection = reddit::RedditConnection::new();
+    static ref REDDIT_CONNECTION: reddit::RedditConnection = {
+        block_on(RedditConnection::new())
+    };
     static ref REQWEST_CLIENT: Client = reqwest::ClientBuilder::new().user_agent("RMoods").build().unwrap();
 }
 
