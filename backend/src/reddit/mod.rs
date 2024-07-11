@@ -1,12 +1,11 @@
 use axum::http::HeaderValue;
+use futures::executor::block_on;
 use log::{debug, warn};
 use project_root::get_project_root;
-use reqwest::{Request, Response};
+use reqwest::{Client, Request, Response};
 use serde::Deserialize;
 use serde_json::Value;
 use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf, time::SystemTime};
-
-use crate::REQWEST_CLIENT;
 
 pub mod model;
 
@@ -70,7 +69,7 @@ impl RedditAccessToken {
 /// Reddit app data.
 /// Contains a client_id and client_secret pair.
 /// Used to authenticate with the Reddit API, we make many of them to avoid rate limiting.
-#[derive(Debug, Deserialize, Hash, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Hash, PartialEq, Eq, Clone)]
 pub struct RedditApp {
     pub client_id: String,
     pub client_secret: String,
@@ -78,8 +77,11 @@ pub struct RedditApp {
 
 impl RedditApp {
     /// Fetch an access token from the Reddit API for that particular app
-    pub async fn fetch_access_token(&self) -> anyhow::Result<RedditAccessToken> {
-        let req = REQWEST_CLIENT
+    pub async fn fetch_access_token(
+        &self,
+        http_client: &Client,
+    ) -> anyhow::Result<RedditAccessToken> {
+        let req = http_client
             .post("https://www.reddit.com/api/v1/access_token")
             .basic_auth(self.client_id.as_str(), Some(self.client_secret.as_str())) // basic http auth
             .header("Content-Type", "application/x-www-form-urlencoded")
@@ -88,7 +90,7 @@ impl RedditApp {
             .build()?;
 
         // Send the request and parse the response
-        let res = REQWEST_CLIENT
+        let res = http_client
             .execute(req)
             .await?
             .json::<RedditAccessToken>()
@@ -102,15 +104,16 @@ impl RedditApp {
 /// Multiplexes requests to the Reddit API between the clients.
 #[derive(Debug)]
 pub struct RedditConnection {
-    pub clients: HashMap<RedditApp, Option<RedditAccessToken>>,
-    access_token: Option<RedditAccessToken>,
+    client: RedditApp,
+    access_token: RedditAccessToken,
+    http: Client,
 }
 
 impl RedditConnection {
     /// Reddit API URL
     const API_HOSTNAME: &'static str = "oauth.reddit.com";
 
-    fn read_credentials() -> HashMap<RedditApp, Option<RedditAccessToken>> {
+    fn read_credentials() -> RedditApp {
         let root = get_project_root().expect("Should be able to determine project root");
         let path = PathBuf::from(root).join(".reddit-credentials.json");
         let file = File::open(path).expect("credentials should be present at backend root");
@@ -120,37 +123,32 @@ impl RedditConnection {
 
         println!("{:?}", serde_json::to_string_pretty(&json).unwrap());
 
-        // Parse the JSON into a collection of RedditApp clients
-        json.as_array()
-            .expect("credentials file should only contain an array")
-            .iter()
-            .map(|i: &Value| {
-                (
-                    serde_json::from_value::<RedditApp>(i.clone()).expect("Parsable client data"),
-                    None,
-                )
-            })
-            .collect()
+        let app_json = json
+            .as_array()
+            .expect("credentials contains an array")
+            .get(0)
+            .expect("At least one client")
+            .clone();
+
+        serde_json::from_value(app_json).expect("object is parsable into RedditApp")
     }
 
     /// Read credentials and create a collection of client authentication data
     /// from .reddit-credentials.json in backend root (src/backend/)
     pub fn new() -> RedditConnection {
-        let clients = Self::read_credentials();
-        assert!(!clients.is_empty());
+        let http = reqwest::ClientBuilder::new()
+            .user_agent("RMoods")
+            .build()
+            .expect("Build HTTP Client");
+        let client = Self::read_credentials();
+        let access_token =
+            block_on(client.fetch_access_token(&http)).expect("Fetch initial access token");
 
         RedditConnection {
-            clients,
-            access_token: None,
+            client,
+            access_token,
+            http,
         }
-    }
-
-    /// Determine which token (from which app) will be used for the next request
-    fn pick_app(&self) -> &RedditApp {
-        self.clients
-            .keys()
-            .next()
-            .expect("There is at least one client")
     }
 
     /// Execute a request to the Reddit API
@@ -158,18 +156,13 @@ impl RedditConnection {
     /// This is probably a temporary solution and I'll write specific methods for each API endpoint we need
     async fn execute(&mut self, mut req: Request) -> anyhow::Result<Response> {
         // If the current token is fine, use the current one. Otherwise fetch a new one and set it as the current
-        let token = match &self.access_token {
-            Some(t) if !t.is_expired() => t.clone(),
-            _ => {
-                warn!("Token invalid, refetching...");
-                let t = self.pick_app().fetch_access_token().await?;
-                self.access_token = Some(t.clone());
-                t
-            }
+        let token = if self.access_token.is_expired() {
+            warn!("Token expired, refetching...");
+            &self.client.fetch_access_token(&self.http).await?
+        } else {
+            debug!("Token still valid");
+            &self.access_token
         };
-        if token.is_expired() {
-            todo!("Handle expired tokens");
-        }
 
         // check if the request goes to the Reddit API
         assert!(req.url().domain().is_some_and(|d| d == Self::API_HOSTNAME));
@@ -181,7 +174,7 @@ impl RedditConnection {
             HeaderValue::from_str(&value).expect("Valid token to header conversion"),
         );
 
-        Ok(REQWEST_CLIENT.execute(req).await?)
+        Ok(self.http.execute(req).await?)
     }
 
     /// TODO
@@ -196,7 +189,7 @@ impl RedditConnection {
             subreddit,
             feed_sorting.as_str()
         );
-        let req = REQWEST_CLIENT.get(&url).build()?;
+        let req = .get(&url).build()?;
         self.execute(req).await
     }
 }
@@ -218,16 +211,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_all_apps_can_fetch_access_tokens() {
-        let conn = CONN.lock().unwrap();
-        for client in conn.clients.keys() {
-            let _ = client.fetch_access_token().await.unwrap();
-        }
+    async fn test_app_can_fetch_access_token() {
+        let conn = RedditConnection::new();
+        conn.client.fetch_access_token(&conn.http);
     }
 
     #[tokio::test]
     async fn test_fetch_subreddit() {
-        let mut conn = CONN.lock().unwrap();
+        let mut conn = RedditConnection::new();
         let res = conn
             .fetch_subreddit("all", FeedSorting::Hot)
             .await
@@ -242,7 +233,7 @@ mod tests {
     #[should_panic]
     async fn test_execute_invalid_hostname() {
         let mut conn = RedditConnection::new();
-        let req = REQWEST_CLIENT
+        let req = conn.http
             .get("https://www.reddit.com/api/v1/me")
             .build()
             .unwrap();
@@ -252,7 +243,7 @@ mod tests {
     #[tokio::test]
     async fn test_execute_valid_hostname() {
         let mut conn = RedditConnection::new();
-        let req = REQWEST_CLIENT
+        let req = conn.http
             .get("https://oauth.reddit.com/api/v1/me")
             .build()
             .unwrap();
