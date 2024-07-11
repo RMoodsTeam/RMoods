@@ -11,9 +11,9 @@ use tower_http::{
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-pub mod auth;
-pub mod reddit;
-pub mod api;
+mod auth;
+mod reddit;
+mod api;
 
 /// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
@@ -21,7 +21,7 @@ pub mod api;
 struct ApiDoc;
 
 /// The port on which the server starts.
-const PORT: u16 = 3000;
+const PORT: u16 = 8001;
 
 lazy_static::lazy_static! {
     /// The Reddit Connection used to aggregate clients and use their tokens

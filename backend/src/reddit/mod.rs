@@ -4,10 +4,7 @@ use project_root::get_project_root;
 use reqwest::{Request, Response};
 use serde::Deserialize;
 use serde_json::Value;
-use std::{
-    collections::HashMap, fs::File, io::BufReader, path::PathBuf,
-    time::SystemTime,
-};
+use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf, time::SystemTime};
 
 use crate::REQWEST_CLIENT;
 
@@ -58,7 +55,10 @@ impl RedditAccessToken {
     /// Check if the token is expired
     pub fn is_expired(&self) -> bool {
         let now = get_sys_time_in_secs();
-        debug!("Token created at: {}, expires in: {}. Now it's {}", self.created_at, self.expires_in, now);
+        debug!(
+            "Token created at: {}, expires in: {}. Now it's {}",
+            self.created_at, self.expires_in, now
+        );
         self.created_at + self.expires_in < now // expired if expiration date was before now
     }
     /// Get the token string
@@ -147,7 +147,10 @@ impl RedditConnection {
 
     /// Determine which token (from which app) will be used for the next request
     fn pick_app(&self) -> &RedditApp {
-        self.clients.keys().next().expect("There is at least one client")
+        self.clients
+            .keys()
+            .next()
+            .expect("There is at least one client")
     }
 
     /// Execute a request to the Reddit API
@@ -171,7 +174,6 @@ impl RedditConnection {
         // check if the request goes to the Reddit API
         assert!(req.url().domain().is_some_and(|d| d == Self::API_HOSTNAME));
 
-        
         // Authorize the request
         let value = format!("bearer {}", token.token);
         req.headers_mut().insert(
@@ -183,8 +185,17 @@ impl RedditConnection {
     }
 
     /// TODO
-    pub async fn fetch_subreddit(&mut self, subreddit: &str, feed_sorting: FeedSorting) -> anyhow::Result<Response> {
-        let url = format!("https://{}/r/{}/{}.json", Self::API_HOSTNAME, subreddit, feed_sorting.as_str());
+    pub async fn fetch_subreddit(
+        &mut self,
+        subreddit: &str,
+        feed_sorting: FeedSorting,
+    ) -> anyhow::Result<Response> {
+        let url = format!(
+            "https://{}/r/{}/{}.json",
+            Self::API_HOSTNAME,
+            subreddit,
+            feed_sorting.as_str()
+        );
         let req = REQWEST_CLIENT.get(&url).build()?;
         self.execute(req).await
     }
@@ -192,11 +203,11 @@ impl RedditConnection {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use lazy_static::lazy_static;
     use std::sync::Mutex;
-    use super::*;
 
-    lazy_static!{
+    lazy_static! {
         static ref CONN: Mutex<RedditConnection> = Mutex::new(RedditConnection::new());
     }
 
@@ -217,23 +228,34 @@ mod tests {
     #[tokio::test]
     async fn test_fetch_subreddit() {
         let mut conn = CONN.lock().unwrap();
-        let res = conn.fetch_subreddit("all", FeedSorting::Hot).await.unwrap().json::<Value>().await.unwrap();
+        let res = conn
+            .fetch_subreddit("all", FeedSorting::Hot)
+            .await
+            .unwrap()
+            .json::<Value>()
+            .await
+            .unwrap();
         println!("{:?}", res);
     }
-    
+
     #[tokio::test]
     #[should_panic]
     async fn test_execute_invalid_hostname() {
         let mut conn = RedditConnection::new();
-        let req = REQWEST_CLIENT.get("https://www.reddit.com/api/v1/me").build().unwrap();
+        let req = REQWEST_CLIENT
+            .get("https://www.reddit.com/api/v1/me")
+            .build()
+            .unwrap();
         conn.execute(req).await.unwrap();
     }
 
     #[tokio::test]
     async fn test_execute_valid_hostname() {
         let mut conn = RedditConnection::new();
-        let req = REQWEST_CLIENT.get("https://oauth.reddit.com/api/v1/me").build().unwrap();
+        let req = REQWEST_CLIENT
+            .get("https://oauth.reddit.com/api/v1/me")
+            .build()
+            .unwrap();
         conn.execute(req).await.unwrap();
     }
-    
 }
