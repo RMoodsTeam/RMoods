@@ -26,10 +26,6 @@ struct ApiDoc;
 const PORT: u16 = 8001;
 
 lazy_static::lazy_static! {
-    /// The Reddit Connection used to aggregate clients and use their tokens
-    static ref REDDIT_CONNECTION: reddit::RedditConnection = {
-        block_on(RedditConnection::new())
-    };
     static ref REQWEST_CLIENT: Client = reqwest::ClientBuilder::new().user_agent("RMoods").build().unwrap();
 }
 
