@@ -1,7 +1,9 @@
 use axum::{
     http::Method, routing::get, Json, Router
 };
+use futures::executor::block_on;
 use log::info;
+use reqwest::Client;
 use serde_json::{json, Value};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -9,16 +11,23 @@ use tower_http::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use reddit::RedditConnection;
 
 mod auth;
+mod reddit;
+mod api;
 
 /// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
-#[openapi(paths(hello))]
+#[openapi(paths(hello, api::test::lorem, api::test::timeout))]
 struct ApiDoc;
 
 /// The port on which the server starts.
-const PORT: u16 = 3000;
+const PORT: u16 = 8001;
+
+lazy_static::lazy_static! {
+    static ref REQWEST_CLIENT: Client = reqwest::ClientBuilder::new().user_agent("RMoods").build().unwrap();
+}
 
 /// Returns a welcome message and a link to our documentation
 #[utoipa::path(
@@ -39,11 +48,11 @@ async fn hello() -> Json<Value> {
 /// Entry point of the RMoods server.
 /// Initializes the HTTP server and runs it.
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
-    std::env::set_var("RUST_BACKTRACE", "1");
+    std::env::set_var("RUST_BACKTRACE", "0");
     env_logger::init();
-
+    
     // Allow browsers to use GET and PUT from any origin
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::PUT])
@@ -52,9 +61,11 @@ async fn main() -> std::io::Result<()> {
     // Add logging
     let tracing = TraceLayer::new_for_http();
 
+    // Routes after the layers won't have the layers applied
     let app = Router::new()
         .route("/", get(hello))
         .nest("/auth", auth::router())
+        .nest("/api", api::router())
         .layer(tracing)
         .layer(cors)
         .merge(SwaggerUi::new("/doc/ui").url("/doc/api.json", ApiDoc::openapi()));
@@ -68,12 +79,4 @@ async fn main() -> std::io::Result<()> {
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn example_test() {
-        assert_eq!(2 + 2, 4);
-    }
 }
