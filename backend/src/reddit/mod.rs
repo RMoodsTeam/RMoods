@@ -195,7 +195,7 @@ mod tests {
 
     #[test]
     fn test_read_credentials() {
-        let _ = RedditConnection::read_credentials();
+        let x = RedditConnection::read_credentials();
     }
 
     #[tokio::test]
