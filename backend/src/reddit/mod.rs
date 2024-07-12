@@ -68,7 +68,7 @@ impl RedditAccessToken {
 
 /// Reddit app data.
 /// Contains a client_id and client_secret pair.
-/// Used to authenticate with the Reddit API, we make many of them to avoid rate limiting.
+/// Used to authenticate with the Reddit API.
 #[derive(Debug, Deserialize, Hash, PartialEq, Eq, Clone)]
 pub struct RedditApp {
     pub client_id: String,
