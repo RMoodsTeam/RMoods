@@ -36,7 +36,9 @@ impl IntoResponse for AppError {
 impl From<RedditError> for AppError {
     fn from(value: RedditError) -> Self {
         match &value {
-            RedditError::ResourceNotFound(res) => AppError::new(StatusCode::NOT_FOUND, value.to_string()),
+            RedditError::ResourceNotFound(res) => {
+                AppError::new(StatusCode::NOT_FOUND, value.to_string())
+            }
             _ => AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error"),
         }
     }

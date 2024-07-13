@@ -1,16 +1,15 @@
 use axum::http::HeaderValue;
-use futures::executor::block_on;
 use log::{debug, warn};
 use project_root::get_project_root;
 use reqwest::{Client, Request, Response};
 use serde::Deserialize;
 use serde_json::Value;
-use std::{
-    collections::HashMap, fs::File, io::BufReader, mem::MaybeUninit, path::PathBuf,
-    time::SystemTime,
-};
+use std::{fs::File, io::BufReader, path::PathBuf, time::SystemTime};
 
-use self::reddit_error::RedditError;
+use self::{
+    model::{post::RedditPost, subreddit::RedditSubreddit},
+    reddit_error::RedditError,
+};
 
 pub mod model;
 pub mod reddit_error;
@@ -139,16 +138,10 @@ impl RedditConnection {
     /// Read credentials and create a collection of client authentication data
     /// from .reddit-credentials.json in backend root (src/backend/)
     pub async fn new() -> Result<RedditConnection, RedditError> {
-        let http = reqwest::ClientBuilder::new()
-            .user_agent("RMoods")
-            .build()
-            .expect("Build HTTP Client");
+        let http = reqwest::ClientBuilder::new().user_agent("RMoods").build()?;
+
         let client = Self::read_credentials()?;
-        let access_token = client
-            .fetch_access_token(&http)
-            .await
-            .expect("Fetch initial token");
-        println!("Before access token");
+        let access_token = client.fetch_access_token(&http).await?;
 
         Ok(RedditConnection {
             client,
@@ -194,16 +187,25 @@ impl RedditConnection {
         let req = self.http.get(&url).build()?;
         self.execute(req).await
     }
+
+    pub async fn fetch_subreddit_info(sub_name: String) -> Result<RedditSubreddit, RedditError> {
+        todo!()
+    }
+    pub async fn fetch_subreddit_posts(sub_name: String) -> Result<Vec<RedditPost>, RedditError> {
+        todo!()
+    }
+    pub async fn fetch_user_posts(username: String) -> Result<Vec<RedditPost>, RedditError> {
+        todo!()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use lazy_static::lazy_static;
 
     #[test]
     fn test_read_credentials() {
-        let x = RedditConnection::read_credentials().unwrap();
+        let _ = RedditConnection::read_credentials().unwrap();
     }
 
     #[tokio::test]

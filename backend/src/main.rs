@@ -1,8 +1,6 @@
-use axum::{
-    http::Method, routing::get, Json, Router
-};
-use futures::executor::block_on;
+use axum::{http::Method, routing::get, Json, Router};
 use log::info;
+use reddit::RedditConnection;
 use reqwest::Client;
 use serde_json::{json, Value};
 use tower_http::{
@@ -12,10 +10,10 @@ use tower_http::{
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-mod auth;
-mod reddit;
 mod api;
 mod app_error;
+mod auth;
+mod reddit;
 
 /// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
@@ -52,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "0");
     env_logger::init();
-    
+
     // Allow browsers to use GET and PUT from any origin
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::PUT])
@@ -74,6 +72,8 @@ async fn main() -> anyhow::Result<()> {
     let addr = format!("0.0.0.0:{PORT}");
 
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+
+    let _reddit_client = RedditConnection::new().await.unwrap();
 
     info!("Starting the RMoods server at {}", addr);
     axum::serve(listener, app).await.unwrap();
