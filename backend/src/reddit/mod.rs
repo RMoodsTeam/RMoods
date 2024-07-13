@@ -5,9 +5,15 @@ use project_root::get_project_root;
 use reqwest::{Client, Request, Response};
 use serde::Deserialize;
 use serde_json::Value;
-use std::{collections::HashMap, fs::File, io::BufReader, mem::MaybeUninit, path::PathBuf, time::SystemTime};
+use std::{
+    collections::HashMap, fs::File, io::BufReader, mem::MaybeUninit, path::PathBuf,
+    time::SystemTime,
+};
+
+use self::reddit_error::RedditError;
 
 pub mod model;
+pub mod reddit_error;
 
 pub enum FeedSorting {
     Hot,
@@ -80,7 +86,7 @@ impl RedditApp {
     pub async fn fetch_access_token(
         &self,
         http_client: &Client,
-    ) -> anyhow::Result<RedditAccessToken> {
+    ) -> Result<RedditAccessToken, RedditError> {
         let req = http_client
             .post("https://www.reddit.com/api/v1/access_token")
             .basic_auth(self.client_id.as_str(), Some(self.client_secret.as_str())) // basic http auth
@@ -113,40 +119,42 @@ impl RedditConnection {
     /// Reddit API URL
     const API_HOSTNAME: &'static str = "oauth.reddit.com";
 
-    fn read_credentials() -> RedditApp {
-        let root = get_project_root().expect("Should be able to determine project root");
+    fn read_credentials() -> Result<RedditApp, RedditError> {
+        let root = get_project_root()?;
         let path = PathBuf::from(root).join(".reddit-credentials.json");
-        let file = File::open(path).expect("credentials should be present at backend root");
+        let file = File::open(path)?;
         let reader = BufReader::new(file);
-        let json: Value =
-            serde_json::from_reader(reader).expect("credentials should be valid JSON");
+        let json: Value = serde_json::from_reader(reader)?;
 
         let app_json = json
             .as_array()
-            .expect("credentials contains an array")
+            .ok_or(RedditError::MalformedCredentials)?
             .get(0)
-            .expect("At least one client")
+            .ok_or(RedditError::NoClientsInCredentials)?
             .clone();
 
-        serde_json::from_value(app_json).expect("object is parsable into RedditApp")
+        Ok(serde_json::from_value(app_json)?)
     }
 
     /// Read credentials and create a collection of client authentication data
     /// from .reddit-credentials.json in backend root (src/backend/)
-    pub async fn new() -> RedditConnection {
+    pub async fn new() -> Result<RedditConnection, RedditError> {
         let http = reqwest::ClientBuilder::new()
             .user_agent("RMoods")
             .build()
             .expect("Build HTTP Client");
-        let client = Self::read_credentials();
-        let access_token = client.fetch_access_token(&http).await.expect("Fetch initial token");
+        let client = Self::read_credentials()?;
+        let access_token = client
+            .fetch_access_token(&http)
+            .await
+            .expect("Fetch initial token");
         println!("Before access token");
 
-        RedditConnection {
+        Ok(RedditConnection {
             client,
             access_token,
             http,
-        }
+        })
     }
 
     /// Execute a request to the Reddit API
@@ -195,20 +203,20 @@ mod tests {
 
     #[test]
     fn test_read_credentials() {
-        let x = RedditConnection::read_credentials();
+        let x = RedditConnection::read_credentials().unwrap();
     }
 
     #[tokio::test]
     async fn test_app_can_fetch_access_token() {
         println!("Start");
-        let conn = RedditConnection::new().await;
+        let conn = RedditConnection::new().await.unwrap();
         println!("Conn created");
         let _ = conn.client.fetch_access_token(&conn.http).await;
     }
 
     #[tokio::test]
     async fn test_fetch_subreddit() {
-        let mut conn = RedditConnection::new().await;
+        let mut conn = RedditConnection::new().await.unwrap();
         let _ = conn
             .fetch_subreddit("all", FeedSorting::Hot)
             .await
@@ -221,8 +229,9 @@ mod tests {
     #[tokio::test]
     #[should_panic]
     async fn test_execute_invalid_hostname() {
-        let mut conn = RedditConnection::new().await;
-        let req = conn.http
+        let mut conn = RedditConnection::new().await.unwrap();
+        let req = conn
+            .http
             .get("https://www.reddit.com/api/v1/me")
             .build()
             .unwrap();
@@ -231,8 +240,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute_valid_hostname() {
-        let mut conn = RedditConnection::new().await;
-        let req = conn.http
+        let mut conn = RedditConnection::new().await.unwrap();
+        let req = conn
+            .http
             .get("https://oauth.reddit.com/api/v1/me")
             .build()
             .unwrap();

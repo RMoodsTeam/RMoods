@@ -11,11 +11,11 @@ use tower_http::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-use reddit::RedditConnection;
 
 mod auth;
 mod reddit;
 mod api;
+mod app_error;
 
 /// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
