@@ -10,3 +10,10 @@ src/.pytest_cache
 # Tests folder
 tests/__pycache__
 tests/.pytest_cache
+
+# Python virtual environment
+venv/
+.venv/
+
+# File types
+*.json
