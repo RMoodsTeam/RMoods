@@ -2,39 +2,15 @@ use log::{debug, info, warn};
 use log_derive::logfn;
 use project_root::get_project_root;
 use reqwest::Client;
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::Deserialize;
 use serde_json::Value;
 use std::{fs::File, io::BufReader, path::PathBuf, time::SystemTime};
 
-use self::{
-    model::{post::RedditPost, subreddit::RedditSubreddit},
-    reddit_error::RedditError,
-};
+use self::reddit_error::RedditError;
 
 pub mod model;
 pub mod reddit_error;
 mod tests;
-
-#[derive(Debug, Clone)]
-pub enum FeedSorting {
-    Hot,
-    New,
-    Top,
-    Rising,
-    Controversial,
-}
-
-impl FeedSorting {
-    pub const fn as_str(&self) -> &str {
-        match self {
-            FeedSorting::Hot => "hot",
-            FeedSorting::New => "new",
-            FeedSorting::Top => "top",
-            FeedSorting::Rising => "rising",
-            FeedSorting::Controversial => "controversial",
-        }
-    }
-}
 
 /// Get the current system time in seconds since UNIX EPOCH
 fn get_sys_time_in_secs() -> u64 {
@@ -109,7 +85,7 @@ impl RedditApp {
 /// Enum representing a request to the Reddit API
 /// We can request information about a subreddit, posts from a subreddit, posts from a user, or information about a user
 #[derive(Debug)]
-enum RedditRequest {
+pub enum RedditRequest {
     SubredditPosts(String),
     SubredditInfo(String),
     UserPosts(String),
@@ -119,15 +95,11 @@ enum RedditRequest {
 /// Manages a collection of RedditApp clients and their access tokens.
 ///
 /// Multiplexes requests to the Reddit API between the clients.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RedditConnection {
     client: RedditApp,
     access_token: RedditAccessToken,
     http: Client,
-}
-
-trait RedditRequestable {
-    fn url(&self) -> String;
 }
 
 impl RedditRequest {
@@ -191,9 +163,10 @@ impl RedditConnection {
     }
 
     /// Execute a request to the Reddit API
+    ///
+    /// Temporarily public for testing
     #[logfn(err = "ERROR", fmt = "Failed to execute request: {:?}")]
-    async fn fetch_raw(&mut self, request: RedditRequest) -> Result<Value, RedditError>
-    {
+    pub async fn fetch_raw(&mut self, request: RedditRequest) -> Result<Value, RedditError> {
         if self.access_token.is_expired() {
             warn!("Access token expired, fetching new one");
             self.access_token = self.client.fetch_access_token(&self.http).await?;

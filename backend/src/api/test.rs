@@ -1,10 +1,13 @@
-use axum::{extract::Query, Json};
+use axum::{
+    extract::{Query, State},
+    Json,
+};
 use lipsum::lipsum;
 use log_derive::logfn;
 use reqwest::StatusCode;
 use serde_json::{json, Value};
 
-use crate::app_error::AppError;
+use crate::{app_error::AppError, reddit::{model::subreddit::{RedditSubredditInfo, RedditSubredditInfoWrapped}, RedditRequest}, AppState};
 
 use super::PlainParams;
 
@@ -67,4 +70,19 @@ pub async fn lorem(Query(params): Query<PlainParams>) -> Result<Json<Value>, App
         "t": t
     })
     .into())
+}
+
+pub async fn subreddit_info(
+    State(mut state): State<AppState>,
+    Query(params): Query<PlainParams>,
+) -> Result<Json<RedditSubredditInfo>, AppError> {
+    let subreddit = params
+        .get("r")
+        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
+    let req = RedditRequest::SubredditInfo(subreddit.into());
+    let json = state.reddit.fetch_raw(req).await?;
+
+    let info = serde_json::from_value::<RedditSubredditInfoWrapped>(json).unwrap();
+    
+    Ok(Json(info.data))
 }

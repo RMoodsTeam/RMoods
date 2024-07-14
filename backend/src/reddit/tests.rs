@@ -2,8 +2,8 @@
 mod tests {
     use lazy_static::lazy_static;
     use reqwest::{Client, ClientBuilder};
-
-    use crate::reddit::{model::subreddit::RedditSubreddit, RedditConnection, RedditRequest};
+    
+    use crate::reddit::{RedditConnection, RedditRequest};
 
     lazy_static! {
         static ref HTTP: Client = ClientBuilder::new().user_agent("RMoods").build().unwrap();

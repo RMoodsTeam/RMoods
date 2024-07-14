@@ -2,10 +2,15 @@
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedditSubredditInfoWrapped {
+    pub data: RedditSubredditInfo
+}
+
 /// Reddit subreddit data
 /// https://www.reddit.com/r/Polska/about.json
-#[derive(Getters, Debug, Hash, Eq, PartialEq, Clone, Serialize, Deserialize)]
-pub struct RedditSubreddit {
+#[derive(Getters, Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct RedditSubredditInfo {
     /// eg. Polska
     display_name: String,
     /// tagline, eg. "Polski Subreddit"
@@ -27,7 +32,7 @@ pub struct RedditSubreddit {
     /// Banner background image, link needs to be parsed to get the actual image
     banner_background_image: String,
     /// UNIX timestamp of the subreddit creation
-    created_utc: u32,
+    created_utc: f32,
     /// Fullname of the subreddit creator, eg. t2_1w72
     id: String,
     /// Language of the subreddit, eg. pl
