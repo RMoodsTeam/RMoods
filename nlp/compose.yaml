@@ -3,4 +3,4 @@ services:
     build:
       context: .
     ports:
-      - 8010:8010
+      - 8002:8002

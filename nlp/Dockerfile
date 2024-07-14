@@ -20,7 +20,7 @@ COPY . .
 RUN pip install -r requirements.txt
 
 # Expose the port that the application listens on.
-EXPOSE 8010
+EXPOSE 8002
 
 # Run the application.
 CMD ["python", "src/main.py"]
