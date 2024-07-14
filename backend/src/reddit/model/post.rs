@@ -1,6 +1,20 @@
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RedditRawPosts {
+    after: Option<String>,
+    dist: u32,
+    children: Vec<RedditRawPost>,
+    before: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RedditRawPost {
+    #[serde(flatten)]
+    data: RedditPost,
+}
+
 /// Contains some properties of a Reddit post. For some real-world examples see
 /// [this r/Polska request.](https://www.reddit.com/r/Polska.json)
 #[derive(Getters, Debug, Hash, Eq, PartialEq, Clone, Serialize, Deserialize)]

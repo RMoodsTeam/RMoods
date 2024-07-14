@@ -71,12 +71,12 @@ async fn main() -> anyhow::Result<()> {
     // Listen on all addresses
     let addr = format!("0.0.0.0:{PORT}");
 
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
 
-    let _reddit_client = RedditConnection::new().await.unwrap();
+    let _reddit_client = RedditConnection::new(REQWEST_CLIENT.clone()).await?;
 
     info!("Starting the RMoods server at {}", addr);
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app).await?;
 
     Ok(())
 }

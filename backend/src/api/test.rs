@@ -1,5 +1,6 @@
 use axum::{extract::Query, Json};
 use lipsum::lipsum;
+use log_derive::logfn;
 use reqwest::StatusCode;
 use serde_json::{json, Value};
 
@@ -19,6 +20,7 @@ use super::PlainParams;
         ("t" = u64, description = "Time to wait in seconds", nullable = false)
     )
 )]
+#[logfn(err = "ERROR", fmt = "'timeout' failed: {:?}")]
 pub async fn timeout(Query(params): Query<PlainParams>) -> Result<Json<Value>, AppError> {
     let t = params
         .get("t")
@@ -46,6 +48,7 @@ pub async fn timeout(Query(params): Query<PlainParams>) -> Result<Json<Value>, A
         ("t" = u64, description = "Time to wait in seconds", nullable = true)
     )
 )]
+#[logfn(err = "ERROR", fmt = "'lorem' failed: {:?}")]
 pub async fn lorem(Query(params): Query<PlainParams>) -> Result<Json<Value>, AppError> {
     let words = params
         .get("words")
