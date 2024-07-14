@@ -3,43 +3,51 @@ import json
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    """
-    This function is called when a GET or POST request is made to the / URL.
-
-    Returns:
-        str: A message indicating the success of the operation.
-    """
-    return 'Hello, World!'
-
 
 @app.route('/json', methods=['GET'])
-def get_json_file():
+def get_json_data():
     """
     This function is called when a GET request is made to the /json URL.
     It reads the JSON data from the request and write it to the file.
 
-    Returns:
-        dict: The data processed by certain function.
+    :return: The data processed by certain function.
     """
     data = request.get_json()
-    with open('data.json', 'w') as f:
-        f.write(json.dumps(data))
-    
     data = process_data(data)
     return jsonify(data)
+
+
+@app.errorhandler(415)
+def unsupported_media_type(error):
+    """
+    This function is called when a 415 error occurs.
+
+    :param error: The error message.
+
+    :return: The error message.
+    """
+    return jsonify({'error': 'Unsupported media type'}), 415
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    """
+    This function is called when a 404 error occurs.
+
+    :param error: The error message.
+
+    :return: The error message.
+    """
+    return jsonify({'error': 'Page not found'}), 404
 
 
 def process_data(data):
     """
     This function processes the data and returns the result.
 
-    Args:
-        data (dict): The data to be processed.
+    :param data: The json data to be processed by function.
 
-    Returns:
-        dict: The processed data.
+    :return: The processed data.
     """
     data['Modified'] = "Yes"
     return data
