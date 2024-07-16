@@ -3,7 +3,8 @@ use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RedditSubredditInfoWrapped {
+pub struct RedditSubredditInfoRaw {
+    pub kind: String,
     pub data: RedditSubredditInfo
 }
 

@@ -1,5 +1,3 @@
-pub mod router;
-
 use axum::Router;
 
 use crate::AppState;

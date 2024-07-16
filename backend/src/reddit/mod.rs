@@ -90,6 +90,7 @@ pub enum RedditRequest {
     SubredditInfo(String),
     UserPosts(String),
     UserInfo(String),
+    PostComments { subreddit: String, post_id: String },
 }
 
 /// Manages a collection of RedditApp clients and their access tokens.
@@ -118,6 +119,9 @@ impl RedditRequest {
             }
             R::UserInfo(username) => {
                 format!("https://{}/user/{}/about.json", host, username)
+            },
+            R::PostComments { subreddit, post_id } => {
+                format!("https://{}/r/{}/comments/{}.json", host, subreddit, post_id)
             }
         }
     }

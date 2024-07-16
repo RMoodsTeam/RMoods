@@ -1,23 +1,9 @@
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RedditRawPosts {
-    after: Option<String>,
-    dist: u32,
-    children: Vec<RedditRawPost>,
-    before: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RedditRawPost {
-    #[serde(flatten)]
-    data: RedditPost,
-}
-
 /// Contains some properties of a Reddit post. For some real-world examples see
 /// [this r/Polska request.](https://www.reddit.com/r/Polska.json)
-#[derive(Getters, Debug, Hash, Eq, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Getters, Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct RedditPost {
     /// eg. Polska
     subreddit: String,
@@ -32,7 +18,7 @@ pub struct RedditPost {
     /// Upvotes - downvotes
     score: i64,
     /// UNIX timestamp of the post creation
-    created_utc: u32,
+    created_utc: f32,
     /// Is the post NSFW?
     /// This is inconsistent with the `over18` field in RedditSubreddit. THIS IS INTENTED AND CORRECT.
     over_18: bool,
