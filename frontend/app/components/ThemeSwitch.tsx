@@ -1,37 +1,44 @@
 "use client";
 import React from "react";
 
+/**
+ * TODO: Refactor
+ * function to switch themes, uses localStorage
+ * checks if there is a theme named dark or if there is no theme variable
+ * @returns void
+ */
 function switchThemes() {
-  // TODO: On page load or when changing themes, best to add inline in `head` to avoid FOUC
-  if (
-    localStorage.theme === "dark" ||
-    (!("theme" in localStorage) &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
-  ) {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
+  // if (
+  //   localStorage.theme === "dark" ||
+  //   (!("theme" in localStorage) &&
+  //     window.matchMedia("(prefers-color-scheme: dark)").matches)
+  // ) {
+  //   document.documentElement.classList.add("dark");
+  // } else {
+  //   document.documentElement.classList.remove("dark");
+  // }
   if (localStorage.theme === "dark") {
-    localStorage.theme = "light";
+    localStorage.removeItem("theme");
+    document.documentElement.classList.remove("dark");
   } else {
     localStorage.theme = "dark";
+    document.documentElement.classList.add("dark");
   }
-  console.log(localStorage.theme);
 }
 
+/**
+ * Renders button that switches themes
+ */
 const ThemeSwitch = () => {
   return (
-    <>
-      <button
-        className="bg-primary-light dark:bg-primary-dark"
-        onClick={() => {
-          switchThemes();
-        }}
-      >
-        Change theme here!
-      </button>
-    </>
+    <button
+      className="bg-primary-light dark:bg-primary-dark"
+      onClick={() => {
+        switchThemes();
+      }}
+    >
+      Change theme here!
+    </button>
   );
 };
 
