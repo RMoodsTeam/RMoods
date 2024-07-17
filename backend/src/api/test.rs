@@ -1,9 +1,11 @@
+use std::time::SystemTime;
+
 use axum::{
     extract::{Query, State},
     Json,
 };
 use lipsum::lipsum;
-use log::warn;
+use log::{info, warn};
 use log_derive::logfn;
 use reqwest::StatusCode;
 use serde_json::{json, Value};
@@ -98,46 +100,30 @@ pub async fn subreddit_info(
     Ok(Json(info.data))
 }
 
-type R = Vec<KindContainer>;
-
 pub async fn subreddit_comments(
     State(mut state): State<AppState>,
     Query(params): Query<PlainParams>,
-) -> Result<Json<R>, AppError> {
+) -> Result<Json<Vec<KindContainer>>, AppError> {
     let r = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?
         .to_string();
 
-    let p = params
-        .get("p")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `post` parameter"))?
+    let id = params
+        .get("id")
+        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `id` parameter"))?
         .to_string();
 
     let req = RedditRequest::PostComments {
         subreddit: r,
-        post_id: p,
+        post_id: id,
     };
 
     let json = state.reddit.fetch_raw(req).await?;
-    warn!("Fetched");
 
-    let val = serde_json::from_value::<R>(json).unwrap();
+    let start = SystemTime::now();
+    let val = serde_json::from_value(json).unwrap();
+    let elapsed = SystemTime::now().duration_since(start).unwrap();
+    info!("Data parsed successfully. Took {:?}", elapsed);
     Ok(Json(val))
-
-    // let post_json = json.as_array().unwrap().get(0).unwrap();
-
-    // let parsed = serde_json::from_value::<P>(post_json.clone()).expect("Parse post");
-
-    // let comments_json = json.as_array().unwrap().get(1).unwrap();
-
-    // // Write the comments to a file
-    // let s = serde_json::to_string_pretty(comments_json).unwrap();
-    // let file = std::fs::File::create("comments.json").unwrap();
-    // let mut writer = std::io::BufWriter::new(file);
-    // writer.write_all(s.as_bytes()).unwrap();
-    // writer.flush().unwrap();
-    // warn!("Wrote comments to file");
-
-    // let comments_container = serde_json::from_value(comments_json.clone()).unwrap();
 }

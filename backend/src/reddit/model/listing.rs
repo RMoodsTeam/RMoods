@@ -18,7 +18,7 @@ pub enum KindContainer {
     T2(Value), // Account TODO
 
     #[serde(rename = "t3")]
-    T3(RedditPost), // Link/Post
+    T3(Box<RedditPost>), // Link/Post
 
     #[serde(rename = "t4")]
     T4(Value), // Message TODO

@@ -119,7 +119,7 @@ impl RedditRequest {
             }
             R::UserInfo(username) => {
                 format!("https://{}/user/{}/about.json", host, username)
-            },
+            }
             R::PostComments { subreddit, post_id } => {
                 format!("https://{}/r/{}/comments/{}.json", host, subreddit, post_id)
             }
@@ -141,7 +141,7 @@ impl RedditConnection {
         let app_json = json
             .as_array()
             .ok_or(RedditError::MalformedCredentials)?
-            .get(0)
+            .first()
             .ok_or(RedditError::NoClientsInCredentials)?
             .clone();
 
@@ -178,16 +178,18 @@ impl RedditConnection {
         }
 
         let url = request.url();
-
         info!("Fetching data from: {}", url);
+
         let req = self
             .http
             .get(url)
             .bearer_auth(&self.access_token.token)
             .build()?;
 
+        let start = SystemTime::now();
         let res = self.http.execute(req).await?.json().await?;
-        info!("Data fetched successfully");
+        let elapsed = SystemTime::now().duration_since(start).unwrap();
+        info!("Data fetched successfully. Took {:?}", elapsed);
         Ok(res)
     }
 }
