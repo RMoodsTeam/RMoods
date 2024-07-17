@@ -1,9 +1,7 @@
-use axum::{
-    http::Method, routing::get, Json, Router
-};
-use futures::executor::block_on;
+use axum::{http::Method, routing::get, Json, Router};
 use log::info;
-use reqwest::Client;
+use reddit::RedditConnection;
+use reqwest::{Client, StatusCode};
 use serde_json::{json, Value};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -11,11 +9,11 @@ use tower_http::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-use reddit::RedditConnection;
 
+mod api;
+mod app_error;
 mod auth;
 mod reddit;
-mod api;
 
 /// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
@@ -45,6 +43,11 @@ async fn hello() -> Json<Value> {
     .into()
 }
 
+#[derive(Clone)]
+pub struct AppState {
+    pub reddit: RedditConnection,
+}
+
 /// Entry point of the RMoods server.
 /// Initializes the HTTP server and runs it.
 #[tokio::main]
@@ -52,7 +55,7 @@ async fn main() -> anyhow::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "0");
     env_logger::init();
-    
+
     // Allow browsers to use GET and PUT from any origin
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::PUT])
@@ -61,11 +64,16 @@ async fn main() -> anyhow::Result<()> {
     // Add logging
     let tracing = TraceLayer::new_for_http();
 
+    let state = AppState {
+        reddit: RedditConnection::new(REQWEST_CLIENT.clone()).await?
+    };
+
     // Routes after the layers won't have the layers applied
-    let app = Router::new()
+    let app = Router::<AppState>::new()
         .route("/", get(hello))
         .nest("/auth", auth::router())
         .nest("/api", api::router())
+        .with_state(state)
         .layer(tracing)
         .layer(cors)
         .merge(SwaggerUi::new("/doc/ui").url("/doc/api.json", ApiDoc::openapi()));
@@ -73,10 +81,10 @@ async fn main() -> anyhow::Result<()> {
     // Listen on all addresses
     let addr = format!("0.0.0.0:{PORT}");
 
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
 
     info!("Starting the RMoods server at {}", addr);
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app).await?;
 
     Ok(())
 }

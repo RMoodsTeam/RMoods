@@ -1,7 +1,7 @@
-pub mod router;
-
 use axum::Router;
 
-pub fn router() -> Router {
-    Router::new()
+use crate::AppState;
+
+pub fn router() -> Router<AppState> {
+    Router::<AppState>::new()
 }
