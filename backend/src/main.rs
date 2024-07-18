@@ -1,6 +1,6 @@
 use axum::{http::Method, routing::get, Json, Router};
 use log::info;
-use reddit::RedditConnection;
+use reddit::{RedditConnection, RedditApp};
 use reqwest::{Client, StatusCode};
 use serde_json::{json, Value};
 use tower_http::{
@@ -55,6 +55,8 @@ async fn main() -> anyhow::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "0");
     env_logger::init();
+
+    dotenvy::dotenv().expect(".env file not found");
 
     // Allow browsers to use GET and PUT from any origin
     let cors = CorsLayer::new()

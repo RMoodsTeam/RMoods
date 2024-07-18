@@ -59,8 +59,15 @@ pub struct RedditApp {
 }
 
 impl RedditApp {
+    pub fn new(client_id: String, client_secret: String) -> Self {
+        RedditApp {
+            client_id,
+            client_secret,
+        }
+    }
+    
     /// Fetch an access token from the Reddit API for that particular app
-    pub async fn fetch_access_token(
+    async fn fetch_access_token(
         &self,
         http_client: &Client,
     ) -> Result<RedditAccessToken, RedditError> {
@@ -131,38 +138,40 @@ impl RedditConnection {
     /// Reddit API URL
     const API_HOSTNAME: &'static str = "oauth.reddit.com";
 
-    fn read_credentials() -> Result<RedditApp, RedditError> {
-        let root = get_project_root()?;
-        let path = PathBuf::from(root).join(".reddit-credentials.json");
-        let file = File::open(path)?;
-        let reader = BufReader::new(file);
-        let json: Value = serde_json::from_reader(reader)?;
+    // fn read_credentials() -> Result<RedditApp, RedditError> {
+    //     let root = get_project_root()?;
+    //     let path = PathBuf::from(root).join(".reddit-credentials.json");
+    //     let file = File::open(path)?;
+    //     let reader = BufReader::new(file);
+    //     let json: Value = serde_json::from_reader(reader)?;
 
-        let app_json = json
-            .as_array()
-            .ok_or(RedditError::MalformedCredentials)?
-            .first()
-            .ok_or(RedditError::NoClientsInCredentials)?
-            .clone();
+    //     let app_json = json
+    //         .as_array()
+    //         .ok_or(RedditError::MalformedCredentials)?
+    //         .first()
+    //         .ok_or(RedditError::NoClientsInCredentials)?
+    //         .clone();
 
-        Ok(serde_json::from_value(app_json)?)
-    }
+    //     Ok(serde_json::from_value(app_json)?)
+    // }
 
     /// Read credentials and create a collection of client authentication data
     /// from .reddit-credentials.json in backend root (src/backend/)
     #[logfn(err = "ERROR", fmt = "Failed to create RedditConnection: {:?}")]
-    pub async fn new(http_client: Client) -> Result<RedditConnection, RedditError> {
-        info!("Reading credentials from file");
-        let client = Self::read_credentials()?;
+    pub async fn new(http: Client) -> Result<RedditConnection, RedditError> {
+        let id = std::env::var("CLIENT_ID").expect("CLIENT_ID should be set");
+        let secret = std::env::var("CLIENT_SECRET").expect("CLIENT_SECRET should be set");
+        
+        let client = RedditApp::new(id, secret);
 
         info!("Fetching initial access token");
-        let access_token = client.fetch_access_token(&http_client).await?;
+        let access_token = client.fetch_access_token(&http).await?;
         info!("Done fetching access token");
 
         Ok(RedditConnection {
             client,
             access_token,
-            http: http_client,
+            http
         })
     }
 
