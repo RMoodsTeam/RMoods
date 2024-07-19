@@ -8,9 +8,9 @@ import React from "react";
  */
 function switchThemes() {
   if (localStorage.theme === "dark") {
-    localStorage.removeItem("theme");
+    localStorage.theme = "light";
     document.documentElement.classList.remove("dark");
-  } else {
+  } else if (localStorage.theme === "light") {
     localStorage.theme = "dark";
     document.documentElement.classList.add("dark");
   }
