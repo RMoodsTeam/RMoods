@@ -1,10 +1,9 @@
 use log::{debug, info, warn};
 use log_derive::logfn;
-use project_root::get_project_root;
 use reqwest::Client;
 use serde::Deserialize;
 use serde_json::Value;
-use std::{fs::File, io::BufReader, path::PathBuf, time::SystemTime};
+use std::time::SystemTime;
 
 use self::reddit_error::RedditError;
 
@@ -42,10 +41,6 @@ impl RedditAccessToken {
             self.created_at, self.expires_in, now
         );
         self.created_at + self.expires_in < now // expired if expiration date was before now
-    }
-    /// Get the token string
-    pub fn token(&self) -> String {
-        self.token.clone()
     }
 }
 
@@ -137,24 +132,7 @@ impl RedditRequest {
 impl RedditConnection {
     /// Reddit API URL
     const API_HOSTNAME: &'static str = "oauth.reddit.com";
-
-    // fn read_credentials() -> Result<RedditApp, RedditError> {
-    //     let root = get_project_root()?;
-    //     let path = PathBuf::from(root).join(".reddit-credentials.json");
-    //     let file = File::open(path)?;
-    //     let reader = BufReader::new(file);
-    //     let json: Value = serde_json::from_reader(reader)?;
-
-    //     let app_json = json
-    //         .as_array()
-    //         .ok_or(RedditError::MalformedCredentials)?
-    //         .first()
-    //         .ok_or(RedditError::NoClientsInCredentials)?
-    //         .clone();
-
-    //     Ok(serde_json::from_value(app_json)?)
-    // }
-
+    
     /// Read credentials and create a collection of client authentication data
     /// from .reddit-credentials.json in backend root (src/backend/)
     #[logfn(err = "ERROR", fmt = "Failed to create RedditConnection: {:?}")]

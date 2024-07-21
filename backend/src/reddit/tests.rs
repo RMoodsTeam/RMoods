@@ -12,7 +12,7 @@ mod tests {
     
     fn init() {
         INIT.call_once(|| {
-            dotenvy::dotenv().unwrap();
+            let _ = dotenvy::dotenv();
         })
     }
 
