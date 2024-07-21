@@ -22,6 +22,7 @@ function switchThemes() {
 const ThemeSwitch = () => {
   return (
     <button
+      id="theme-switch"
       className="bg-primary-light dark:bg-primary-dark"
       onClick={() => {
         switchThemes();
