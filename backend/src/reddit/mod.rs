@@ -139,6 +139,9 @@ impl RedditConnection {
     pub async fn new(http: Client) -> Result<RedditConnection, RedditError> {
         let id = std::env::var("CLIENT_ID").expect("CLIENT_ID should be set");
         let secret = std::env::var("CLIENT_SECRET").expect("CLIENT_SECRET should be set");
+
+        assert!(!id.is_empty());
+        assert!(!secret.is_empty());
         
         let client = RedditApp::new(id, secret);
 
