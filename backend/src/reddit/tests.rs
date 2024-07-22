@@ -8,17 +8,18 @@ mod tests {
     lazy_static! {
         static ref HTTP: Client = ClientBuilder::new().user_agent("RMoods").build().unwrap();
     }
-
-    #[test]
-    fn test_read_credentials() {
-        let _ = RedditConnection::read_credentials().unwrap();
+    static INIT: std::sync::Once = std::sync::Once::new();
+    
+    fn init() {
+        INIT.call_once(|| {
+            let _ = dotenvy::dotenv();
+        })
     }
 
     #[tokio::test]
     async fn test_app_can_fetch_access_token() {
-        println!("Start");
+        init();
         let conn = RedditConnection::new(HTTP.clone()).await.unwrap();
-        println!("Conn created");
         let _ = conn.client.fetch_access_token(&conn.http).await;
     }
 
@@ -48,6 +49,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_fetch_subreddit_posts() {
+        init();
         let mut conn = RedditConnection::new(HTTP.clone()).await.unwrap();
         let req = RedditRequest::SubredditPosts("Polska".to_string());
         let _ = conn.fetch_raw(req).await.unwrap();
@@ -55,6 +57,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_fetch_subreddit_info() {
+        init();
         let mut conn = RedditConnection::new(HTTP.clone()).await.unwrap();
         let req = RedditRequest::SubredditInfo("Polska".to_string());
         let _ = conn.fetch_raw(req).await.unwrap();
@@ -62,6 +65,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_fetch_user_posts() {
+        init();
         let mut conn = RedditConnection::new(HTTP.clone()).await.unwrap();
         let req = RedditRequest::UserPosts("spez".to_string());
         let _ = conn.fetch_raw(req).await.unwrap();
@@ -69,6 +73,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_fetch_user_info() {
+        init();
         let mut conn = RedditConnection::new(HTTP.clone()).await.unwrap();
         let req = RedditRequest::UserInfo("spez".to_string());
         let _ = conn.fetch_raw(req).await.unwrap();

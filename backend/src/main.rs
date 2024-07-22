@@ -1,6 +1,6 @@
 use axum::{http::Method, routing::get, Json, Router};
-use log::info;
-use reddit::RedditConnection;
+use log::{info, warn};
+use reddit::{RedditApp, RedditConnection};
 use reqwest::{Client, StatusCode};
 use serde_json::{json, Value};
 use tower_http::{
@@ -19,9 +19,6 @@ mod reddit;
 #[derive(OpenApi)]
 #[openapi(paths(hello, api::test::lorem, api::test::timeout))]
 struct ApiDoc;
-
-/// The port on which the server starts.
-const PORT: u16 = 8001;
 
 lazy_static::lazy_static! {
     static ref REQWEST_CLIENT: Client = reqwest::ClientBuilder::new().user_agent("RMoods").build().unwrap();
@@ -56,6 +53,10 @@ async fn main() -> anyhow::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "0");
     env_logger::init();
 
+    if let Err(_) = dotenvy::dotenv() {
+         warn!(".env not found. Environment variables will have to be defined outside of .env");
+     }
+
     // Allow browsers to use GET and PUT from any origin
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::PUT])
@@ -65,7 +66,7 @@ async fn main() -> anyhow::Result<()> {
     let tracing = TraceLayer::new_for_http();
 
     let state = AppState {
-        reddit: RedditConnection::new(REQWEST_CLIENT.clone()).await?
+        reddit: RedditConnection::new(REQWEST_CLIENT.clone()).await?,
     };
 
     // Routes after the layers won't have the layers applied
@@ -78,8 +79,9 @@ async fn main() -> anyhow::Result<()> {
         .layer(cors)
         .merge(SwaggerUi::new("/doc/ui").url("/doc/api.json", ApiDoc::openapi()));
 
+    let port = std::env::var("PORT").unwrap_or_else(|_| "8001".to_string());
     // Listen on all addresses
-    let addr = format!("0.0.0.0:{PORT}");
+    let addr = format!("0.0.0.0:{port}");
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
 
