@@ -1,4 +1,4 @@
-use super::{comment::RedditComment, post::RedditPost};
+use super::{comment::RedditComment, post::RedditPost, subreddit_info::RedditSubredditInfo};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -15,19 +15,19 @@ pub enum KindContainer {
     T1(Box<RedditComment>), // Comment
 
     #[serde(rename = "t2")]
-    T2(Value), // Account TODO
+    T2(Box<Value>), // Account TODO
 
     #[serde(rename = "t3")]
     T3(Box<RedditPost>), // Link/Post
 
     #[serde(rename = "t4")]
-    T4(Value), // Message TODO
+    T4(Box<Value>), // Message TODO
 
     #[serde(rename = "t5")]
-    T5(Value), // Subreddit TODO
+    T5(Box<RedditSubredditInfo>), // Subreddit Info
 
     #[serde(rename = "t6")]
-    T6(Value), // Award TODO
+    T6(Box<Value>), // Award TODO
 }
 
 /// List of IDs of items to fetch to get the ones that didn't fit in the first response.

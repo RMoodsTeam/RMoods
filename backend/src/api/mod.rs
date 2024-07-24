@@ -13,5 +13,5 @@ pub fn router() -> Router<AppState> {
         .route("/test/timeout", get(test::timeout))
         .route("/test/lorem", get(test::lorem))
         .route("/test/subreddit-info", get(test::subreddit_info))
-        .route("/test/subreddit-comments", get(test::subreddit_comments))
+        .route("/test/post-comments", get(test::post_comments))
 }

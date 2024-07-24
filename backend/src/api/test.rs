@@ -5,20 +5,14 @@ use axum::{
     Json,
 };
 use lipsum::lipsum;
-use log::{info, warn};
+use log::info;
 use log_derive::logfn;
 use reqwest::StatusCode;
 use serde_json::{json, Value};
 
 use crate::{
     app_error::AppError,
-    reddit::{
-        model::{
-            listing::KindContainer,
-            subreddit_info::{RedditSubredditInfo, RedditSubredditInfoRaw},
-        },
-        RedditRequest,
-    },
+    reddit::{model::listing::KindContainer, RedditRequest},
     AppState,
 };
 
@@ -88,19 +82,19 @@ pub async fn lorem(Query(params): Query<PlainParams>) -> Result<Json<Value>, App
 pub async fn subreddit_info(
     State(mut state): State<AppState>,
     Query(params): Query<PlainParams>,
-) -> Result<Json<RedditSubredditInfo>, AppError> {
+) -> Result<Json<KindContainer>, AppError> {
     let subreddit = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
     let req = RedditRequest::SubredditInfo(subreddit.into());
     let json = state.reddit.fetch_raw(req).await?;
 
-    let info = serde_json::from_value::<RedditSubredditInfoRaw>(json).unwrap();
+    let info = serde_json::from_value::<KindContainer>(json).unwrap();
 
-    Ok(Json(info.data))
+    Ok(Json(info))
 }
 
-pub async fn subreddit_comments(
+pub async fn post_comments(
     State(mut state): State<AppState>,
     Query(params): Query<PlainParams>,
 ) -> Result<Json<Vec<KindContainer>>, AppError> {
