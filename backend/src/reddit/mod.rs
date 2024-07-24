@@ -177,9 +177,29 @@ impl RedditConnection {
             .build()?;
 
         let start = SystemTime::now();
-        let res = self.http.execute(req).await?.json().await?;
+        let res = self.http.execute(req).await?;
         let elapsed = SystemTime::now().duration_since(start).unwrap();
+
+        let ratelimit_headers = const {
+            [
+                "x-ratelimit-remaining",
+                "x-ratelimit-reset",
+                "x-ratelimit-used",
+            ]
+        };
+        let header_log = &res
+            .headers()
+            .iter()
+            .filter(|h| ratelimit_headers.contains(&h.0.as_str()))
+            .fold(String::from("\n"), |acc, (k, v)| {
+                let s = format!("{}: {}\n", k, v.to_str().unwrap());
+                acc + s.as_str()
+            });
+
+        info!("Headers: {}", header_log.trim_end());
         info!("Data fetched successfully. Took {:?}", elapsed);
-        Ok(res)
+
+        let json = res.json().await?;
+        Ok(json)
     }
 }
