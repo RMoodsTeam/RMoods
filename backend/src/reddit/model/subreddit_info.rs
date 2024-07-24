@@ -2,12 +2,6 @@
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RedditSubredditInfoRaw {
-    pub kind: String,
-    pub data: RedditSubredditInfo
-}
-
 /// Reddit subreddit data
 /// https://www.reddit.com/r/Polska/about.json
 #[derive(Getters, Debug, PartialEq, Clone, Serialize, Deserialize)]

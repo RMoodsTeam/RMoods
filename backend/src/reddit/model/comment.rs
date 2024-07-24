@@ -39,7 +39,9 @@ pub struct RedditComment {
     /// UNIX timestamp of the comment creation
     created_utc: f32,
     /// Depth of the comment in the thread. 0 is the top-level comment, 1 is a reply to the top-level comment, etc.
-    depth: u32,
+    ///
+    /// When fetching posts/comments from a user, this field is always `None`.
+    depth: Option<u32>,
     /// Upvotes - downvotes
     score: i64,
 }
