@@ -3,10 +3,10 @@ import React from "react";
 
 /**
  * function to switch themes, uses localStorage
- * checks if there is a theme named dark or if there is no theme variable
+ * for now switches between dark and light themes
  * @returns void
  */
-function switchThemes() {
+export function switchThemes() {
   if (localStorage.theme === "dark") {
     localStorage.theme = "light";
     document.documentElement.classList.remove("dark");
