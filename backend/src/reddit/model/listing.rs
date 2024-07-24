@@ -1,4 +1,4 @@
-use super::{comment::RedditComment, post::RedditPost, subreddit_info::RedditSubredditInfo};
+use super::{comment::RedditComment, post::RedditPost, subreddit_info::RedditSubredditInfo, user::RedditUser};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -15,7 +15,7 @@ pub enum KindContainer {
     T1(Box<RedditComment>), // Comment
 
     #[serde(rename = "t2")]
-    T2(Box<Value>), // Account TODO
+    T2(Box<RedditUser>), // Account TODO
 
     #[serde(rename = "t3")]
     T3(Box<RedditPost>), // Link/Post

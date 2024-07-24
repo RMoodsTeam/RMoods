@@ -16,7 +16,7 @@ use crate::{
     AppState,
 };
 
-use super::PlainParams;
+use super::AnyParams;
 
 /// Returns after a specified delay.
 #[utoipa::path(
@@ -31,7 +31,7 @@ use super::PlainParams;
     )
 )]
 #[logfn(err = "ERROR", fmt = "'timeout' failed: {:?}")]
-pub async fn timeout(Query(params): Query<PlainParams>) -> Result<Json<Value>, AppError> {
+pub async fn timeout(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppError> {
     let t = params
         .get("t")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `t` parameter"))?
@@ -59,7 +59,7 @@ pub async fn timeout(Query(params): Query<PlainParams>) -> Result<Json<Value>, A
     )
 )]
 #[logfn(err = "ERROR", fmt = "'lorem' failed: {:?}")]
-pub async fn lorem(Query(params): Query<PlainParams>) -> Result<Json<Value>, AppError> {
+pub async fn lorem(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppError> {
     let words = params
         .get("words")
         .unwrap_or(&"50".to_string())
@@ -81,7 +81,7 @@ pub async fn lorem(Query(params): Query<PlainParams>) -> Result<Json<Value>, App
 
 pub async fn subreddit_info(
     State(mut state): State<AppState>,
-    Query(params): Query<PlainParams>,
+    Query(params): Query<AnyParams>,
 ) -> Result<Json<KindContainer>, AppError> {
     let subreddit = params
         .get("r")
@@ -96,7 +96,7 @@ pub async fn subreddit_info(
 
 pub async fn post_comments(
     State(mut state): State<AppState>,
-    Query(params): Query<PlainParams>,
+    Query(params): Query<AnyParams>,
 ) -> Result<Json<Vec<KindContainer>>, AppError> {
     let r = params
         .get("r")
@@ -120,4 +120,20 @@ pub async fn post_comments(
     let elapsed = SystemTime::now().duration_since(start).unwrap();
     info!("Data parsed successfully. Took {:?}", elapsed);
     Ok(Json(val))
+}
+
+pub async fn user_info(
+    State(mut state): State<AppState>,
+    Query(params): Query<AnyParams>,
+) -> Result<Json<KindContainer>, AppError> {
+    let user = params
+        .get("u")
+        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
+    let req = RedditRequest::UserInfo(user.into());
+    
+    let json = state.reddit.fetch_raw(req).await?;
+
+    let info = serde_json::from_value::<KindContainer>(json).unwrap();
+
+    Ok(Json(info))
 }
