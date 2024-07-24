@@ -137,3 +137,18 @@ pub async fn user_info(
 
     Ok(Json(info))
 }
+
+pub async fn subreddit_posts(
+    State(mut state): State<AppState>,
+    Query(params): Query<AnyParams>,
+) -> Result<Json<KindContainer>, AppError> {
+    let subreddit = params
+        .get("r")
+        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `r` parameter"))?;
+    let req = RedditRequest::SubredditPosts(subreddit.into());
+    let json = state.reddit.fetch_raw(req).await?;
+
+    let info = serde_json::from_value::<KindContainer>(json).unwrap();
+
+    Ok(Json(info))
+}

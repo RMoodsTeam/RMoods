@@ -13,4 +13,5 @@ pub fn router() -> Router<AppState> {
         .route("/test/subreddit-info", get(test::subreddit_info))
         .route("/test/post-comments", get(test::post_comments))
         .route("/test/user-info", get(test::user_info))
+        .route("/test/subreddit-posts", get(test::subreddit_posts))
 }
