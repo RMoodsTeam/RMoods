@@ -1,6 +1,6 @@
 use log::{debug, info, warn};
 use log_derive::logfn;
-use reqwest::Client;
+use reqwest::{Client, Response};
 use serde::Deserialize;
 use serde_json::Value;
 use std::time::SystemTime;
@@ -60,7 +60,7 @@ impl RedditApp {
             client_secret,
         }
     }
-    
+
     /// Fetch an access token from the Reddit API for that particular app
     async fn fetch_access_token(
         &self,
@@ -129,10 +129,27 @@ impl RedditRequest {
     }
 }
 
+fn create_log_message(res: &Response) -> String {
+    let ratelimit_headers = const {
+        [
+            "x-ratelimit-remaining",
+            "x-ratelimit-reset",
+            "x-ratelimit-used",
+        ]
+    };
+    res.headers()
+        .iter()
+        .filter(|h| ratelimit_headers.contains(&h.0.as_str()))
+        .fold(String::from("\n"), |acc, (k, v)| {
+            let s = format!("{}: {}\n", k, v.to_str().unwrap());
+            acc + s.as_str()
+        })
+}
+
 impl RedditConnection {
     /// Reddit API URL
     const API_HOSTNAME: &'static str = "oauth.reddit.com";
-    
+
     /// Read credentials and create a collection of client authentication data
     /// from .reddit-credentials.json in backend root (src/backend/)
     #[logfn(err = "ERROR", fmt = "Failed to create RedditConnection: {:?}")]
@@ -142,7 +159,7 @@ impl RedditConnection {
 
         assert!(!id.is_empty());
         assert!(!secret.is_empty());
-        
+
         let client = RedditApp::new(id, secret);
 
         info!("Fetching initial access token");
@@ -152,7 +169,7 @@ impl RedditConnection {
         Ok(RedditConnection {
             client,
             access_token,
-            http
+            http,
         })
     }
 
@@ -180,23 +197,9 @@ impl RedditConnection {
         let res = self.http.execute(req).await?;
         let elapsed = SystemTime::now().duration_since(start).unwrap();
 
-        let ratelimit_headers = const {
-            [
-                "x-ratelimit-remaining",
-                "x-ratelimit-reset",
-                "x-ratelimit-used",
-            ]
-        };
-        let header_log = &res
-            .headers()
-            .iter()
-            .filter(|h| ratelimit_headers.contains(&h.0.as_str()))
-            .fold(String::from("\n"), |acc, (k, v)| {
-                let s = format!("{}: {}\n", k, v.to_str().unwrap());
-                acc + s.as_str()
-            });
-
+        let header_log = create_log_message(&res);
         info!("Headers: {}", header_log.trim_end());
+        
         info!("Data fetched successfully. Took {:?}", elapsed);
 
         let json = res.json().await?;
