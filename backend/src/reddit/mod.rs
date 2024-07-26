@@ -4,6 +4,3 @@ pub mod connection;
 pub mod auth;
 pub mod request;
 mod tests;
-
-
-

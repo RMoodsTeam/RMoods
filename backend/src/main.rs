@@ -3,6 +3,7 @@ use log::{info, warn};
 use reddit::connection::RedditConnection;
 use reqwest::Client;
 use serde_json::{json, Value};
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
@@ -43,6 +44,7 @@ async fn hello() -> Json<Value> {
 #[derive(Clone)]
 pub struct AppState {
     pub reddit: RedditConnection,
+    pub pool: Pool<Postgres>,
 }
 
 /// Entry point of the RMoods server.
@@ -57,6 +59,13 @@ async fn main() -> anyhow::Result<()> {
          warn!(".env not found. Environment variables will have to be defined outside of .env");
     }
 
+    let url = std::env::var("DATABASE_URL").expect("DB_URL is set");
+    let pool = PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&url)
+        .await?;
+    info!("Connected to the database");
+
     // Allow browsers to use GET and PUT from any origin
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::PUT])
@@ -67,6 +76,7 @@ async fn main() -> anyhow::Result<()> {
 
     let state = AppState {
         reddit: RedditConnection::new(REQWEST_CLIENT.clone()).await?,
+        pool,
     };
 
     // Routes after the layers won't have the layers applied
