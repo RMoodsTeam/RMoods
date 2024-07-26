@@ -3,7 +3,7 @@ use derive_getters::Getters;
 use reqwest::StatusCode;
 use serde_json::json;
 
-use crate::reddit::reddit_error::RedditError;
+use crate::reddit::error::RedditError;
 
 #[derive(Debug, Getters)]
 pub struct AppError {
@@ -36,7 +36,7 @@ impl IntoResponse for AppError {
 impl From<RedditError> for AppError {
     fn from(value: RedditError) -> Self {
         match &value {
-            RedditError::ResourceNotFound(res) => {
+            RedditError::ResourceNotFound(_) => {
                 AppError::new(StatusCode::NOT_FOUND, value.to_string())
             }
             _ => AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error"),

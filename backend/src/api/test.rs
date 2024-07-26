@@ -12,7 +12,7 @@ use serde_json::{json, Value};
 
 use crate::{
     app_error::AppError,
-    reddit::{model::listing::KindContainer, RedditRequest},
+    reddit::{model::listing::KindContainer, request::RedditRequest},
     AppState,
 };
 
