@@ -6,7 +6,7 @@ use serde_with::{serde_as, NoneAsEmptyString};
 /// [this u/spez profile request.](https://www.reddit.com/user/spez/about.json)
 #[serde_as]
 #[derive(Getters, Debug, Hash, Eq, PartialEq, Clone, Serialize, Deserialize)]
-pub struct RedditUser {
+pub struct UserInfo {
     /// Is the user a Reddit employee?
     is_employee: bool,
     /// Karma received by getting awards

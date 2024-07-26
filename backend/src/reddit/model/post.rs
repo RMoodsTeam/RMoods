@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 /// Contains some properties of a Reddit post. For some real-world examples see
 /// [this r/Polska request.](https://www.reddit.com/r/Polska.json)
 #[derive(Getters, Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct RedditPost {
+pub struct Post {
     /// eg. Polska
     subreddit: String,
     /// Text of the post
@@ -35,3 +35,4 @@ pub struct RedditPost {
     /// Is the post stickied?
     stickied: bool,
 }
+
