@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// Reddit subreddit data
 /// https://www.reddit.com/r/Polska/about.json
 #[derive(Getters, Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct RedditSubredditInfo {
+pub struct SubredditInfo {
     /// eg. Polska
     display_name: String,
     /// tagline, eg. "Polski Subreddit"

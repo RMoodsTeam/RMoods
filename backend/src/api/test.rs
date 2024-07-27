@@ -1,3 +1,4 @@
+
 use std::time::SystemTime;
 
 use axum::{
@@ -12,7 +13,7 @@ use serde_json::{json, Value};
 
 use crate::{
     app_error::AppError,
-    reddit::{model::listing::KindContainer, RedditRequest},
+    reddit::{model::listing::KindContainer, request::RedditRequest},
     AppState,
 };
 
@@ -130,7 +131,7 @@ pub async fn user_info(
         .get("u")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
     let req = RedditRequest::UserInfo(user.into());
-    
+
     let json = state.reddit.fetch_raw(req).await?;
 
     let info = serde_json::from_value::<KindContainer>(json).unwrap();

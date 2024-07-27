@@ -1,6 +1,6 @@
 use axum::{http::Method, routing::get, Json, Router};
 use log::{info, warn};
-use reddit::RedditConnection;
+use reddit::connection::RedditConnection;
 use reqwest::Client;
 use serde_json::{json, Value};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
@@ -55,8 +55,8 @@ async fn main() -> anyhow::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "0");
     env_logger::init();
 
-    if let Err(_) = dotenvy::dotenv() {
-        warn!(".env not found. Environment variables will have to be defined outside of .env");
+    if dotenvy::dotenv().is_err() {
+         warn!(".env not found. Environment variables will have to be defined outside of .env");
     }
 
     let url = std::env::var("DATABASE_URL").expect("DB_URL is set");

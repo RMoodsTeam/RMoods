@@ -22,7 +22,7 @@ where
 
 /// Reddit comment object
 #[derive(Getters, Debug, Clone, Deserialize, Serialize)]
-pub struct RedditComment {
+pub struct Comment {
     /// ID of the subreddit, eg. t5_2qh3s
     subreddit_id: String,
     /// Name of the subreddit, eg. Polska
