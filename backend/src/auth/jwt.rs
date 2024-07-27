@@ -1,7 +1,8 @@
 use chrono::{Duration, Utc};
-use jsonwebtoken::Header;
-use reqwest::StatusCode;
+use jsonwebtoken::{decode, DecodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
+
+use super::error::AuthError;
 
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
@@ -11,23 +12,29 @@ pub struct Claims {
     iat: usize,
 }
 
-/// Create a new JWT token based on the secret defined in the environment
-pub fn create_jwt() -> Result<String, StatusCode> {
-    let secret = dotenvy::var("JWT_SECRET").expect("JWT_SECRET should be set");
+pub struct Jwt;
 
-    let claim = {
-        let now = Utc::now();
-        let duration = Duration::seconds(15);
-        let iat = now.timestamp() as usize;
-        let exp = (now + duration).timestamp() as usize;
-        Claims { exp, iat }
-    };
-    let key = jsonwebtoken::EncodingKey::from_secret(secret.as_bytes());
+impl Jwt {
+    /// Create a new JWT token based on the secret defined in the environment
+    pub fn new() -> Result<String, AuthError> {
+        let secret = dotenvy::var("JWT_SECRET").expect("JWT_SECRET should be set");
 
-    jsonwebtoken::encode(&Header::default(), &claim, &key)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
-}
+        let claim = {
+            let now = Utc::now();
+            let duration = Duration::seconds(15);
+            let iat = now.timestamp() as usize;
+            let exp = (now + duration).timestamp() as usize;
+            Claims { exp, iat }
+        };
+        let key = jsonwebtoken::EncodingKey::from_secret(secret.as_bytes());
 
-pub fn is_jwt_valid() -> Result<bool, StatusCode> {
-    todo!()
+        jsonwebtoken::encode(&Header::default(), &claim, &key).map_err(|e| AuthError::JwtError(e))
+    }
+
+    pub fn is_valid(&self, token: &str) -> Result<(), jsonwebtoken::errors::Error> {
+        let secret = dotenvy::var("JWT_SECRET").expect("JWT_SECRET should be set");
+        let key = &DecodingKey::from_secret(secret.as_bytes());
+        decode::<Claims>(token, key, &Validation::new(jsonwebtoken::Algorithm::HS256))?;
+        Ok(())
+    }
 }
