@@ -29,11 +29,16 @@
 }
 
 
-body{
+body {
   display: flex;
   align-items: center;
   min-height: 100vh;
+  min-width: 100vw;
   flex-direction: column;
   background-color: #ccc;
-  border: 2px solid red;
+}
+
+main {
+  display: flex;
+  flex-grow: 1;
 }

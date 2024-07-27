@@ -4,7 +4,7 @@ import { useState } from "react";
 import Login from "./components/Login";
 
 /**
- * Home function, returns main content
+ * Home component, returns main content
  * @returns {TSX}
  */
 export default function Home() {
