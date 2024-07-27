@@ -1,4 +1,5 @@
-use axum::{http::Method, routing::get, Json, Router};
+use axum::{routing::get, Json, Router};
+use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{info, warn};
 use reddit::connection::RedditConnection;
 use reqwest::Client;
@@ -10,7 +11,6 @@ use tower_http::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-
 mod api;
 mod app_error;
 mod auth;
@@ -56,7 +56,7 @@ async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
     if dotenvy::dotenv().is_err() {
-         warn!(".env not found. Environment variables will have to be defined outside of .env");
+        warn!(".env not found. Environment variables will have to be defined outside of .env");
     }
 
     let url = std::env::var("DATABASE_URL").expect("DB_URL is set");
@@ -67,9 +67,10 @@ async fn main() -> anyhow::Result<()> {
     info!("Connected to the database");
 
     // Allow browsers to use GET and PUT from any origin
-    let cors = CorsLayer::new()
-        .allow_methods([Method::GET, Method::PUT])
-        .allow_origin(Any);
+    let cors =
+        CorsLayer::new()
+            .allow_origin(Any)
+            .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     // Add logging
     let tracing = TraceLayer::new_for_http();
