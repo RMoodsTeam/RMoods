@@ -28,6 +28,19 @@
   }
 }
 
+/* DEBUG START */
+button {
+  background-color: red;
+  min-width: 10px;
+  min-height: 10px;
+}
+
+a {
+  background-color: red;
+  min-width: 10px;
+  min-height: 10px;
+}
+/* DEBUG END */
 
 body {
   display: flex;
