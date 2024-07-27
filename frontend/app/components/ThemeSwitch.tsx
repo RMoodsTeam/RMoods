@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 
 /**
  * function to switch themes, uses localStorage
@@ -10,7 +10,7 @@ export function switchThemes() {
   if (localStorage.theme === "dark") {
     localStorage.theme = "light";
     document.documentElement.classList.remove("dark");
-  } else if (localStorage.theme === "light") {
+  } else {
     localStorage.theme = "dark";
     document.documentElement.classList.add("dark");
   }
@@ -20,6 +20,7 @@ export function switchThemes() {
  * Renders button that switches themes
  */
 const ThemeSwitch = () => {
+  const [visible, setVisible] = useState(false);
   return (
     <button
       id="theme-switch"
