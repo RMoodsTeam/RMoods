@@ -5,5 +5,5 @@ mod jwt;
 mod routes;
 
 pub fn router() -> Router<AppState> {
-    Router::<AppState>::new().route("/auth/login", post(routes::login))
+    Router::<AppState>::new().route("/login", post(routes::login))
 }

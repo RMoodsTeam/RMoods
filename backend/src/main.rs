@@ -21,10 +21,6 @@ mod reddit;
 #[openapi(paths(hello, api::test::lorem, api::test::timeout))]
 struct ApiDoc;
 
-lazy_static::lazy_static! {
-    static ref REQWEST_CLIENT: Client = reqwest::ClientBuilder::new().user_agent("RMoods").build().unwrap();
-}
-
 /// Returns a welcome message and a link to our documentation
 #[utoipa::path(
     get,
@@ -45,6 +41,7 @@ async fn hello() -> Json<Value> {
 pub struct AppState {
     pub reddit: RedditConnection,
     pub pool: Pool<Postgres>,
+    pub http: Client,
 }
 
 /// Entry point of the RMoods server.
@@ -66,6 +63,12 @@ async fn main() -> anyhow::Result<()> {
         .await?;
     info!("Connected to the database");
 
+    let http = reqwest::ClientBuilder::new().user_agent("RMoods").build()?;
+    let reddit = RedditConnection::new(http.clone()).await?;
+    info!("Connected to Reddit");
+
+    let state = AppState { reddit, pool, http };
+
     // Allow browsers to use GET and PUT from any origin
     let cors =
         CorsLayer::new()
@@ -74,11 +77,6 @@ async fn main() -> anyhow::Result<()> {
 
     // Add logging
     let tracing = TraceLayer::new_for_http();
-
-    let state = AppState {
-        reddit: RedditConnection::new(REQWEST_CLIENT.clone()).await?,
-        pool,
-    };
 
     // Routes after the layers won't have the layers applied
     let app = Router::<AppState>::new()
@@ -96,7 +94,7 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
 
-    info!("Starting the RMoods server at {}", addr);
+    info!("Started the RMoods server at {}", addr);
     axum::serve(listener, app).await?;
 
     Ok(())

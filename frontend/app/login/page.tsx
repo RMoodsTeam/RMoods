@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 
 async function postGoogleCode(codeResponse: { code: string }) {
     // for test purposes it will stay at this URL for now
-    const url = "http://localhost:8001/auth/auth/login";
+    const url = "http://localhost:8001/auth/login";
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
