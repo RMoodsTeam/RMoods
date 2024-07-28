@@ -11,6 +11,7 @@ use tower_http::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+
 mod api;
 mod app_error;
 mod auth;
@@ -78,11 +79,14 @@ async fn main() -> anyhow::Result<()> {
     // Add logging
     let tracing = TraceLayer::new_for_http();
 
+    let authorization = axum::middleware::from_fn(auth::middleware::authorization);
+
     // Routes after the layers won't have the layers applied
     let app = Router::<AppState>::new()
         .route("/", get(hello))
-        .nest("/auth", auth::router())
         .nest("/api", api::router())
+        .layer(authorization)
+        .nest("/auth", auth::router())
         .with_state(state)
         .layer(tracing)
         .layer(cors)
