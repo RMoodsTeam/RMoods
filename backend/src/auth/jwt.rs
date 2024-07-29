@@ -18,7 +18,7 @@ pub fn create_jwt() -> Result<String, AuthError> {
 
     let claim = {
         let now = Utc::now();
-        let duration = Duration::days(1);
+        let duration = Duration::days(30);
         let iat = now.timestamp() as usize;
         let exp = (now + duration).timestamp() as usize;
         Claims { exp, iat }

@@ -17,6 +17,7 @@
   "dependencies": {
     "@react-oauth/google": "^0.12.1",
     "@types/js-cookie": "^3.0.6",
+    "jose": "^5.6.3",
     "js-cookie": "^3.0.5",
     "next": "14.1.4",
     "react": "^18",

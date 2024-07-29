@@ -13,8 +13,8 @@ async function postGoogleCode(codeResponse: { code: string }) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code: codeResponse.code }),
   });
-  const answer = await response.json();
-  Cookies.set("auth", codeResponse.code, { expires: 30 });
+  const answer: { jwt: string; user_info: Object } = await response.json();
+  Cookies.set("RMOODS_JWT", answer.jwt, { expires: 30 });
   console.log(answer);
 }
 
