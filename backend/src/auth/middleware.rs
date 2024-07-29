@@ -14,9 +14,7 @@ pub async fn authorization(request: Request, next: Next) -> Result<Response, Sta
 
     info!("Authorization header: {}", user_jwt);
 
-    let token_data = is_jwt_valid(user_jwt).map_err(|_| StatusCode::UNAUTHORIZED)?;
-
-    dbg!(token_data);
+    is_jwt_valid(user_jwt).map_err(|_| StatusCode::UNAUTHORIZED)?;
 
     info!("JWT is valid");
 

@@ -27,6 +27,5 @@ pub async fn login(
         fetch_google_user_info(auth_data.access_token().to_string(), &state.http).await?;
 
     let jwt = create_jwt(user_info.sub().to_owned())?;
-    dbg!(user_info.sub());
     Ok(Json(LoginResponse { jwt }))
 }
