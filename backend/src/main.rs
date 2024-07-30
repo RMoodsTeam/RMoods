@@ -1,6 +1,6 @@
 use axum::{routing::get, Json, Router};
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
-use log::{info, warn};
+use log::{error, info, warn};
 use reddit::connection::RedditConnection;
 use reqwest::Client;
 use serde_json::{json, Value};
@@ -45,18 +45,26 @@ pub struct AppState {
     pub http: Client,
 }
 
-/// Entry point of the RMoods server.
-/// Initializes the HTTP server and runs it.
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    std::env::set_var("RUST_LOG", "debug");
-    std::env::set_var("RUST_BACKTRACE", "0");
-    env_logger::init();
+fn verify_environment() -> bool {
+    let needed_vars = vec![
+        "CLIENT_ID",
+        "CLIENT_SECRET",
+        "DATABASE_URL",
+        "JWT_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+    ];
+    let defined: Vec<String> = std::env::vars().map(|(k, _)| k).collect();
+    
+    let mut is_ok = true;
+    needed_vars.iter().filter(|&needed| !defined.contains(&needed.to_string())).for_each(|missing| {
+        log::error!("{missing} is not defined in the environment.");
+        is_ok = false
+    });
+    is_ok
+}
 
-    if dotenvy::dotenv().is_err() {
-        warn!(".env not found. Environment variables will have to be defined outside of .env");
-    }
-
+async fn run() -> anyhow::Result<()> {
     let url = std::env::var("DATABASE_URL").expect("DB_URL is set");
     let pool = PgPoolOptions::new()
         .max_connections(10)
@@ -83,9 +91,9 @@ async fn main() -> anyhow::Result<()> {
 
     // Routes after the layers won't have the layers applied
     let app = Router::<AppState>::new()
-        .route("/", get(hello))
         .nest("/api", api::router())
         .layer(authorization)
+        .route("/", get(hello))
         .nest("/auth", auth::router())
         .with_state(state)
         .layer(tracing)
@@ -102,4 +110,28 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app).await?;
 
     Ok(())
+}
+
+/// Entry point of the RMoods server.
+/// Initializes the HTTP server and runs it.
+#[tokio::main]
+async fn main() {
+    std::env::set_var("RUST_LOG", "debug");
+    std::env::set_var("RUST_BACKTRACE", "0");
+    env_logger::init();
+
+    if dotenvy::dotenv().is_err() {
+        warn!(".env not found. Environment variables will have to be defined outside of .env");
+    }
+    
+    if !verify_environment() {
+        error!("Invalid environment, aborting.");
+        std::process::exit(1);
+    }
+    info!("Environment OK");
+    let res = run().await;
+    if let Err(e) = res {
+        log::error!("{e}");
+        std::process::exit(1);
+    }
 }
