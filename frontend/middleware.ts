@@ -24,8 +24,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // kill server if JWT_SECRET is not present
+  // TODO: change missing env handling
   if (!process.env.JWT_SECRET) {
-    process.exit(1)
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   try{
