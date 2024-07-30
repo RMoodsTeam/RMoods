@@ -3,7 +3,7 @@ use derive_getters::Getters;
 use reqwest::StatusCode;
 use serde_json::json;
 
-use crate::reddit::error::RedditError;
+use crate::{auth::error::AuthError, reddit::error::RedditError};
 
 #[derive(Debug, Getters)]
 pub struct AppError {
@@ -17,6 +17,9 @@ impl AppError {
             code,
             message: message.into(),
         }
+    }
+    pub fn internal_server_error() -> Self {
+        AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
     }
 }
 
@@ -39,13 +42,26 @@ impl From<RedditError> for AppError {
             RedditError::ResourceNotFound(_) => {
                 AppError::new(StatusCode::NOT_FOUND, value.to_string())
             }
-            _ => AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error"),
+            _ => AppError::internal_server_error(),
         }
     }
 }
 
-#[cfg(test)]
-mod tests {
+impl From<AuthError> for AppError {
+    fn from(value: AuthError) -> Self {
+        type E = jsonwebtoken::errors::ErrorKind;
+        match &value {
+            AuthError::JwtError(e) => match e.kind() {
+                E::ExpiredSignature => AppError::new(StatusCode::UNAUTHORIZED, "Expired token"),
+                E::InvalidToken => AppError::new(StatusCode::UNAUTHORIZED, "Invalid token"),
+                _ => AppError::internal_server_error(),
+            },
+            _ => AppError::internal_server_error(),
+        }
+    }
+}
+
+#[cfg(test)]mod tests {
     use super::*;
     use reqwest::StatusCode;
 
@@ -75,7 +91,8 @@ mod tests {
     fn test_app_error_from_reddit_error_internal_server_error() {
         let error = RedditError::InvalidDomain("Invalid domain".to_string());
         let app_error: AppError = error.into();
-        assert_eq!(app_error.code, StatusCode::INTERNAL_SERVER_ERROR);
-        assert_eq!(app_error.message, "Internal Server Error");
+        let expected = AppError::internal_server_error();
+        assert_eq!(app_error.code, expected.code);
+        assert_eq!(app_error.message, expected.message);
     }
 }

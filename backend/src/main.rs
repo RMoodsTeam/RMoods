@@ -1,4 +1,5 @@
-use axum::{http::Method, routing::get, Json, Router};
+use axum::{routing::get, Json, Router};
+use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{info, warn};
 use reddit::connection::RedditConnection;
 use reqwest::Client;
@@ -21,10 +22,6 @@ mod reddit;
 #[openapi(paths(hello, api::test::lorem, api::test::timeout))]
 struct ApiDoc;
 
-lazy_static::lazy_static! {
-    static ref REQWEST_CLIENT: Client = reqwest::ClientBuilder::new().user_agent("RMoods").build().unwrap();
-}
-
 /// Returns a welcome message and a link to our documentation
 #[utoipa::path(
     get,
@@ -45,6 +42,7 @@ async fn hello() -> Json<Value> {
 pub struct AppState {
     pub reddit: RedditConnection,
     pub pool: Pool<Postgres>,
+    pub http: Client,
 }
 
 /// Entry point of the RMoods server.
@@ -56,7 +54,7 @@ async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
     if dotenvy::dotenv().is_err() {
-         warn!(".env not found. Environment variables will have to be defined outside of .env");
+        warn!(".env not found. Environment variables will have to be defined outside of .env");
     }
 
     let url = std::env::var("DATABASE_URL").expect("DB_URL is set");
@@ -66,24 +64,29 @@ async fn main() -> anyhow::Result<()> {
         .await?;
     info!("Connected to the database");
 
+    let http = reqwest::ClientBuilder::new().user_agent("RMoods").build()?;
+    let reddit = RedditConnection::new(http.clone()).await?;
+    info!("Connected to Reddit");
+
+    let state = AppState { reddit, pool, http };
+
     // Allow browsers to use GET and PUT from any origin
-    let cors = CorsLayer::new()
-        .allow_methods([Method::GET, Method::PUT])
-        .allow_origin(Any);
+    let cors =
+        CorsLayer::new()
+            .allow_origin(Any)
+            .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     // Add logging
     let tracing = TraceLayer::new_for_http();
 
-    let state = AppState {
-        reddit: RedditConnection::new(REQWEST_CLIENT.clone()).await?,
-        pool,
-    };
+    let authorization = axum::middleware::from_fn(auth::middleware::authorization);
 
     // Routes after the layers won't have the layers applied
     let app = Router::<AppState>::new()
         .route("/", get(hello))
-        .nest("/auth", auth::router())
         .nest("/api", api::router())
+        .layer(authorization)
+        .nest("/auth", auth::router())
         .with_state(state)
         .layer(tracing)
         .layer(cors)
@@ -95,7 +98,7 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
 
-    info!("Starting the RMoods server at {}", addr);
+    info!("Started the RMoods server at {}", addr);
     axum::serve(listener, app).await?;
 
     Ok(())
