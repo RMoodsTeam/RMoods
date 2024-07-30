@@ -1,7 +1,11 @@
-export default function Title(props: { text: string }) {
+export default function Title({ children, className = "", ...props }: any) {
+  const defaultClasses =
+    "text-3xl font-bold text-primary-dark:text-primary-light";
+  const combinedClasses = `${defaultClasses} ${className}`.trim();
+
   return (
-    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-      {props.text}
+    <h1 className={combinedClasses} {...props}>
+      {children}
     </h1>
   );
 }

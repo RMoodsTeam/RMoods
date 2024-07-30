@@ -19,7 +19,7 @@ const config: Config = {
         'secondary-light': '#DDE4E2',
         'primary-dark': '#323447',
         'secondary-dark': '#3C3D50',
-        'accent-green': '##28776C',
+        'accent-green': '#28776C',
         'accent-purple': '#AD2850',
       },
     },

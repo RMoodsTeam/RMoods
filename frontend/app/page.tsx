@@ -1,4 +1,7 @@
-import Link from "next/link";
+import Card from "./components/Card";
+import Button from "./components/Button";
+import Title from "./components/Title";
+import Link from "./components/Link";
 /**
  * Home component, returns main content
  * @returns {TSX}
@@ -6,9 +9,12 @@ import Link from "next/link";
 export default function Home() {
   return (
     <>
-      <h1>RMoods</h1>
+      <Title>RMoods</Title>
       <Link href={"/login"}>Go to Login</Link>
-      <div className="w-full">Hello</div>
+      <Card>
+        <div>Hello! This is the main page of RMoods</div>
+      </Card>
+      <Button>Click me</Button>
     </>
   );
 }
