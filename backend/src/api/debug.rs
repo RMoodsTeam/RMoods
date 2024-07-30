@@ -22,7 +22,7 @@ use super::AnyParams;
 /// Returns after a specified delay.
 #[utoipa::path(
     get,
-    path = "/api/test/timeout",
+    path = "/api/debug/timeout",
     responses(
         (status = 200, description = "Timed out successfully"),
         (status = 400, description = "No parameter provided")
@@ -49,7 +49,7 @@ pub async fn timeout(Query(params): Query<AnyParams>) -> Result<Json<Value>, App
 /// Optionally waits for a specified time before responding.
 #[utoipa::path(
     get,
-    path = "/api/test/lorem",
+    path = "/api/debug/lorem",
     responses(
         (status = 200, description = "Timed out successfully, returned lorem ipsum text"),
         (status = 400, description = "Invalid request")
@@ -80,6 +80,12 @@ pub async fn lorem(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppEr
     .into())
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/debug/subreddit_info",
+    responses(),
+    params()
+)]
 pub async fn subreddit_info(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
@@ -95,6 +101,12 @@ pub async fn subreddit_info(
     Ok(Json(info))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/debug/post_comments",
+    responses(),
+    params()
+)]
 pub async fn post_comments(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
@@ -123,6 +135,12 @@ pub async fn post_comments(
     Ok(Json(val))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/debug/user_info",
+    responses(),
+    params()
+)]
 pub async fn user_info(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
@@ -139,6 +157,12 @@ pub async fn user_info(
     Ok(Json(info))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/debug/subreddit_posts",
+    responses(),
+    params()
+)]
 pub async fn subreddit_posts(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
@@ -154,6 +178,12 @@ pub async fn subreddit_posts(
     Ok(Json(info))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/debug/user_posts",
+    responses(),
+    params()
+)]
 pub async fn user_posts(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,

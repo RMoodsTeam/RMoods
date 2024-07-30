@@ -1,9 +1,9 @@
-use axum::{routing::get, Json, Router};
+use crate::open_api::ApiDoc;
+use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reddit::connection::RedditConnection;
 use reqwest::Client;
-use serde_json::{json, Value};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -17,26 +17,7 @@ mod app_error;
 mod auth;
 mod reddit;
 
-/// OpenAPI documentation for the RMoods server
-#[derive(OpenApi)]
-#[openapi(paths(hello, api::debug::lorem, api::debug::timeout))]
-struct ApiDoc;
-
-/// Returns a welcome message and a link to our documentation
-#[utoipa::path(
-    get,
-    path = "/",
-    responses(
-        (status = 200, description = "Always"),
-    ),
-)]
-async fn hello() -> Json<Value> {
-    json!({
-        "message" : "Welcome to the RMoods Backend!",
-        "docs": "https://rmoodsteam.github.io/RMoods/backend/rmoods_backend/index.html",
-    })
-    .into()
-}
+mod open_api;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -55,12 +36,15 @@ fn verify_environment() -> bool {
         "GOOGLE_CLIENT_SECRET",
     ];
     let defined: Vec<String> = std::env::vars().map(|(k, _)| k).collect();
-    
+
     let mut is_ok = true;
-    needed_vars.iter().filter(|&needed| !defined.contains(&needed.to_string())).for_each(|missing| {
-        log::error!("{missing} is not defined in the environment.");
-        is_ok = false
-    });
+    needed_vars
+        .iter()
+        .filter(|&needed| !defined.contains(&needed.to_string()))
+        .for_each(|missing| {
+            log::error!("{missing} is not defined in the environment.");
+            is_ok = false
+        });
     is_ok
 }
 
@@ -93,7 +77,6 @@ async fn run() -> anyhow::Result<()> {
     let app = Router::<AppState>::new()
         .nest("/api", api::router())
         .layer(authorization)
-        .route("/", get(hello))
         .nest("/auth", auth::router())
         .with_state(state)
         .layer(tracing)
@@ -123,7 +106,7 @@ async fn main() {
     if dotenvy::dotenv().is_err() {
         warn!(".env not found. Environment variables will have to be defined outside of .env");
     }
-    
+
     if !verify_environment() {
         error!("Invalid environment, aborting.");
         std::process::exit(1);
