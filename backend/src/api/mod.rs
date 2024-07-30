@@ -16,4 +16,13 @@ pub fn router() -> Router<AppState> {
         .route("/debug/user-info", get(debug::user_info))
         .route("/debug/subreddit-posts", get(debug::subreddit_posts))
         .route("/debug/user-posts", get(debug::user_posts))
+        .route("/report/sentiment", get(report::sentiment))
+        .route("/report/language", get(report::language))
+        .route("/report/sarcasm", get(report::sarcasm))
+        .route("/report/keywords", get(report::keywords))
+        .route("/report/spam", get(report::spam))
+        .route("/report/politics", get(report::politics))
+        .route("/report/hate-speech", get(report::hate_speech))
+        .route("/report/clickbait", get(report::clickbait))
+        .route("/report/troll", get(report::troll))
 }
