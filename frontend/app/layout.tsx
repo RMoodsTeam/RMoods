@@ -3,9 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import ThemeSwitch from "./components/ThemeSwitch";
 import Script from "next/script";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import MainContainer from "./components/MainContainer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,8 +35,7 @@ export default function RootLayout({
       <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">
         <body className={inter.className}>
           <Navbar />
-          <ThemeSwitch />
-          <main>{children}</main>
+          <MainContainer>{children}</MainContainer>
           <Footer />
         </body>
       </GoogleOAuthProvider>

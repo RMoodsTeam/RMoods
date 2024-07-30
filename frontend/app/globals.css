@@ -50,11 +50,6 @@ div {
   min-width: 10px;
   min-height: 10px;
 }
-main {
-  border: 2px solid purple;
-  min-width: 10px;
-  min-height: 10px;
-}
 /* DEBUG END */
 
 body {
@@ -65,9 +60,3 @@ body {
   flex-direction: column;
   background-color: #ccc;
 }
-
-
-/* main { */
-/*   display: flex; */
-/*   flex-grow: 1; */
-/* } */

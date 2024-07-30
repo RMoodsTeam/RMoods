@@ -2,6 +2,7 @@
 import Link from "next/link";
 import React from "react";
 import Cookies from "js-cookie";
+import ThemeSwitch from "./ThemeSwitch";
 
 /**
  * Navbar component containing Links to other pages
@@ -21,6 +22,7 @@ const Navbar = () => {
           Log out
         </button>
       </Link>
+      <ThemeSwitch />
     </nav>
   );
 };
