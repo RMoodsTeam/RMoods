@@ -19,7 +19,7 @@ mod reddit;
 
 /// OpenAPI documentation for the RMoods server
 #[derive(OpenApi)]
-#[openapi(paths(hello, api::test::lorem, api::test::timeout))]
+#[openapi(paths(hello, api::debug::lorem, api::debug::timeout))]
 struct ApiDoc;
 
 /// Returns a welcome message and a link to our documentation
