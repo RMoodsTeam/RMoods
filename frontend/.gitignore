@@ -37,3 +37,6 @@ next-env.d.ts
 
 /docs
 /app/src/docs
+
+# env
+.env
