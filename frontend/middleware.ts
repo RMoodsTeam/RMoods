@@ -11,7 +11,6 @@ export async function middleware(request: NextRequest) {
   // get pathname as we dont want to interrupt user if he wants to login
   const { pathname } = request.nextUrl;
 
-  console.log(pathname);
   if (pathname === "/login") {
     return NextResponse.next();
   }
@@ -20,6 +19,7 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get("RMOODS_JWT");
 
   if (!token) {
+    console.warn("No JWT token in the request cookies. Redirect to /login")
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -38,7 +38,9 @@ export async function middleware(request: NextRequest) {
       new TextEncoder().encode(process.env.JWT_SECRET),
     );
   } catch {
+    console.info("Token invalid. Redirect to /login")
     return NextResponse.redirect(new URL("/login", request.url));
   }
+  console.info("Token OK, proceeding")
   return NextResponse.next();
 }

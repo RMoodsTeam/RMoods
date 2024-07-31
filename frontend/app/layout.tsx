@@ -5,7 +5,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ThemeSwitch from "./components/ThemeSwitch";
 import Script from "next/script";
-import { GoogleOAuthProvider } from "@react-oauth/google";
+import Providers from "./Providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,14 +32,14 @@ export default function RootLayout({
               document.documentElement.classList.remove("dark");
             }`}
       </Script>
-      <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">
+      <Providers>
         <body className={inter.className}>
           <Navbar />
           <ThemeSwitch />
           <main>{children}</main>
           <Footer />
         </body>
-      </GoogleOAuthProvider>
+      </Providers>
     </html>
   );
 }
