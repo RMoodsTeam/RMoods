@@ -2,17 +2,27 @@ use crate::AppState;
 use axum::{routing::get, Router};
 use std::collections::HashMap;
 
-pub mod test;
+pub mod debug;
+pub mod report;
 
 type AnyParams = HashMap<String, String>;
 
 pub fn router() -> Router<AppState> {
     Router::<AppState>::new()
-        .route("/test/timeout", get(test::timeout))
-        .route("/test/lorem", get(test::lorem))
-        .route("/test/subreddit-info", get(test::subreddit_info))
-        .route("/test/post-comments", get(test::post_comments))
-        .route("/test/user-info", get(test::user_info))
-        .route("/test/subreddit-posts", get(test::subreddit_posts))
-        .route("/test/user-posts", get(test::user_posts))
+        .route("/debug/timeout", get(debug::timeout))
+        .route("/debug/lorem", get(debug::lorem))
+        .route("/debug/subreddit-info", get(debug::subreddit_info))
+        .route("/debug/post-comments", get(debug::post_comments))
+        .route("/debug/user-info", get(debug::user_info))
+        .route("/debug/subreddit-posts", get(debug::subreddit_posts))
+        .route("/debug/user-posts", get(debug::user_posts))
+        .route("/report/sentiment", get(report::sentiment))
+        .route("/report/language", get(report::language))
+        .route("/report/sarcasm", get(report::sarcasm))
+        .route("/report/keywords", get(report::keywords))
+        .route("/report/spam", get(report::spam))
+        .route("/report/politics", get(report::politics))
+        .route("/report/hate-speech", get(report::hate_speech))
+        .route("/report/clickbait", get(report::clickbait))
+        .route("/report/troll", get(report::troll))
 }

@@ -1,9 +1,9 @@
-use axum::{routing::get, Json, Router};
+use crate::open_api::ApiDoc;
+use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
-use log::{info, warn};
+use log::{error, info, warn};
 use reddit::connection::RedditConnection;
 use reqwest::Client;
-use serde_json::{json, Value};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -17,26 +17,7 @@ mod app_error;
 mod auth;
 mod reddit;
 
-/// OpenAPI documentation for the RMoods server
-#[derive(OpenApi)]
-#[openapi(paths(hello, api::test::lorem, api::test::timeout))]
-struct ApiDoc;
-
-/// Returns a welcome message and a link to our documentation
-#[utoipa::path(
-    get,
-    path = "/",
-    responses(
-        (status = 200, description = "Always"),
-    ),
-)]
-async fn hello() -> Json<Value> {
-    json!({
-        "message" : "Welcome to the RMoods Backend!",
-        "docs": "https://rmoodsteam.github.io/RMoods/backend/rmoods_backend/index.html",
-    })
-    .into()
-}
+mod open_api;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -45,18 +26,29 @@ pub struct AppState {
     pub http: Client,
 }
 
-/// Entry point of the RMoods server.
-/// Initializes the HTTP server and runs it.
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    std::env::set_var("RUST_LOG", "debug");
-    std::env::set_var("RUST_BACKTRACE", "0");
-    env_logger::init();
+fn verify_environment() -> bool {
+    let needed_vars = vec![
+        "CLIENT_ID",
+        "CLIENT_SECRET",
+        "DATABASE_URL",
+        "JWT_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+    ];
+    let defined: Vec<String> = std::env::vars().map(|(k, _)| k).collect();
 
-    if dotenvy::dotenv().is_err() {
-        warn!(".env not found. Environment variables will have to be defined outside of .env");
-    }
+    let mut is_ok = true;
+    needed_vars
+        .iter()
+        .filter(|&needed| !defined.contains(&needed.to_string()))
+        .for_each(|missing| {
+            log::error!("{missing} is not defined in the environment.");
+            is_ok = false
+        });
+    is_ok
+}
 
+async fn run() -> anyhow::Result<()> {
     let url = std::env::var("DATABASE_URL").expect("DB_URL is set");
     let pool = PgPoolOptions::new()
         .max_connections(10)
@@ -83,7 +75,6 @@ async fn main() -> anyhow::Result<()> {
 
     // Routes after the layers won't have the layers applied
     let app = Router::<AppState>::new()
-        .route("/", get(hello))
         .nest("/api", api::router())
         .layer(authorization)
         .nest("/auth", auth::router())
@@ -102,4 +93,28 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app).await?;
 
     Ok(())
+}
+
+/// Entry point of the RMoods server.
+/// Initializes the HTTP server and runs it.
+#[tokio::main]
+async fn main() {
+    std::env::set_var("RUST_LOG", "debug");
+    std::env::set_var("RUST_BACKTRACE", "0");
+    env_logger::init();
+
+    if dotenvy::dotenv().is_err() {
+        warn!(".env not found. Environment variables will have to be defined outside of .env");
+    }
+
+    if !verify_environment() {
+        error!("Invalid environment, aborting.");
+        std::process::exit(1);
+    }
+    info!("Environment OK");
+    let res = run().await;
+    if let Err(e) = res {
+        log::error!("{e}");
+        std::process::exit(1);
+    }
 }
