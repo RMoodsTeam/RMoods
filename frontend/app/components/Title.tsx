@@ -1,7 +1,14 @@
-export default function Title(props: { text: string }) {
+import React from "react";
+
+export default function Title({ children, className = "", ...props }: any) {
   return (
-    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-      {props.text}
+    <h1
+      className={
+        "text-3xl font-bold text-primary-dark:text-primary-light " + className
+      }
+      {...props}
+    >
+      {children}
     </h1>
   );
 }

@@ -1,13 +1,11 @@
+import React from "react";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import ThemeSwitch from "./components/ThemeSwitch";
 import Script from "next/script";
 import Providers from "./Providers";
-
-const inter = Inter({ subsets: ["latin"] });
+import MainContainer from "./components/MainContainer";
 
 export const metadata: Metadata = {
   title: "RMoods",
@@ -33,10 +31,9 @@ export default function RootLayout({
             }`}
       </Script>
       <Providers>
-        <body className={inter.className}>
+        <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors">
           <Navbar />
-          <ThemeSwitch />
-          <main>{children}</main>
+          <MainContainer>{children}</MainContainer>
           <Footer />
         </body>
       </Providers>

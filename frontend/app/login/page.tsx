@@ -6,6 +6,8 @@ import { useAtom } from "jotai";
 import Cookies from "js-cookie";
 import { userInfoAtom } from "../atoms";
 import { postGoogleCode, serverRedirect } from "./postGoogleCode";
+import Title from "../components/Title";
+import Card from "../components/Card";
 
 export default function LoginPage() {
   const [, setUserInfo] = useAtom(userInfoAtom);
@@ -20,9 +22,13 @@ export default function LoginPage() {
   });
 
   return (
-    <div>
-      <h1>Log in</h1>
-      <GoogleSignInButton onClick={() => googleLogin()} />
+    <div className="flex flex-col items-center justify-center">
+      <Card>
+        <div className="m-8 flex align-center flex-col">
+          <Title className="m-4">Sign in to RMoods</Title>
+          <GoogleSignInButton onClick={() => googleLogin()} />
+        </div>
+      </Card>
     </div>
   );
 }
