@@ -12,6 +12,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname === "/login" || pathname === "/") {
+    console.info(`Path is ${pathname}, proceeding without auth`);
     return NextResponse.next();
   }
 
@@ -41,6 +42,7 @@ export async function middleware(request: NextRequest) {
     console.info("Token invalid. Redirect to /login")
     return NextResponse.redirect(new URL("/login", request.url));
   }
-  console.info("Token OK, proceeding")
+  
+  console.info(`Token OK, proceeding to ${pathname}`)
   return NextResponse.next();
 }

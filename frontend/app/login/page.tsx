@@ -1,38 +1,24 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import GoogleSignInButton from "./GoogleSignInButton";
-import { useRouter } from "next/navigation";
-import { useAtom, atom } from "jotai";
+import { useAtom } from "jotai";
 import Cookies from "js-cookie";
-
-export const userInfoAtom = atom<any>({});
-
-export async function postGoogleCode(codeResponse: { code: string }) {
-  // for test purposes it will stay at this URL for now
-  const url = "http://localhost:8001/auth/login";
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code: codeResponse.code }),
-  });
-  const answer: { jwt: string; user_info: Object } = await response.json();
-  Cookies.set("RMOODS_JWT", answer.jwt, { expires: 30 });
-  console.log(answer);
-  return answer.user_info;
-}
+import { userInfoAtom } from "../atoms";
+import { postGoogleCode, serverRedirect } from "./postGoogleCode";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [_, setUserInfo] = useAtom(userInfoAtom);
+  const [, setUserInfo] = useAtom(userInfoAtom);
   const googleLogin = useGoogleLogin({
     onSuccess: async (codeResponse) => {
-      const info = await postGoogleCode(codeResponse);
-      setUserInfo(info);
-      router.replace("/dashboard");
+      const res = await postGoogleCode(codeResponse);
+      setUserInfo(res.user_info);
+      Cookies.set("RMOODS_JWT", res.jwt, { expires: 30 });
+      await serverRedirect("/dashboard");
     },
     flow: "auth-code",
   });
+
   return (
     <div>
       <h1>Log in</h1>

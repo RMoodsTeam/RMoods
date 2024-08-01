@@ -1,7 +1,7 @@
 "use client";
 import { useAtomValue } from "jotai";
 import React from "react";
-import { userInfoAtom } from "../login/page";
+import { userInfoAtom } from "../atoms";
 
 const Dashboard = () => {
   const userInfo = useAtomValue(userInfoAtom);
