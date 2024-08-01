@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   // get pathname as we dont want to interrupt user if he wants to login
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/login") {
+  if (pathname === "/login" || pathname === "/") {
     return NextResponse.next();
   }
 

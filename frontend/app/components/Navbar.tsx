@@ -2,7 +2,6 @@
 import Link from "next/link";
 import React from "react";
 import Cookies from "js-cookie";
-import { revalidatePath } from "next/cache";
 import { useRouter } from "next/navigation";
 
 /**

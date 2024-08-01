@@ -1,8 +1,7 @@
 "use client";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import React from "react";
 import { userInfoAtom } from "../login/page";
-import Image from "next/image";
 
 const Dashboard = () => {
   const userInfo = useAtomValue(userInfoAtom);
@@ -14,7 +13,6 @@ const Dashboard = () => {
       <p>{userInfo.name}</p>
       <label>Email</label>
       <p>{userInfo.email}</p>
-      <label>Profile picture</label>
     </>
   );
 };

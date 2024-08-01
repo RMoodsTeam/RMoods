@@ -3,10 +3,9 @@ import React, { useState } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import GoogleSignInButton from "./GoogleSignInButton";
 import { useRouter } from "next/navigation";
-import { atom, PrimitiveAtom, useAtom } from "jotai";
+import { useAtom, atom } from "jotai";
 import Cookies from "js-cookie";
 
-// Replace `any` with a proper type later
 export const userInfoAtom = atom<any>({});
 
 export async function postGoogleCode(codeResponse: { code: string }) {
@@ -35,7 +34,7 @@ export default function LoginPage() {
     },
     flow: "auth-code",
   });
-
+  1;
   return (
     <div>
       <h1>Log in</h1>
