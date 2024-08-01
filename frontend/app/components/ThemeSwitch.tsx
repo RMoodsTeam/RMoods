@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from "react";
+import Button from "./Button";
+import React from "react";
 
 /**
  * function to switch themes, uses localStorage
@@ -20,17 +21,16 @@ export function switchThemes() {
  * Renders button that switches themes
  */
 const ThemeSwitch = () => {
-  const [visible, setVisible] = useState(false);
   return (
-    <button
+    <Button
       id="theme-switch"
-      className="bg-primary-light dark:bg-primary-dark"
+      className="bg-primary-light dark:bg-primary-dark rounded-full"
       onClick={() => {
         switchThemes();
       }}
     >
       Change theme here!
-    </button>
+    </Button>
   );
 };
 

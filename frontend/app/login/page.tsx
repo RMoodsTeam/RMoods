@@ -4,6 +4,8 @@ import { useGoogleLogin } from "@react-oauth/google";
 import Cookies from "js-cookie";
 import GoogleSignInButton from "./GoogleSignInButton";
 import { useRouter } from "next/navigation";
+import Title from "../components/Title";
+import Card from "../components/Card";
 
 async function postGoogleCode(codeResponse: { code: string }) {
   // for test purposes it will stay at this URL for now
@@ -29,9 +31,13 @@ export default function LoginPage() {
   const router = useRouter();
 
   return (
-    <div>
-      <h1>Log in</h1>
-      <GoogleSignInButton onClick={() => googleLogin()} />
+    <div className="flex flex-col items-center justify-center">
+      <Card>
+        <div className="m-8 flex align-center flex-col">
+          <Title className="m-4">Sign in to RMoods</Title>
+          <GoogleSignInButton onClick={() => googleLogin()} />
+        </div>
+      </Card>
     </div>
   );
 }
