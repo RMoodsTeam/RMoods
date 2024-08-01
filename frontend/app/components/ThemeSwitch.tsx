@@ -1,5 +1,4 @@
 "use client";
-import React, { useState } from "react";
 import Button from "./Button";
 
 /**
@@ -24,7 +23,7 @@ const ThemeSwitch = () => {
   return (
     <Button
       id="theme-switch"
-      className="bg-primary-light dark:bg-primary-dark"
+      className="bg-primary-light dark:bg-primary-dark rounded-full"
       onClick={() => {
         switchThemes();
       }}

@@ -31,7 +31,7 @@ export default function RootLayout({
             }`}
       </Script>
       <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">
-        <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light">
+        <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors">
           <Navbar />
           <MainContainer>{children}</MainContainer>
           <Footer />

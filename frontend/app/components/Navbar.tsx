@@ -9,7 +9,7 @@ import Link from "./Link";
  */
 const Navbar = () => {
   return (
-    <nav className="sticky top-0 z-50 w-full flex justify-center p-4 shadow-md">
+    <nav className="bg-primary-light dark:bg-primary-dark sticky top-0 z-50 w-full flex p-4 shadow-md place-content-around ">
       <Link href="/dashboard">Dashboard</Link>
       <Link href="/">Main</Link>
       {/* TODO!! move button to another file so the whole navbar is not a client component */}
