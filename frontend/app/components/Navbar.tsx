@@ -2,13 +2,11 @@
 import Link from "next/link";
 import React from "react";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
 
 /**
  * Navbar component containing Links to other pages
  */
 const Navbar = () => {
-  const router = useRouter();
   return (
     <nav className="sticky top-0 z-50">
       <Link href="/dashboard">Dashboard</Link>
@@ -18,8 +16,6 @@ const Navbar = () => {
         <button
           onClick={() => {
             Cookies.remove("RMOODS_JWT");
-            router.refresh();
-            console.log("Logged out");
           }}
         >
           Log out

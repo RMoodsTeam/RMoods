@@ -29,12 +29,10 @@ export default function LoginPage() {
     onSuccess: async (codeResponse) => {
       const info = await postGoogleCode(codeResponse);
       setUserInfo(info);
-      router.refresh();
       router.replace("/dashboard");
     },
     flow: "auth-code",
   });
-  1;
   return (
     <div>
       <h1>Log in</h1>

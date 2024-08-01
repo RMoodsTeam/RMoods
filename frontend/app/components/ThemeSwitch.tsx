@@ -20,7 +20,6 @@ export function switchThemes() {
  * Renders button that switches themes
  */
 const ThemeSwitch = () => {
-  const [visible, setVisible] = useState(false);
   return (
     <button
       id="theme-switch"
