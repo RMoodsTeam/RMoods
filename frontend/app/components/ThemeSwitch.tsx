@@ -1,5 +1,6 @@
 "use client";
 import Button from "./Button";
+import React from "react";
 
 /**
  * function to switch themes, uses localStorage

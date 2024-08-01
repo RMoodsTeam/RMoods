@@ -3,6 +3,7 @@ import Card from "./components/Card";
 import Button from "./components/Button";
 import Title from "./components/Title";
 import Link from "./components/Link";
+
 /**
  * Home component, returns main content
  * @returns {TSX}

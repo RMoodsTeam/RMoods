@@ -1,10 +1,13 @@
-export default function Title({ children, className = "", ...props }: any) {
-  const defaultClasses =
-    "text-3xl font-bold text-primary-dark:text-primary-light";
-  const combinedClasses = `${defaultClasses} ${className}`.trim();
+import React from "react";
 
+export default function Title({ children, className = "", ...props }: any) {
   return (
-    <h1 className={combinedClasses} {...props}>
+    <h1
+      className={
+        "text-3xl font-bold text-primary-dark:text-primary-light " + className
+      }
+      {...props}
+    >
       {children}
     </h1>
   );
