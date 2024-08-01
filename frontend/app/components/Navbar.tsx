@@ -1,8 +1,8 @@
 "use client";
-import Link from "next/link";
 import React from "react";
 import Cookies from "js-cookie";
 import ThemeSwitch from "./ThemeSwitch";
+import Link from "./Link";
 
 /**
  * Navbar component containing Links to other pages
