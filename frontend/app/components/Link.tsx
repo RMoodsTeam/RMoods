@@ -1,3 +1,4 @@
+import React from "react";
 import { default as NextLink } from "next/link";
 
 export default function Link({
@@ -11,7 +12,7 @@ export default function Link({
 }) {
   return (
     <NextLink
-      className="text-blue-600 hover:text-blue-900 hover:underline"
+      className="text-blue-600 hover:text-blue-900 dark:text-blue-500 dark:hover:text-blue-400 hover:underline"
       href={href}
       {...props}
     >

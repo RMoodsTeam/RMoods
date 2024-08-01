@@ -9,7 +9,7 @@ import ThemeSwitch from "./ThemeSwitch";
  */
 const Navbar = () => {
   return (
-    <nav className="sticky top-0 z-50">
+    <nav className="sticky top-0 z-50 w-full flex justify-center p-4 shadow-md">
       <Link href="/dashboard">Dashboard</Link>
       <Link href="/">Main</Link>
       {/* TODO!! move button to another file so the whole navbar is not a client component */}

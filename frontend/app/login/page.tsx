@@ -31,7 +31,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col items-center justify-center">
       <Card>
         <div className="m-8 flex align-center flex-col">
           <Title className="m-4">Sign in to RMoods</Title>
