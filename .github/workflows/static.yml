@@ -87,7 +87,7 @@ jobs:
 ### BEGIN FRONTEND ###
       - name: Build Frontend API Docs
         working-directory: frontend
-        run: npm ci && npm run build-docs
+        run: npm ci --force && npm run build-docs
 
       - name: Copy Frontend API Docs into the docs dir
         working-directory: frontend

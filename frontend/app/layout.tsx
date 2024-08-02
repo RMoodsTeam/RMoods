@@ -4,7 +4,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Script from "next/script";
-import { GoogleOAuthProvider } from "@react-oauth/google";
+import Providers from "./Providers";
 import MainContainer from "./components/MainContainer";
 
 export const metadata: Metadata = {
@@ -30,13 +30,13 @@ export default function RootLayout({
               document.documentElement.classList.remove("dark");
             }`}
       </Script>
-      <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">
+      <Providers>
         <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors">
           <Navbar />
           <MainContainer>{children}</MainContainer>
           <Footer />
         </body>
-      </GoogleOAuthProvider>
+      </Providers>
     </html>
   );
 }

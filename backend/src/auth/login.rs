@@ -2,13 +2,14 @@ use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use super::{google::fetch_google_access_token, jwt::create_jwt};
+use super::{google::{fetch_google_access_token, GoogleUserInfo}, jwt::create_jwt};
 
 use crate::{app_error::AppError, auth::google::fetch_google_user_info, AppState};
 
 #[derive(Serialize, Debug, ToSchema)]
 pub struct LoginResponse {
     jwt: String,
+    user_info: GoogleUserInfo
 }
 
 #[derive(Deserialize, Debug, ToSchema)]
@@ -34,5 +35,5 @@ pub async fn login(
         fetch_google_user_info(auth_data.access_token().to_string(), &state.http).await?;
 
     let jwt = create_jwt(user_info.sub().to_owned())?;
-    Ok(Json(LoginResponse { jwt }))
+    Ok(Json(LoginResponse { jwt, user_info }))
 }
