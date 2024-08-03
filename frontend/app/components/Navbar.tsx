@@ -13,14 +13,13 @@ const Navbar = () => {
       <Link href="/dashboard">Dashboard</Link>
       <Link href="/">Main</Link>
       {/* TODO!! move button to another file so the whole navbar is not a client component */}
-      <Link href="/login">
-        <button
-          onClick={() => {
-            Cookies.remove("RMOODS_JWT");
-          }}
-        >
-          Log out
-        </button>
+      <Link
+        href="/login"
+        onClick={() => {
+          Cookies.remove("RMOODS_JWT");
+        }}
+      >
+        Log out
       </Link>
       <ThemeSwitch />
     </nav>
