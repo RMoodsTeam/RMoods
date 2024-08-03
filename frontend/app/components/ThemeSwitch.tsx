@@ -37,17 +37,37 @@ const ThemeSwitch = () => {
   };
   const iconSize = 24;
 
+  const selectorFn = (target: string | null) => {
+    return () => {
+      return localStorage.getItem("theme") === target;
+    };
+  };
+
   return (
     <Dropdown isOpen={isOpen} onToggle={onToggle} title={title}>
-      <DropdownOption id="light" onClick={onOptionClick}>
+      <DropdownOption
+        id="light"
+        onClick={onOptionClick}
+        isSelected={selectorFn("light")}
+      >
         <TbSun className="mr-2 my-1" size={iconSize} />
         Light
       </DropdownOption>
-      <DropdownOption id="dark" onClick={onOptionClick}>
+
+      <DropdownOption
+        id="dark"
+        onClick={onOptionClick}
+        isSelected={selectorFn("dark")}
+      >
         <TbMoon className="mr-2 my-1" size={iconSize} />
         Dark
       </DropdownOption>
-      <DropdownOption id="system" onClick={onOptionClick}>
+
+      <DropdownOption
+        id="system"
+        onClick={onOptionClick}
+        isSelected={selectorFn(null)}
+      >
         <TbDeviceDesktopCog className="mr-2 my-1" size={iconSize} />
         System
       </DropdownOption>
