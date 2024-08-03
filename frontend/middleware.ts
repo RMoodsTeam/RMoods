@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get("RMOODS_JWT");
 
   if (!token) {
-    console.warn("No JWT token in the request cookies. Redirect to /login")
+    console.warn("No JWT token in the request cookies. Redirect to /login");
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -39,10 +39,10 @@ export async function middleware(request: NextRequest) {
       new TextEncoder().encode(process.env.JWT_SECRET),
     );
   } catch {
-    console.info("Token invalid. Redirect to /login")
+    console.info("Token invalid. Redirect to /login");
     return NextResponse.redirect(new URL("/login", request.url));
   }
-  
-  console.info(`Token OK, proceeding to ${pathname}`)
+
+  console.info(`Token OK, proceeding to ${pathname}`);
   return NextResponse.next();
 }

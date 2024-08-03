@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Dropdown, DropdownOption } from "./Dropdown";
 import { TbSun } from "react-icons/tb";
 import { TbMoon } from "react-icons/tb";
@@ -23,18 +23,32 @@ const setSelectedTheme = (e: any) => {
 };
 
 const ThemeSwitch = () => {
+  const title = (
+    <div className="flex flex-row">
+      <TbPaint className="mr-2" size={30} />
+    </div>
+  );
+
+  const [isOpen, setIsOpen] = useState(false);
+  const onToggle = () => setIsOpen(!isOpen);
+  const onOptionClick = (e: MouseEvent) => {
+    setSelectedTheme(e);
+    setIsOpen(false);
+  };
+  const iconSize = 24;
+
   return (
-    <Dropdown title={<TbPaint />}>
-      <DropdownOption id="light" onClick={setSelectedTheme}>
-        <TbSun className="mr-2" />
+    <Dropdown isOpen={isOpen} onToggle={onToggle} title={title}>
+      <DropdownOption id="light" onClick={onOptionClick}>
+        <TbSun className="mr-2 my-1" size={iconSize} />
         Light
       </DropdownOption>
-      <DropdownOption id="dark" onClick={setSelectedTheme}>
-        <TbMoon className="mr-2" />
+      <DropdownOption id="dark" onClick={onOptionClick}>
+        <TbMoon className="mr-2 my-1" size={iconSize} />
         Dark
       </DropdownOption>
-      <DropdownOption id="system" onClick={setSelectedTheme}>
-        <TbDeviceDesktopCog className="mr-2" />
+      <DropdownOption id="system" onClick={onOptionClick}>
+        <TbDeviceDesktopCog className="mr-2 my-1" size={iconSize} />
         System
       </DropdownOption>
     </Dropdown>

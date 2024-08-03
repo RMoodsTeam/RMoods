@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Card from "./Card";
+import { TbTriangle } from "react-icons/tb";
 
 export const DropdownOption = ({ id, children, onClick }: any) => {
   return (
@@ -11,22 +12,24 @@ export const DropdownOption = ({ id, children, onClick }: any) => {
 
 export const Dropdown = ({
   children,
+  isOpen,
+  onToggle,
   className = "",
   title,
   ...props
 }: any) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-
   return (
     <div>
-      <button onClick={toggleDropdown} className="relative">
-        {title}
+      <button onClick={onToggle} className="relative">
+        <div className="flex flex-row">{title}</div>
       </button>
-      {isOpen ? <Card className="absolute top-10">{...children}</Card> : <></>}
+      {isOpen ? (
+        <Card className="absolute -translate-x-14 -translate-y-15" {...props}>
+          {...children}
+        </Card>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
