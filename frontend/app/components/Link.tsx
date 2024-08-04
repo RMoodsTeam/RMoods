@@ -5,11 +5,13 @@ export default function Link({
   href,
   children,
   className,
+  onClick,
   ...props
 }: {
   href: string;
   children: any;
   className?: string;
+  onClick?: any;
   props?: any;
 }) {
   return (
@@ -20,6 +22,7 @@ export default function Link({
       }
       href={href}
       {...props}
+      onClick={onClick}
     >
       {children}
     </NextLink>
