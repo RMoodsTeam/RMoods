@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from "react";
 import { Dropdown, DropdownOption } from "./Dropdown";
 import { TbSun } from "react-icons/tb";

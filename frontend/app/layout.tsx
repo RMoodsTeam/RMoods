@@ -20,28 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script id="theme">{`
-      const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
-      darkThemeMq.addListener(e => {
-      if (e.matches) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        }
-      });
-      if (localStorage.getItem("theme") === "light") {
-        document.documentElement.classList.remove("dark");
-      } else if (localStorage.getItem("theme") === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        if (darkThemeMq.matches) {
-          document.documentElement.classList.add("dark");
-        }
-        else {
-          document.documentElement.classList.remove("dark");
-        }
-      }
-      `}</script>
+        <script id="theme" src="initializeTheme.js" />
       </head>
       <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors">
         <Providers>
