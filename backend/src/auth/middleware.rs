@@ -2,7 +2,7 @@ use axum::{extract::Request, middleware::Next, response::Response};
 use http::StatusCode;
 use log::info;
 
-use crate::auth::jwt::is_jwt_valid;
+use crate::auth::jwt::decode_jwt;
 
 pub async fn authorization(request: Request, next: Next) -> Result<Response, StatusCode> {
     let user_jwt = request
@@ -14,7 +14,7 @@ pub async fn authorization(request: Request, next: Next) -> Result<Response, Sta
 
     info!("Authorization header: {}", user_jwt);
 
-    is_jwt_valid(user_jwt).map_err(|_| StatusCode::UNAUTHORIZED)?;
+    decode_jwt(user_jwt).map_err(|_| StatusCode::UNAUTHORIZED)?;
 
     info!("JWT is valid");
 
