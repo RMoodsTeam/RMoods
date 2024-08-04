@@ -1,11 +1,11 @@
-"use client";
 import React from "react";
 import Title from "../components/Title";
-import { useAtomValue } from "jotai";
-import { userInfoAtom } from "../atoms";
+import { userInfoFromJWT } from "../utility/serverActions";
+// import { useAtomValue } from "jotai";
+// import { userInfoAtom } from "../atoms";
 
-const LoggedUserInfo = () => {
-  const userInfo = useAtomValue(userInfoAtom);
+const LoggedUserInfo = async () => {
+  const userInfo = await userInfoFromJWT();
   return (
     <>
       <Title>Dashboard</Title>
