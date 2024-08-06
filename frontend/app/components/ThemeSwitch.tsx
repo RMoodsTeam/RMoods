@@ -43,37 +43,34 @@ const ThemeSwitch = () => {
   };
 
   return (
-    <div>
-<Dropdown isOpen={isOpen} onToggle={onToggle} title={title}>
-      <DropdownOption
-        id="light"
-        onClick={onOptionClick}
-        isSelected={selectorFn("light")}
-      >
-        <TbSun className="mr-2 my-1" size={iconSize} />
-        Light
-      </DropdownOption>
+      <Dropdown isOpen={isOpen} onToggle={onToggle} title={title} id='theme-switch'>
+        <DropdownOption
+          id="light"
+          onClick={onOptionClick}
+          isSelected={selectorFn("light")}
+        >
+          <TbSun className="mr-2 my-1" size={iconSize} />
+          Light
+        </DropdownOption>
 
-      <DropdownOption
-        id="dark"
-        onClick={onOptionClick}
-        isSelected={selectorFn("dark")}
-      >
-        <TbMoon className="mr-2 my-1" size={iconSize} />
-        Dark
-      </DropdownOption>
+        <DropdownOption
+          id="dark"
+          onClick={onOptionClick}
+          isSelected={selectorFn("dark")}
+        >
+          <TbMoon className="mr-2 my-1" size={iconSize} />
+          Dark
+        </DropdownOption>
 
-      <DropdownOption
-        id="system"
-        onClick={onOptionClick}
-        isSelected={selectorFn(null)}
-      >
-        <TbDeviceDesktopCog className="mr-2 my-1" size={iconSize} />
-        System
-      </DropdownOption>
-    </Dropdown>
-    </div>
-    
+        <DropdownOption
+          id="system"
+          onClick={onOptionClick}
+          isSelected={selectorFn(null)}
+        >
+          <TbDeviceDesktopCog className="mr-2 my-1" size={iconSize} />
+          System
+        </DropdownOption>
+      </Dropdown>
   );
 };
 

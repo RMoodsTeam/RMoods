@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script id="theme" src="initializeTheme.js" />
+        <script id="theme" src="/initializeTheme.js"/>
       </head>
       <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors">
         <Providers>

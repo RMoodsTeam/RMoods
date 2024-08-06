@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 
 export async function userInfoFromJWT(): Promise<any> {
   // TODO maybe use caching wisely to avoid calling it every time we render the dashboard
-  console.info("Calling userInfoFromJWT");
   const token = cookies().get("RMOODS_JWT")?.value;
   if (!token) {
     console.error("No JWT token found");

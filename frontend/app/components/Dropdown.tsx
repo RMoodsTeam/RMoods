@@ -13,6 +13,7 @@ export const DropdownOption = ({ id, children, onClick, isSelected }: any) => {
       }
       onClick={onClick}
       id={id}
+      data-cy={`option-${id}`}
     >
       {children}
     </div>
@@ -29,7 +30,7 @@ export const Dropdown = ({
 }: any) => {
   return (
     <div>
-      <button onClick={onToggle} className="relative" data-cy="dropdown-toggle-button">
+      <button onClick={onToggle} className="relative" data-cy={`dropdown-toggle-button-${props.id}`}>
         <div className="flex flex-row">{title}</div>
       </button>
       {isOpen ? (
