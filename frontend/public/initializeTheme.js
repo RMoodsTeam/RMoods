@@ -1,5 +1,5 @@
 const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
-darkThemeMq.addEventListener('change', (e) => {
+darkThemeMq.addEventListener("change", (e) => {
   if (e.matches) {
     document.documentElement.classList.add("dark");
   } else {
