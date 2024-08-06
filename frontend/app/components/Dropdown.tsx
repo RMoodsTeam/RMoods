@@ -29,12 +29,13 @@ export const Dropdown = ({
 }: any) => {
   return (
     <div>
-      <button onClick={onToggle} className="relative">
+      <button onClick={onToggle} className="relative" data-cy="dropdown-toggle-button">
         <div className="flex flex-row">{title}</div>
       </button>
       {isOpen ? (
         <Card
           className="absolute -translate-x-9 translate-y-2 !m-0 !p-0 "
+          data-cy="dropdown-card"
           {...props}
         >
           {...children}
