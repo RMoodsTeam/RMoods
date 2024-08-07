@@ -1,6 +1,6 @@
 describe("Theme Switch - user-selected `light`, system `dark`", () => {
   beforeEach(() => {
-    cy.visit("localhost:3000/", {
+    cy.visit("localhost:8000/", {
       onBeforeLoad(win) {
         cy.stub(win, "matchMedia")
           .withArgs("(prefers-color-scheme: dark)")
@@ -33,7 +33,7 @@ describe("Theme Switch - user-selected `light`, system `dark`", () => {
 describe("Theme Switch - user-selected `system`, system `dark`", () => {
   beforeEach(() => {
     cy.clearLocalStorage();
-    cy.visit("localhost:3000/", {
+    cy.visit("localhost:8000/", {
       onBeforeLoad(win) {
         cy.stub(win, "matchMedia")
           .withArgs("(prefers-color-scheme: dark)")

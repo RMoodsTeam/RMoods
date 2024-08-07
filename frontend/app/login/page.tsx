@@ -9,7 +9,7 @@ import { postGoogleCode, serverRedirect } from "./postGoogleCode";
 import Title from "../components/Title";
 import Card from "../components/Card";
 
-export function LoginCard() {
+function LoginCard() {
   const [, setUserInfo] = useAtom(userInfoAtom);
   const googleLogin = useGoogleLogin({
     onSuccess: async (codeResponse) => {
