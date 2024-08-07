@@ -43,7 +43,7 @@ const ThemeSwitch = () => {
   };
 
   return (
-    <Dropdown isOpen={isOpen} onToggle={onToggle} title={title}>
+    <Dropdown isOpen={isOpen} onToggle={onToggle} title={title} id='theme-switch'>
       <DropdownOption
         id="light"
         onClick={onOptionClick}

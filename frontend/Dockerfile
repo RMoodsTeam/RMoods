@@ -66,7 +66,7 @@ COPY --from=build /usr/src/app/.next ./.next
 
 
 # Expose the port that the application listens on.
-EXPOSE 3000
+EXPOSE 8000
 
 # Run the application.
 CMD npm start

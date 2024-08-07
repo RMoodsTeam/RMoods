@@ -1,11 +1,12 @@
 const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
-darkThemeMq.addListener((e) => {
+darkThemeMq.addEventListener("change", (e) => {
   if (e.matches) {
     document.documentElement.classList.add("dark");
   } else {
     document.documentElement.classList.remove("dark");
   }
 });
+
 if (localStorage.getItem("theme") === "light") {
   document.documentElement.classList.remove("dark");
 } else if (localStorage.getItem("theme") === "dark") {

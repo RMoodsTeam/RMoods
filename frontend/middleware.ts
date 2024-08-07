@@ -3,15 +3,19 @@ import { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 export async function middleware(request: NextRequest) {
+  // get pathname as we dont want to interrupt user if he wants to login
+  const { pathname } = request.nextUrl;
+  
+  const permittedDirs = ['/_next', '/public'];
+  const isPermitted = permittedDirs.some((p) => pathname.startsWith(p));
   // ***DO NOT CHANGE*** prevent rerouting NextJS assets like CSS
-  if (request.nextUrl.pathname.startsWith("/_next")) {
+  if (isPermitted) {
+    console.info(`Pathname is ${pathname}, permitted directory.`)
     return NextResponse.next();
   }
 
-  // get pathname as we dont want to interrupt user if he wants to login
-  const { pathname } = request.nextUrl;
-
-  if (pathname === "/login" || pathname === "/") {
+  const permittedPages = ['/login', '/', '/favicon.ico', '/initializeTheme.js']
+  if (permittedPages.includes(pathname)) {
     console.info(`Path is ${pathname}, proceeding without auth`);
     return NextResponse.next();
   }

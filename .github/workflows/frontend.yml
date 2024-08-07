@@ -32,4 +32,5 @@ jobs:
         with:
           node-version: 20.5.1
       - run: npm ci --force # use --force while NextJS 15 is still RC
+      - run: npm run component:headless
       - run: npm run e2e:headless
