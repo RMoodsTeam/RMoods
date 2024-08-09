@@ -2,7 +2,7 @@ import { Dropdown, DropdownOption } from "../../app/components/Dropdown";
 
 const createDropdown = (isOpen: boolean = false, onToggle?: any) => {
   return (
-    <Dropdown isOpen={isOpen} onToggle={onToggle} title="Title" id='test'>
+    <Dropdown isOpen={isOpen} onToggle={onToggle} header="Title" id='test'>
       <DropdownOption isSelected={() => false}>
         First
       </DropdownOption>
