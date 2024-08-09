@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { MouseEventHandler, useState } from "react";
 import { Dropdown, DropdownOption } from "./Dropdown";
 import { TbSun } from "react-icons/tb";
 import { TbMoon } from "react-icons/tb";
@@ -13,16 +13,18 @@ const setSelectedTheme = (e: any) => {
   } else if (id === "dark") {
     localStorage.theme = "dark";
     document.documentElement.classList.add("dark");
-  } else {
+  } else if (id === "system") {
     const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
     localStorage.removeItem("theme");
     if (darkThemeMq.matches) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
+  } else {
+    throw new Error(`Unrecognized theme option: ${JSON.stringify(id)}`);
   }
 };
 
 const ThemeSwitch = () => {
-  const title = (
+  const dropdownHeader = (
     <div className="flex flex-row">
       <TbPaint className="mr-2" size={30} />
     </div>
@@ -30,8 +32,8 @@ const ThemeSwitch = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const onToggle = () => setIsOpen(!isOpen);
-  const onOptionClick = (e: MouseEvent) => {
-    setSelectedTheme(e);
+  const onOptionClick: MouseEventHandler = (event) => {
+    setSelectedTheme(event);
     setIsOpen(false);
   };
   const iconSize = 24;
@@ -43,7 +45,7 @@ const ThemeSwitch = () => {
   };
 
   return (
-    <Dropdown isOpen={isOpen} onToggle={onToggle} title={title} id='theme-switch'>
+    <Dropdown isOpen={isOpen} onToggle={onToggle} header={dropdownHeader} id='theme-switch'>
       <DropdownOption
         id="light"
         onClick={onOptionClick}

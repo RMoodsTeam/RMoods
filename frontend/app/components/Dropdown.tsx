@@ -1,45 +1,56 @@
-import React from "react";
+import React, { MouseEventHandler, ReactNode } from "react";
 import Card from "./Card";
+import { Children } from "./types";
 
-export const DropdownOption = ({ id, children, onClick, isSelected }: any) => {
+type DropdownOptionProps = React.HTMLAttributes<HTMLButtonElement> & Children & {
+  isSelected: () => boolean,
+}
+
+export const DropdownOption = ({children, isSelected, onClick, ...props }: DropdownOptionProps) => {
   const styling = isSelected()
     ? "text-accent-purple dark:text-accent-green font-bold" // when selected
     : "text-primary-dark dark:text-primary-light"; // when not selected
   return (
-    <div
+    <button
       className={
         "flex items-center w-full p-2 relative hover:bg-gray-300 dark:hover:bg-slate-600 cursor-pointer rounded-lg " +
         styling
       }
+      data-cy={`option-${props.id}`}
       onClick={onClick}
-      id={id}
-      data-cy={`option-${id}`}
+      {...props}
     >
       {children}
-    </div>
+    </button>
   );
 };
 
+type DropdownProps = React.HTMLAttributes<HTMLDivElement> & Children & {
+  isOpen: boolean,
+  onToggle: () => void,
+  header: ReactNode
+}
+
 export const Dropdown = ({
-  children,
   isOpen,
   onToggle,
-  className = "",
-  title,
+  header,
+  children,
   ...props
-}: any) => {
+}: DropdownProps) => {
   return (
     <div>
       <button onClick={onToggle} className="relative" data-cy={`dropdown-toggle-button-${props.id}`}>
-        <div className="flex flex-row" data-cy={`dropdown-title-${props.id}`}>{title}</div>
+        <div className="flex flex-row" data-cy={`dropdown-title-${props.id}`}>{header}</div>
       </button>
       {isOpen ? (
         <Card
           className="absolute -translate-x-9 translate-y-2 !m-0 !p-0 "
           data-cy={`dropdown-card-${props.id}`}
+          id={props.id}
           {...props}
         >
-          {...children}
+          {children}
         </Card>
       ) : (
         <></>

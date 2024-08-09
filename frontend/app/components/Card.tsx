@@ -1,12 +1,14 @@
-import React from "react";
+import React, { ReactNode } from "react";
+import { Children } from "./types";
 
-export default function Card({ children, className = "", ...props }: any) {
+type CardProps = React.HTMLAttributes<HTMLDivElement> & Children;
+
+export default function Card({ children, className, ...props }: CardProps) {
   return (
     <div
       className={
         "bg-secondary-light dark:bg-secondary-dark shadow-md rounded-lg p-4 m-4 " +
         className
-        
       }
       {...props}
     >
