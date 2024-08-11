@@ -1,30 +1,23 @@
 import React from "react";
-import { default as NextLink } from "next/link";
+import { LinkProps as NextLinkProps, default as NextLink } from "next/link";
+import { Children } from "./types";
 
-export default function Link({
-  href,
-  children,
-  className,
-  onClick,
-  ...props
-}: {
-  href: string;
-  children: any;
-  className?: string;
-  onClick?: any;
-  props?: any;
-}) {
+type LinkProps = NextLinkProps & React.RefAttributes<HTMLAnchorElement> & Children & {
+  className?: string
+};
+
+export default function Link(props: LinkProps) {
   return (
     <NextLink
-      className={
+    {...props}
+    className={
         "text-blue-600 hover:text-blue-900 dark:text-blue-500 dark:hover:text-blue-400 hover:underline " +
-        className
+        props.className
       }
-      href={href}
-      {...props}
-      onClick={onClick}
+      href={props.href}
+      onClick={props.onClick}
     >
-      {children}
+      {props.children}
     </NextLink>
   );
 }
