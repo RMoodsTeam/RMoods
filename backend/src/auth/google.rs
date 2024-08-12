@@ -21,7 +21,7 @@ pub struct GoogleUserInfo {
     sub: String,
     name: String,
     given_name: String,
-    family_name: String,
+    family_name: Option<String>,
     /// URL to the user's picture
     picture: String,
     email: String,
