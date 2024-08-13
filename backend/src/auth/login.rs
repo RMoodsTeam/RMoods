@@ -1,6 +1,7 @@
 use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use log_derive::logfn;
 
 use super::{google::fetch_google_access_token, jwt::create_jwt};
 
@@ -22,6 +23,7 @@ pub struct LoginPayload {
     responses(),
     params()
 )]
+#[logfn(err = "ERROR", fmt = "'login' failed: {:?}")]
 pub async fn login(
     State(state): State<AppState>,
     Json(body): Json<LoginPayload>,
@@ -32,6 +34,6 @@ pub async fn login(
         fetch_google_user_info(auth_data.access_token().to_string(), &state.http).await?;
     
     let jwt = create_jwt(user_info)?;
-    
+
     Ok(Json(LoginResponse { jwt }))
 }

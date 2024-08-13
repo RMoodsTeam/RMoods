@@ -1,9 +1,11 @@
 use axum::{extract::Request, middleware::Next, response::Response};
 use http::StatusCode;
 use log::info;
+use log_derive::logfn;
 
 use crate::auth::jwt::decode_jwt;
 
+#[logfn(err = "ERROR", fmt = "Authorization failed: {:?}")]
 pub async fn authorization(request: Request, next: Next) -> Result<Response, StatusCode> {
     let user_jwt = request
         .headers()

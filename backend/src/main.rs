@@ -112,6 +112,7 @@ async fn main() {
         std::process::exit(1);
     }
     info!("Environment OK");
+    
     let res = run().await;
     if let Err(e) = res {
         log::error!("{e}");
