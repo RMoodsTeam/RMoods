@@ -64,7 +64,8 @@ impl From<AuthError> for AppError {
     }
 }
 
-#[cfg(test)]mod tests {
+#[cfg(test)]
+mod tests {
     use super::*;
     use reqwest::StatusCode;
 

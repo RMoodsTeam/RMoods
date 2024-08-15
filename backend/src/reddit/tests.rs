@@ -9,7 +9,7 @@ mod tests {
         static ref HTTP: Client = ClientBuilder::new().user_agent("RMoods").build().unwrap();
     }
     static INIT: std::sync::Once = std::sync::Once::new();
-    
+
     fn init() {
         INIT.call_once(|| {
             let _ = dotenvy::dotenv();
@@ -48,7 +48,7 @@ mod tests {
     }
 
     // FLAKY TESTS
-    
+
     // #[tokio::test]
     // async fn test_fetch_subreddit_posts() {
     //     init();

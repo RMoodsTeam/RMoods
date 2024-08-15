@@ -14,7 +14,7 @@ fn get_sys_time_in_secs() -> u64 {
 }
 
 /// Reddit API access token.
-/// 
+///
 /// * Generated from a RedditApp client_id and client_secret pair.
 /// * The token is valid for `expires_in` seconds.
 /// * The token is created at `created_at` seconds since UNIX EPOCH.

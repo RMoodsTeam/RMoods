@@ -20,7 +20,7 @@ pub enum RedditError {
     HttpError(#[from] reqwest::Error),
 
     /// Deserialization to our structs failed.
-    /// 
+    ///
     /// Possible causes:
     /// * Our struct definitions are wrong
     /// * We didn't check for an error status and we're trying to parse an error response to our structs
