@@ -16,6 +16,7 @@ const Navbar = () => {
       <Link href="/login" onClick={() => Cookies.remove("RMOODS_JWT")}>
         Log out
       </Link>
+      <Link href="/about">About</Link>
       <ThemeSwitch />
     </nav>
   );

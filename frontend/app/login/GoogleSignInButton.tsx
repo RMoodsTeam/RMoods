@@ -4,7 +4,7 @@ export default function GoogleSignInButton(params: { onClick: any }) {
   return (
     <button
       onClick={params.onClick}
-      className="px-4 py-2 flex gap-2 rounded-full border bg-primary-light flex items-center justify-center text-primary-dark hover:bg-primary-dark hover:text-primary-light transition-colors"
+      className="px-4 py-2 gap-2 rounded-full border bg-primary-light flex items-center justify-center text-primary-dark hover:bg-primary-dark hover:text-primary-light transition-colors"
       id='google-sign-in-button'
     >
       <img
