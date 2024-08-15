@@ -81,12 +81,11 @@ impl RedditConnection {
         let json = res.json().await?;
         Ok(json)
     }
-    
 }
 
 /// Read Reddit headers from the provided [reqwest::Request] and return a string ready to log.
 /// Used for monitoring API usage.
-/// 
+///
 /// The string contains information about:
 /// * Number of remaining requests in the current period (1000s)
 /// * Number of seconds until new period

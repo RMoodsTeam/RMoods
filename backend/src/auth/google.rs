@@ -65,8 +65,7 @@ pub async fn fetch_google_user_info(
         .get("https://www.googleapis.com/oauth2/v3/userinfo")
         .bearer_auth(access_token)
         .send()
-        .await
-        .map_err(|e| AuthError::GoogleError(e))?
+        .await?
         .json()
         .await?;
 
