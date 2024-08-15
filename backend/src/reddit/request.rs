@@ -1,17 +1,22 @@
 use crate::reddit::connection::RedditConnection;
 
-/// Enum representing a request to the Reddit API
-/// We can request information about a subreddit, posts from a subreddit, posts from a user, or information about a user
+/// Enum representing a request to the Reddit API.
 #[derive(Debug)]
 pub enum RedditRequest {
+    /// Get posts form a given subreddit, without their replies
     SubredditPosts(String),
+    /// Get general information about a subreddit.
     SubredditInfo(String),
+    /// Get posts from a given user, without replies.
     UserPosts(String),
+    /// Get general information about a subreddit.
     UserInfo(String),
+    /// Get the full post data and its reply tree.
     PostComments { subreddit: String, post_id: String },
 }
 
 impl RedditRequest {
+    /// Get a URL that when fetched, will return what the [RedditRequest] wants to fetch.
     pub fn url(&self) -> String {
         let host = RedditConnection::API_HOSTNAME;
         type R = RedditRequest;

@@ -12,20 +12,22 @@ use super::{
 
 /// Manages a collection of RedditApp clients and their access tokens.
 ///
-/// Multiplexes requests to the Reddit API between the clients.
+/// In the future, it's planned to multiplex Reddit requests by using multiple apps and their request quotas all at once.
 #[derive(Debug, Clone)]
 pub struct RedditConnection {
+    /// For now, it's a single app
     pub(super) client: RedditApp,
+    /// Token from the app
     pub(super) access_token: RedditAccessToken,
+    /// The connection's own HTTP client, decoupled from our main app. Can remove, but it would hurt performance a bit when making many requests.
     pub(super) http: reqwest::Client,
 }
 
 impl RedditConnection {
-    /// Reddit API URL
+    /// Reddit API hostname
     pub const API_HOSTNAME: &'static str = "oauth.reddit.com";
 
-    /// Read credentials and create a collection of client authentication data
-    /// from .reddit-credentials.json in backend root (src/backend/)
+    /// Read credentials from the environment and create a new [RedditConnection]
     #[logfn(err = "ERROR", fmt = "Failed to create RedditConnection: {:?}")]
     pub async fn new(http: reqwest::Client) -> Result<RedditConnection, RedditError> {
         let id = std::env::var("CLIENT_ID").expect("CLIENT_ID should be set");
@@ -47,9 +49,9 @@ impl RedditConnection {
         })
     }
 
-    /// Execute a request to the Reddit API
+    /// Execute a request to the Reddit API.
     ///
-    /// Temporarily public for testing
+    /// Temporarily public for testing and debugging in the `api/debug.rs` module.
     #[logfn(err = "ERROR", fmt = "Failed to execute request: {:?}")]
     pub async fn fetch_raw(&mut self, request: RedditRequest) -> Result<Value, RedditError> {
         if self.access_token.is_expired() {
@@ -82,6 +84,13 @@ impl RedditConnection {
     
 }
 
+/// Read Reddit headers from the provided [reqwest::Request] and return a string ready to log.
+/// Used for monitoring API usage.
+/// 
+/// The string contains information about:
+/// * Number of remaining requests in the current period (1000s)
+/// * Number of seconds until new period
+/// * Number of requests used in the current period
 fn create_ratelimit_log(res: &reqwest::Response) -> String {
     let ratelimit_headers = const {
         [

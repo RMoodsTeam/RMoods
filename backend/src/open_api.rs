@@ -3,7 +3,9 @@ use utoipa::OpenApi;
 use crate::api::*;
 use crate::*;
 
-/// OpenAPI documentation for the RMoods server
+/// OpenAPI documentation for the RMoods server.
+/// 
+/// All routes that should be documented in our interactive docs should be added here.
 #[derive(OpenApi)]
 #[openapi(paths(
     debug::lorem,
