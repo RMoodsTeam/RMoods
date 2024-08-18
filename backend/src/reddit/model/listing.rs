@@ -46,16 +46,16 @@ use serde_json::Value;
 #[serde(tag = "kind", content = "data")]
 pub enum KindContainer {
     #[serde(rename = "Listing")]
-    Listing(Box<RedditListing>), // Listing of something
+    Listing(Box<RedditListing>),
 
     #[serde(rename = "more")]
-    More(Box<MoreData>), // More
+    More(Box<MoreData>),
 
     #[serde(rename = "t1")]
-    T1(Box<Comment>), // Comment
+    T1(Box<Comment>),
 
     #[serde(rename = "t2")]
-    T2(Box<UserInfo>), // Account TODO
+    T2(Box<UserInfo>),
 
     #[serde(rename = "t3")]
     T3(Box<Post>), // Link/Post
@@ -64,7 +64,7 @@ pub enum KindContainer {
     T4(Box<Value>), // Message TODO
 
     #[serde(rename = "t5")]
-    T5(Box<SubredditInfo>), // Subreddit Info
+    T5(Box<SubredditInfo>),
 
     #[serde(rename = "t6")]
     T6(Box<Value>), // Award TODO

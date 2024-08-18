@@ -3,7 +3,7 @@ use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reddit::connection::RedditConnection;
-use reqwest::Client;
+use reqwest::{Client, ClientBuilder};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tower_http::{
     cors::{Any, CorsLayer},
