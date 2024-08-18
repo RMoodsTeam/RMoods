@@ -3,6 +3,9 @@ use std::{default, fmt::Display};
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 
+/// Represents a time period for sorting posts in a feed.
+///
+/// Used in [FeedSorting]
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FeedSortingTime {
     Hour,
@@ -27,8 +30,14 @@ impl ToString for FeedSortingTime {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+/// Represents a sorting method for posts in a feed.
+///
+/// * `Controversial` and `Top` require a time period as [FeedSortingTime]
+/// * `Hot`, `New`, and `Rising` do not require a time period
+/// *  Used in [FeedRequestParams]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub enum FeedSorting {
+    #[default]
     Hot,
     New,
     Rising,
@@ -50,6 +59,7 @@ impl ToString for FeedSorting {
 }
 
 impl FeedSorting {
+    /// Get the time period for sorting posts, if applicable.
     pub fn time(&self) -> Option<FeedSortingTime> {
         match self {
             FeedSorting::Top(time) | FeedSorting::Controversial(time) => Some(*time),
@@ -58,12 +68,14 @@ impl FeedSorting {
     }
 }
 
+/// Represents the number of posts to fetch from a feed.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub enum RequestSize {
     #[default]
     Small,
     Medium,
     Large,
+    /// Custom number of posts to fetch as u16
     Custom(u16),
 }
 
@@ -85,19 +97,13 @@ impl ToString for RequestSize {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Getters)]
+/// Represents the parameters for fetching a feed of posts.
+#[derive(Debug, Serialize, Deserialize, Getters, Default)]
 pub struct FeedRequestParams {
+    /// Number of posts to fetch
     #[serde(flatten)]
     pub size: RequestSize,
+    /// Sorting method for posts
     #[serde(flatten)]
     pub sorting: FeedSorting,
-}
-
-impl default::Default for FeedRequestParams {
-    fn default() -> Self {
-        FeedRequestParams {
-            size: RequestSize::Small,
-            sorting: FeedSorting::Hot,
-        }
-    }
 }
