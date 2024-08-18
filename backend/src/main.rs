@@ -3,7 +3,7 @@ use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reddit::connection::RedditConnection;
-use reqwest::{Client, ClientBuilder};
+use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -30,7 +30,7 @@ pub struct AppState {
 /// Ensure that all necessary environment variables are available at server startup.
 /// It's important to keep this updated as our .env file grows.
 fn verify_environment() -> bool {
-    let needed_vars = vec![
+    let needed_vars = [
         "CLIENT_ID",
         "CLIENT_SECRET",
         "DATABASE_URL",

@@ -60,7 +60,7 @@ impl RedditConnection {
             info!("New access token fetched");
         }
 
-        let (url, query_params) = request.into_http_request_parts();
+        let (url, _) = request.into_http_request_parts();
         info!("Fetching data from: {}", url);
 
         let req = self

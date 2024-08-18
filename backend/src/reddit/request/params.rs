@@ -1,4 +1,4 @@
-use std::default;
+use std::{default, fmt::Display};
 
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
@@ -58,26 +58,21 @@ impl FeedSorting {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub enum RequestSize {
+    #[default]
     Small,
     Medium,
     Large,
     Custom(u16),
 }
 
-impl default::Default for RequestSize {
-    fn default() -> Self {
-        RequestSize::Small
-    }
-}
-
-impl Into<u16> for RequestSize {
-    fn into(self) -> u16 {
-        match self {
+impl From<RequestSize> for u16 {
+    fn from(value: RequestSize) -> Self {
+        match value {
             RequestSize::Small => 50,
             RequestSize::Medium => 250,
-            RequestSize::Large => 1000,
+            RequestSize::Large => 100,
             RequestSize::Custom(n) => n,
         }
     }
@@ -85,7 +80,7 @@ impl Into<u16> for RequestSize {
 
 impl ToString for RequestSize {
     fn to_string(&self) -> String {
-        let n: u16 = (*self).into();
+        let n = u16::from(*self);
         n.to_string()
     }
 }
