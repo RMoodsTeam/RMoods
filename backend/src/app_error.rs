@@ -5,6 +5,7 @@ use serde_json::json;
 
 use crate::{auth::error::AuthError, reddit::error::RedditError};
 
+/// Public-facing error kind. Contains an HTTP status code and a message describing the error.
 #[derive(Debug, Getters)]
 pub struct AppError {
     code: StatusCode,
@@ -12,12 +13,14 @@ pub struct AppError {
 }
 
 impl AppError {
+    /// Create a new AppError manually, with a given HTTP status code and error message.
     pub fn new(code: StatusCode, message: impl Into<String>) -> Self {
         AppError {
             code,
             message: message.into(),
         }
     }
+    /// Shorthand for creating a 500 response.
     pub fn internal_server_error() -> Self {
         AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
     }
@@ -61,7 +64,8 @@ impl From<AuthError> for AppError {
     }
 }
 
-#[cfg(test)]mod tests {
+#[cfg(test)]
+mod tests {
     use super::*;
     use reqwest::StatusCode;
 
