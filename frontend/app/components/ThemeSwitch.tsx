@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { MouseEventHandler, useState } from "react";
 import { Dropdown, DropdownOption } from "./Dropdown";
 import { TbSun } from "react-icons/tb";
@@ -48,7 +48,13 @@ const ThemeSwitch = ({ className }: ThemeSwitchProps) => {
   };
 
   return (
-    <Dropdown className={className} isOpen={isOpen} onToggle={onToggle} header={dropdownHeader} id='theme-switch'>
+    <Dropdown
+      className={className}
+      isOpen={isOpen}
+      onToggle={onToggle}
+      header={dropdownHeader}
+      id="theme-switch"
+    >
       <DropdownOption
         id="light"
         onClick={onOptionClick}

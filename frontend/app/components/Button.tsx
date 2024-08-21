@@ -1,8 +1,8 @@
 import React, { ReactNode } from "react";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  children: ReactNode
-}
+  children: ReactNode;
+};
 
 export default function Button({ children, ...props }: ButtonProps) {
   return (

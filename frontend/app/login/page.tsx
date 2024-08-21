@@ -22,18 +22,20 @@ function LoginCard() {
   });
   return (
     <Card>
-    <div className="m-8 flex align-center flex-col">
-      <Title className="m-4" id='login-title'>Sign in to RMoods</Title>
-      <GoogleSignInButton onClick={() => googleLogin()} />
-    </div>
-  </Card>
-  )
+      <div className="m-8 flex align-center flex-col">
+        <Title className="m-4" id="login-title">
+          Sign in to RMoods
+        </Title>
+        <GoogleSignInButton onClick={() => googleLogin()} />
+      </div>
+    </Card>
+  );
 }
 
 export default function Login() {
   return (
     <div className="flex flex-col items-center justify-center">
-      <LoginCard/>
+      <LoginCard />
     </div>
   );
 }
