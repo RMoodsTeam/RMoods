@@ -3,11 +3,11 @@ import { Children } from "./types";
 
 type TitleProps = React.HTMLAttributes<HTMLHeadingElement> & Children;
 
-export default function Title({ children, ...props }: TitleProps) {
+export default function Title({ children, className, ...props }: TitleProps) {
   return (
     <h1
       className={
-        "text-3xl font-bold text-primary-dark:text-primary-light " + props.className
+        "text-3xl font-bold text-primary-dark:text-primary-light " + className
       }
       {...props}
     >
