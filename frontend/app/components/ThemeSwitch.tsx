@@ -1,10 +1,10 @@
+"use client"
 import React, { MouseEventHandler, useState } from "react";
 import { Dropdown, DropdownOption } from "./Dropdown";
 import { TbSun } from "react-icons/tb";
 import { TbMoon } from "react-icons/tb";
 import { TbDeviceDesktopCog } from "react-icons/tb";
 import { TbPaint } from "react-icons/tb";
-import { Children } from "./types";
 
 const setSelectedTheme = (e: any) => {
   const id = e.target.id;
@@ -24,8 +24,8 @@ const setSelectedTheme = (e: any) => {
   }
 };
 
-type ThemeSwitchProps = React.HTMLAttributes<HTMLDivElement> & Children
-// TODO!! Get proper type of ThemeSwitch
+type ThemeSwitchProps = React.HTMLAttributes<HTMLDivElement>;
+
 const ThemeSwitch = ({ className }: ThemeSwitchProps) => {
   const dropdownHeader = (
     <div className="flex flex-row">
