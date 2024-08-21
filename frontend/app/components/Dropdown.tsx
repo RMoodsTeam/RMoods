@@ -1,4 +1,4 @@
-import React, { MouseEventHandler, ReactNode } from "react";
+import React, { ReactNode } from "react";
 import Card from "./Card";
 import { Children } from "./types";
 
@@ -6,9 +6,9 @@ type DropdownOptionProps = React.HTMLAttributes<HTMLButtonElement> & Children & 
   isSelected: () => boolean,
 }
 
-export const DropdownOption = ({children, isSelected, onClick, ...props }: DropdownOptionProps) => {
+export const DropdownOption = ({ children, isSelected, onClick, ...props }: DropdownOptionProps) => {
   const styling = isSelected()
-    ? "text-accent-purple dark:text-accent-green font-bold" // when selected
+    ? "text-accent-purple dark:text-accent-green font-bold"// when selected
     : "text-primary-dark dark:text-primary-light"; // when not selected
   return (
     <button
@@ -33,13 +33,14 @@ type DropdownProps = React.HTMLAttributes<HTMLDivElement> & Children & {
 
 export const Dropdown = ({
   isOpen,
+  className,
   onToggle,
   header,
   children,
   ...props
 }: DropdownProps) => {
   return (
-    <div>
+    <div className={className}>
       <button onClick={onToggle} className="relative" data-cy={`dropdown-toggle-button-${props.id}`}>
         <div className="flex flex-row" data-cy={`dropdown-title-${props.id}`}>{header}</div>
       </button>

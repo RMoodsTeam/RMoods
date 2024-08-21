@@ -15,10 +15,7 @@ const Navbar = () => {
       <Link href="/login" onClick={() => Cookies.remove("RMOODS_JWT")}>
         Log out
       </Link>
-      {/* TODO!! fix the div and make ThemeSwitch take arguments*/}
-      <div className="col-start-4">
-        <ThemeSwitch />
-      </div>
+      <ThemeSwitch className="col-start-4" />
       <Link href="/dashboard">Dashboard</Link>
     </nav>
   );

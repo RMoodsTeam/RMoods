@@ -4,6 +4,7 @@ import { TbSun } from "react-icons/tb";
 import { TbMoon } from "react-icons/tb";
 import { TbDeviceDesktopCog } from "react-icons/tb";
 import { TbPaint } from "react-icons/tb";
+import { Children } from "./types";
 
 const setSelectedTheme = (e: any) => {
   const id = e.target.id;
@@ -23,7 +24,9 @@ const setSelectedTheme = (e: any) => {
   }
 };
 
-const ThemeSwitch = () => {
+type ThemeSwitchProps = React.HTMLAttributes<HTMLDivElement> & Children
+// TODO!! Get proper type of ThemeSwitch
+const ThemeSwitch = ({ className }: ThemeSwitchProps) => {
   const dropdownHeader = (
     <div className="flex flex-row">
       <TbPaint className="mr-2" size={30} />
@@ -45,7 +48,7 @@ const ThemeSwitch = () => {
   };
 
   return (
-    <Dropdown isOpen={isOpen} onToggle={onToggle} header={dropdownHeader} id='theme-switch'>
+    <Dropdown className={className} isOpen={isOpen} onToggle={onToggle} header={dropdownHeader} id='theme-switch'>
       <DropdownOption
         id="light"
         onClick={onOptionClick}
