@@ -1,7 +1,6 @@
 import React from "react";
 import ThemeSwitch from "./ThemeSwitch";
 import Link from "./Link";
-import Logout from "./Logout";
 import User from "./User";
 
 /**

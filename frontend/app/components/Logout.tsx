@@ -6,7 +6,7 @@ import Cookies from "js-cookie";
 const Logout = () => {
   return (
     <Link href="/login" onClick={() => Cookies.remove("RMOODS_JWT")}>
-      Log out{" "}
+      Log out
     </Link>
   );
 };

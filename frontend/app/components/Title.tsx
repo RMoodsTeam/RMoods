@@ -3,7 +3,7 @@ import { Children } from "./types";
 
 type TitleProps = React.HTMLAttributes<HTMLHeadingElement> & Children;
 
-export default function Title({ children, className, ...props }: TitleProps) {
+const Title = ({ children, className, ...props }: TitleProps) => {
   return (
     <h1
       className={
@@ -14,4 +14,6 @@ export default function Title({ children, className, ...props }: TitleProps) {
       {children}
     </h1>
   );
-}
+};
+
+export default Title;

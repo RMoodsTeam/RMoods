@@ -8,7 +8,7 @@ type LinkProps = NextLinkProps &
     className?: string;
   };
 
-export default function Link(props: LinkProps) {
+const Link = (props: LinkProps) => {
   return (
     <NextLink
       {...props}
@@ -22,4 +22,6 @@ export default function Link(props: LinkProps) {
       {props.children}
     </NextLink>
   );
-}
+};
+
+export default Link;

@@ -3,7 +3,7 @@ import { Children } from "./types";
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & Children;
 
-export default function Card({ children, className, ...props }: CardProps) {
+const Card = ({ children, className, ...props }: CardProps) => {
   return (
     <div
       className={
@@ -15,4 +15,6 @@ export default function Card({ children, className, ...props }: CardProps) {
       {children}
     </div>
   );
-}
+};
+
+export default Card;
