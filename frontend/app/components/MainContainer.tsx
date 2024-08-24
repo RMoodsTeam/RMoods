@@ -1,3 +1,9 @@
+/**
+ * Main div container for all content
+ *
+ * @param children -
+ * @returns Element
+ */
 const MainContainer = ({
   children,
 }: Readonly<{ children: React.ReactNode }>) => {

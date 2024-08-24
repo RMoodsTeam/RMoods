@@ -8,6 +8,11 @@ type LinkProps = NextLinkProps &
     className?: string;
   };
 
+/**
+ * Link component
+ * @param props -Object containing props
+ * @returns Element
+ */
 const Link = (props: LinkProps) => {
   return (
     <NextLink

@@ -7,6 +7,14 @@ type DropdownOptionProps = React.HTMLAttributes<HTMLButtonElement> &
     isSelected: () => boolean;
   };
 
+/**
+ * DropdownOption, should be used inside Dropdown component
+ * @param children children of the component
+ * @param isSelected function to check if the option is selected
+ * @param onClick function to handle click event
+ * @param props- Object containing props
+ * @returns Element
+ */
 export const DropdownOption = ({
   children,
   isSelected,
@@ -38,6 +46,16 @@ type DropdownProps = React.HTMLAttributes<HTMLDivElement> &
     header: ReactNode;
   };
 
+/**
+ * Dropdown component
+ * @param isOpen boolean to check if the dropdown is open
+ * @param className CSS classes to be applied to the element
+ * @param onToggle function to handle toggle event
+ * @param header header (title, name) of the dropdown
+ * @param children children of the component
+ * @param props- Object containing props
+ * @returns
+ */
 export const Dropdown = ({
   isOpen,
   className,

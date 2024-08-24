@@ -3,6 +3,11 @@ import { Children } from "./types";
 
 type TitleProps = React.HTMLAttributes<HTMLHeadingElement> & Children;
 
+/**
+ * Title component allows user to set the title of the page
+ * @param Object  contains the children, ckassName and props
+ * @returns Element
+ */
 const Title = ({ children, className, ...props }: TitleProps) => {
   return (
     <h1

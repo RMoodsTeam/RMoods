@@ -6,6 +6,11 @@ import { TbMoon } from "react-icons/tb";
 import { TbDeviceDesktopCog } from "react-icons/tb";
 import { TbPaint } from "react-icons/tb";
 
+/**
+ * setSelectedTheme function sets the theme based on the target id
+ *
+ * @param e - gets the event to get the target id
+ */
 const setSelectedTheme = (e: any) => {
   const id = e.target.id;
   if (id === "light") {
@@ -26,6 +31,12 @@ const setSelectedTheme = (e: any) => {
 
 type ThemeSwitchProps = React.HTMLAttributes<HTMLDivElement>;
 
+/**
+ * ThemeSwitch component allows user to switch between light, dark and system theme
+ *
+ * @param className gives ability to add custom CSS classes -
+ * @returns Element
+ */
 const ThemeSwitch = ({ className }: ThemeSwitchProps) => {
   const dropdownHeader = (
     <div className="flex flex-row">

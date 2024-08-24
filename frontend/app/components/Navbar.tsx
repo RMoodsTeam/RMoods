@@ -4,7 +4,8 @@ import Link from "./Link";
 import User from "./User";
 
 /**
- * Navbar component containing Links to other pages
+ * Navbar contains components to navigate the website
+ * @returns Element
  */
 const Navbar = () => {
   return (

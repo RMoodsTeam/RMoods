@@ -6,6 +6,10 @@ import Logout from "./Logout";
 
 type UserProps = React.HTMLAttributes<HTMLDivElement>;
 
+/**
+ * @param className gives ability to set custom CSS classes -
+ * @returns Element
+ */
 const User = ({ className }: UserProps) => {
   const userHeader = <div>User</div>;
 

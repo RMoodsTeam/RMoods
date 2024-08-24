@@ -3,6 +3,11 @@ import { Children } from "./types";
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & Children;
 
+/**
+ * Card component with default styling
+ * @param Object contains children, className and props -
+ * @returns Element
+ */
 const Card = ({ children, className, ...props }: CardProps) => {
   return (
     <div
