@@ -20,7 +20,7 @@ where
     }
 }
 
-/// Reddit comment object
+/// Represents a reply to a [Post](super::post::Post)
 #[derive(Getters, Debug, Clone, Deserialize, Serialize)]
 pub struct Comment {
     /// ID of the subreddit, eg. t5_2qh3s

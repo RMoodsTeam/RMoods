@@ -1,4 +1,5 @@
 use derive_getters::Getters;
+use log_derive::logfn;
 use reqwest::{multipart::Form, Client};
 use serde::{Deserialize, Serialize};
 
@@ -28,6 +29,7 @@ pub struct GoogleUserInfo {
     email_verified: bool,
 }
 
+#[logfn(err = "ERROR", fmt = "Failed to fetch access token: {:?}")]
 pub async fn fetch_google_access_token(
     auth_code: String,
     http: &Client,
@@ -54,6 +56,7 @@ pub async fn fetch_google_access_token(
     Ok(token)
 }
 
+#[logfn(err = "ERROR", fmt = "Failed to fetch user info: {:?}")]
 pub async fn fetch_google_user_info(
     access_token: String,
     http: &Client,
@@ -62,8 +65,7 @@ pub async fn fetch_google_user_info(
         .get("https://www.googleapis.com/oauth2/v3/userinfo")
         .bearer_auth(access_token)
         .send()
-        .await
-        .map_err(|e| AuthError::GoogleError(e))?
+        .await?
         .json()
         .await?;
 

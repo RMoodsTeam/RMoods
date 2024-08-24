@@ -15,10 +15,11 @@ use utoipa_swagger_ui::SwaggerUi;
 mod api;
 mod app_error;
 mod auth;
+mod open_api;
 mod reddit;
 
-mod open_api;
-
+/// State to be shared between all routes.
+/// Contains common resources that shouldn't be created over and over again.
 #[derive(Clone)]
 pub struct AppState {
     pub reddit: RedditConnection,
@@ -26,8 +27,10 @@ pub struct AppState {
     pub http: Client,
 }
 
+/// Ensure that all necessary environment variables are available at server startup.
+/// It's important to keep this updated as our .env file grows.
 fn verify_environment() -> bool {
-    let needed_vars = vec![
+    let needed_vars = [
         "CLIENT_ID",
         "CLIENT_SECRET",
         "DATABASE_URL",
@@ -48,6 +51,7 @@ fn verify_environment() -> bool {
     is_ok
 }
 
+/// Run the server, assuming the environment has been already validated.
 async fn run() -> anyhow::Result<()> {
     let url = std::env::var("DATABASE_URL").expect("DB_URL is set");
     let pool = PgPoolOptions::new()
@@ -96,7 +100,7 @@ async fn run() -> anyhow::Result<()> {
 }
 
 /// Entry point of the RMoods server.
-/// Initializes the HTTP server and runs it.
+/// Validates the environment, initializes the server and runs it.
 #[tokio::main]
 async fn main() {
     std::env::set_var("RUST_LOG", "debug");
@@ -112,6 +116,7 @@ async fn main() {
         std::process::exit(1);
     }
     info!("Environment OK");
+
     let res = run().await;
     if let Err(e) = res {
         log::error!("{e}");

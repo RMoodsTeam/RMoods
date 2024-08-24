@@ -35,4 +35,3 @@ pub struct Post {
     /// Is the post stickied?
     stickied: bool,
 }
-
