@@ -5,8 +5,10 @@ use std::collections::HashMap;
 pub mod debug;
 pub mod report;
 
+/// A hashmap of any type of query parameters.
 type AnyParams = HashMap<String, String>;
 
+/// Defines routes for the /api path.
 pub fn router() -> Router<AppState> {
     Router::<AppState>::new()
         .route("/debug/timeout", get(debug::timeout))

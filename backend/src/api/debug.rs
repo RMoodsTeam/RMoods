@@ -1,4 +1,3 @@
-
 use std::time::SystemTime;
 
 use axum::{
@@ -80,12 +79,7 @@ pub async fn lorem(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppEr
     .into())
 }
 
-#[utoipa::path(
-    get,
-    path = "/api/debug/subreddit_info",
-    responses(),
-    params()
-)]
+#[utoipa::path(get, path = "/api/debug/subreddit_info", responses(), params())]
 pub async fn subreddit_info(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
@@ -93,7 +87,9 @@ pub async fn subreddit_info(
     let subreddit = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
-    let req = RedditRequest::SubredditInfo(subreddit.into());
+    let req = RedditRequest::SubredditInfo {
+        subreddit: subreddit.to_string(),
+    };
     let json = state.reddit.fetch_raw(req).await?;
 
     let info = serde_json::from_value::<KindContainer>(json).unwrap();
@@ -101,12 +97,7 @@ pub async fn subreddit_info(
     Ok(Json(info))
 }
 
-#[utoipa::path(
-    get,
-    path = "/api/debug/post_comments",
-    responses(),
-    params()
-)]
+#[utoipa::path(get, path = "/api/debug/post_comments", responses(), params())]
 pub async fn post_comments(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
@@ -124,6 +115,7 @@ pub async fn post_comments(
     let req = RedditRequest::PostComments {
         subreddit: r,
         post_id: id,
+        params: Default::default(),
     };
 
     let json = state.reddit.fetch_raw(req).await?;
@@ -135,12 +127,7 @@ pub async fn post_comments(
     Ok(Json(val))
 }
 
-#[utoipa::path(
-    get,
-    path = "/api/debug/user_info",
-    responses(),
-    params()
-)]
+#[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
 pub async fn user_info(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
@@ -148,7 +135,9 @@ pub async fn user_info(
     let user = params
         .get("u")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
-    let req = RedditRequest::UserInfo(user.into());
+    let req = RedditRequest::UserInfo {
+        username: user.to_string(),
+    };
 
     let json = state.reddit.fetch_raw(req).await?;
 
@@ -157,12 +146,7 @@ pub async fn user_info(
     Ok(Json(info))
 }
 
-#[utoipa::path(
-    get,
-    path = "/api/debug/subreddit_posts",
-    responses(),
-    params()
-)]
+#[utoipa::path(get, path = "/api/debug/subreddit_posts", responses(), params())]
 pub async fn subreddit_posts(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
@@ -170,7 +154,10 @@ pub async fn subreddit_posts(
     let subreddit = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `r` parameter"))?;
-    let req = RedditRequest::SubredditPosts(subreddit.into());
+    let req = RedditRequest::SubredditPosts {
+        subreddit: subreddit.into(),
+        params: Default::default(),
+    };
     let json = state.reddit.fetch_raw(req).await?;
 
     let info = serde_json::from_value::<KindContainer>(json).unwrap();
@@ -178,12 +165,7 @@ pub async fn subreddit_posts(
     Ok(Json(info))
 }
 
-#[utoipa::path(
-    get,
-    path = "/api/debug/user_posts",
-    responses(),
-    params()
-)]
+#[utoipa::path(get, path = "/api/debug/user_posts", responses(), params())]
 pub async fn user_posts(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
@@ -191,7 +173,10 @@ pub async fn user_posts(
     let user = params
         .get("u")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
-    let req = RedditRequest::UserPosts(user.into());
+    let req = RedditRequest::UserPosts {
+        username: user.into(),
+        params: Default::default(),
+    };
     let json = state.reddit.fetch_raw(req).await?;
 
     let info = serde_json::from_value(json).unwrap();
