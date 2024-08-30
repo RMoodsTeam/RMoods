@@ -9,7 +9,11 @@ import { postGoogleCode, serverRedirect } from "./postGoogleCode";
 import Title from "../components/Title";
 import Card from "../components/Card";
 
-function LoginCard() {
+/**
+ * Login card with Google sign in button
+ * @returns Element
+ */
+const LoginCard = () => {
   const [, setUserInfo] = useAtom(userInfoAtom);
   const googleLogin = useGoogleLogin({
     onSuccess: async (codeResponse) => {
@@ -22,18 +26,26 @@ function LoginCard() {
   });
   return (
     <Card>
-    <div className="m-8 flex align-center flex-col">
-      <Title className="m-4" id='login-title'>Sign in to RMoods</Title>
-      <GoogleSignInButton onClick={() => googleLogin()} />
-    </div>
-  </Card>
-  )
-}
+      <div className="m-8 flex align-center flex-col">
+        <Title className="m-4" id="login-title">
+          Sign in to RMoods
+        </Title>
+        <GoogleSignInButton onClick={() => googleLogin()} />
+      </div>
+    </Card>
+  );
+};
 
-export default function Login() {
+/**
+ * Login page
+ * @returns Element
+ */
+const Login = () => {
   return (
     <div className="flex flex-col items-center justify-center">
-      <LoginCard/>
+      <LoginCard />
     </div>
   );
-}
+};
+
+export default Login;

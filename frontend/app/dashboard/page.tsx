@@ -5,6 +5,10 @@ import DebugSubredditInfo from "./DebugSubredditInfo";
 import Card from "../components/Card";
 import Title from "../components/Title";
 
+/**
+ * Dashboard page, gets user info asynchonously
+ * @returns Promise<Element>
+ */
 const Dashboard = async () => {
   return (
     <>

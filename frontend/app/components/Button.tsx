@@ -1,10 +1,15 @@
 import React, { ReactNode } from "react";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  children: ReactNode
-}
+  children: ReactNode;
+};
 
-export default function Button({ children, ...props }: ButtonProps) {
+/**
+ * Button component with default styling
+ * @param Object contains children, props  -
+ * @returns
+ */
+const Button = ({ children, ...props }: ButtonProps) => {
   return (
     <button
       className="bg-accent-purple hover:bg-accent-green dark:bg-accent-green dark:hover:bg-accent-purple text-white font-bold py-2 px-4 rounded"
@@ -13,4 +18,6 @@ export default function Button({ children, ...props }: ButtonProps) {
       {children}
     </button>
   );
-}
+};
+
+export default Button;

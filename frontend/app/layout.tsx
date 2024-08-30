@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Script from "next/script";
 import Providers from "./Providers";
 import MainContainer from "./components/MainContainer";
 
@@ -20,7 +19,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script id="theme" src="/initializeTheme.js"/>
+        {/*eslint-disable*/}
+        <script id="theme" src="/initializeTheme.js" />
       </head>
       <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors">
         <Providers>
