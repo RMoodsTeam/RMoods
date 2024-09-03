@@ -15,6 +15,10 @@
     "component:headless": "cypress run --component"
   },
   "dependencies": {
+    "@emotion/cache": "^11.13.1",
+    "@emotion/styled": "^11.13.0",
+    "@mui/material": "^6.0.2",
+    "@mui/material-nextjs": "^6.0.2",
     "@react-oauth/google": "^0.12.1",
     "@types/js-cookie": "^3.0.6",
     "jose": "^5.6.3",
