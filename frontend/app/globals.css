@@ -1,38 +1,38 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* @tailwind base; */
+/* @tailwind components; */
+/* @tailwind utilities; */
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
+/* :root { */
+/*   --foreground-rgb: 0, 0, 0; */
+/*   --background-start-rgb: 214, 219, 220; */
+/*   --background-end-rgb: 255, 255, 255; */
+/* } */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
+/* @media (prefers-color-scheme: dark) { */
+/*   :root { */
+/*     --foreground-rgb: 255, 255, 255; */
+/*     --background-start-rgb: 0, 0, 0; */
+/*     --background-end-rgb: 0, 0, 0; */
+/*   } */
+/* } */
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* * { */
+/*   box-sizing: border-box; */
+/*   margin: 0; */
+/*   padding: 0; */
+/* } */
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
+/* @layer utilities { */
+/*   .text-balance { */
+/*     text-wrap: balance; */
+/*   } */
+/* } */
 
-body {
-  display: flex;
-  align-items: center;
-  min-height: 100vh;
-  min-width: 100vw;
-  flex-direction: column;
-  background-color: #ccc;
-}
+/* body { */
+/*   display: flex; */
+/*   align-items: center; */
+/*   min-height: 100vh; */
+/*   min-width: 100vw; */
+/*   flex-direction: column; */
+/*   background-color: #ccc; */
+/* } */

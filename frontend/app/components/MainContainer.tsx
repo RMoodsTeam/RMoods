@@ -1,16 +1,24 @@
+import { Box } from "@mui/joy";
+
 /**
- * Main div container for all content
- *
- * @param children -
- * @returns Element
+ * Main div container for all content.
+ * Centers children vertically and horizontally.
  */
 const MainContainer = ({
   children,
 }: Readonly<{ children: React.ReactNode }>) => {
   return (
-    <div className="flex flex-col px-64 items-center justify-center w-full py-2">
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
+      }}
+    >
       {children}
-    </div>
+    </Box>
   );
 };
 

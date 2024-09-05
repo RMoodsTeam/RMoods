@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Providers from "./Providers";
 import MainContainer from "./components/MainContainer";
+import { Sheet } from "@mui/joy";
 
 export const metadata: Metadata = {
   title: "RMoods",
@@ -19,14 +20,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/*eslint-disable*/}
-        <script id="theme" src="/initializeTheme.js" />
+        <meta name="viewport" content="initial-scale=1, width=device-width" />
       </head>
-      <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors">
+      <body>
         <Providers>
-          <Navbar />
-          <MainContainer>{children}</MainContainer>
-          <Footer />
+          <Sheet
+            variant="plain"
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              minHeight: "100vh",
+            }}
+          >
+            <Navbar />
+            <MainContainer>{children}</MainContainer>
+            <Footer />
+          </Sheet>
         </Providers>
       </body>
     </html>
