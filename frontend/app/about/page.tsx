@@ -1,6 +1,11 @@
 import React from 'react'
 import Section from './Section'
 
+
+/**
+ * About page, contains information about the project and the team.
+ * @returns Element
+ */
 const about = () => {
     return (
         <>
