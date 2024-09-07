@@ -3,6 +3,10 @@ import { userInfoFromJWT } from "../utility/serverActions";
 import Image from "next/image";
 import Title from "../components/Title";
 
+/**
+ * Async function to display logged user info
+ * @returns Promise<Element>
+ */
 const LoggedUserInfo = async () => {
   const userInfo = await userInfoFromJWT();
   return (

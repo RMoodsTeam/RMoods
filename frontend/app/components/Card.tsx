@@ -1,9 +1,14 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import { Children } from "./types";
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & Children;
 
-export default function Card({ children, className, ...props }: CardProps) {
+/**
+ * Card component with default styling
+ * @param Object contains children, className and props -
+ * @returns Element
+ */
+const Card = ({ children, className, ...props }: CardProps) => {
   return (
     <div
       className={
@@ -15,4 +20,6 @@ export default function Card({ children, className, ...props }: CardProps) {
       {children}
     </div>
   );
-}
+};
+
+export default Card;

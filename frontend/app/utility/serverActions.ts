@@ -16,10 +16,10 @@ export async function userInfoFromJWT(): Promise<any> {
     console.error("JWT_SECRET not defined in the environment.");
     throw new Error("JWT_SECRET not defined in the environment.");
   }
-  
+
   const key = new TextEncoder().encode(process.env.JWT_SECRET);
   try {
-    const {payload} = await jwtVerify(token, key);
+    const { payload } = await jwtVerify(token, key);
     return payload.user_info as any;
   } catch (error) {
     console.error("JWT token could not be decoded.");
