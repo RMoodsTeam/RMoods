@@ -22,7 +22,7 @@ export default function RootLayout({
         {/*eslint-disable*/}
         <script id="theme" src="/initializeTheme.js" />
       </head>
-      <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors">
+      <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors w-full">
         <Providers>
           <Navbar />
           <MainContainer>{children}</MainContainer>

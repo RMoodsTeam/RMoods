@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const permittedPages = ['/login', '/', '/favicon.ico', '/initializeTheme.js'] // Add About
+  const permittedPages = ['/login', '/', '/favicon.ico', '/initializeTheme.js', '/about'];
   if (permittedPages.includes(pathname)) {
     console.info(`Path is ${pathname}, proceeding without auth`);
     return NextResponse.next();
