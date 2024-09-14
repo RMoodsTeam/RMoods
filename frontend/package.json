@@ -42,7 +42,6 @@
     "eslint-config-next": "^15.0.0-rc.0",
     "postcss": "^8",
     "start-server-and-test": "^2.0.4",
-    "tailwindcss": "^3.3.0",
     "ts-node": "^10.9.2",
     "typedoc": "^0.25.12",
     "typedoc-plugin-rename-defaults": "^0.7.0",

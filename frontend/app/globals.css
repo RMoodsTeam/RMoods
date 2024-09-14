@@ -16,11 +16,11 @@
 /*   } */
 /* } */
 
-/* * { */
-/*   box-sizing: border-box; */
-/*   margin: 0; */
-/*   padding: 0; */
-/* } */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 /* @layer utilities { */
 /*   .text-balance { */
@@ -34,5 +34,4 @@
 /*   min-height: 100vh; */
 /*   min-width: 100vw; */
 /*   flex-direction: column; */
-/*   background-color: #ccc; */
 /* } */

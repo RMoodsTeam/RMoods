@@ -22,7 +22,7 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </head>
-      <body>
+      <body style={{ width: "100%" }}>
         <Providers>
           <Sheet
             variant="plain"
@@ -30,6 +30,7 @@ export default function RootLayout({
               display: "flex",
               flexDirection: "column",
               minHeight: "100vh",
+              minWidth: "100%",
             }}
           >
             <Navbar />
