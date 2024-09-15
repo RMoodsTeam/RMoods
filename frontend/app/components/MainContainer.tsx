@@ -15,6 +15,7 @@ const MainContainer = ({
         justifyContent: "center",
         alignItems: "center",
         width: "100vw",
+        paddingX: 25,
       }}
     >
       {children}

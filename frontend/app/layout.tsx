@@ -5,7 +5,6 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Providers from "./Providers";
 import MainContainer from "./components/MainContainer";
-import { Sheet } from "@mui/joy";
 
 export const metadata: Metadata = {
   title: "RMoods",

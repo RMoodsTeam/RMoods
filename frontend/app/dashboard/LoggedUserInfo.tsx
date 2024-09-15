@@ -1,22 +1,17 @@
 import React from "react";
 import { userInfoFromJWT } from "../utility/serverActions";
 import Image from "next/image";
-import Title from "../components/Title";
+import { Card, Typography } from "@mui/joy";
 
-/**
- * Async function to display logged user info
- * @returns Promise<Element>
- */
 const LoggedUserInfo = async () => {
   const userInfo = await userInfoFromJWT();
   return (
-    <>
-      <div className="flex justify-center">
-        <Title>User Info</Title>
+    <Card>
+      <div>
+        <Typography level="h3">User Info</Typography>
       </div>
-      <div className="m-4 flex justify-center items-center">
+      <div>
         <Image
-          className="rounded-full"
           src={userInfo.picture}
           width={100}
           height={100}
@@ -24,16 +19,16 @@ const LoggedUserInfo = async () => {
         />
       </div>
       <div>
-        <div className="grid grid-cols-2">
-          <label className="pr-2 text-gray-400">Name</label>
+        <div>
+          <label>Name</label>
           <p>{userInfo.name}</p>
         </div>
-        <div className="grid grid-cols-2">
-          <label className="pr-2 text-gray-400">Email</label>
+        <div>
+          <label>Email</label>
           <p>{userInfo.email}</p>
         </div>
       </div>
-    </>
+    </Card>
   );
 };
 
