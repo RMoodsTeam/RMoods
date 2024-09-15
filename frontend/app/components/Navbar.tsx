@@ -10,8 +10,9 @@ const gridNav = {
 
 const LeftNavItems = () => {
   return (
-    <Box sx={{ verticalAlign: "center", display: "flex" }}>
+    <Box sx={{ verticalAlign: "center", display: "flex", gap: 10 }}>
       <Link href="/">Main</Link>
+      <Link href="/about">About</Link>
     </Box>
   );
 };
