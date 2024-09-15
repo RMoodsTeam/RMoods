@@ -10,7 +10,6 @@ export async function middleware(request: NextRequest) {
   const isPermitted = permittedDirs.some((p) => pathname.startsWith(p));
   // ***DO NOT CHANGE*** prevent rerouting NextJS assets like CSS
   if (isPermitted) {
-    console.info(`Pathname is ${pathname}, permitted directory.`)
     return NextResponse.next();
   }
 
