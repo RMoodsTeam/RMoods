@@ -1,7 +1,6 @@
 import React from "react";
-import Link from "./Link";
-import { Box, Card } from "@mui/joy";
-import User from "./User";
+import { Box, Card, Link } from "@mui/joy";
+import UserMenu from "./UserMenu";
 
 const gridNav = {
   display: "grid",
@@ -11,7 +10,7 @@ const gridNav = {
 
 const LeftNavItems = () => {
   return (
-    <Box>
+    <Box sx={{ verticalAlign: "center", display: "flex" }}>
       <Link href="/">Main</Link>
     </Box>
   );
@@ -20,7 +19,7 @@ const LeftNavItems = () => {
 const RightNavItems = () => {
   return (
     <Box sx={{ display: "flex", justifyContent: "right" }}>
-      <User />
+      <UserMenu />
     </Box>
   );
 };
@@ -36,7 +35,7 @@ const Navbar = () => {
       }}
     >
       <nav>
-        <Card sx={{ ...gridNav, borderRadius: 0 }}>
+        <Card sx={{ ...gridNav, borderRadius: 0, padding: 1 }}>
           <LeftNavItems />
           <div />
           <RightNavItems />
