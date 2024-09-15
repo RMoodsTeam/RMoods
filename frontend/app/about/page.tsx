@@ -6,7 +6,7 @@ import { Box } from "@mui/joy";
  * About page, contains information about the project and the team.
  * @returns Element
  */
-const about = () => {
+const About = () => {
   return (
     <Box>
       <h1 className="text-4xl font-bold text-center">About</h1>
@@ -43,4 +43,4 @@ const about = () => {
   );
 };
 
-export default about;
+export default About;
