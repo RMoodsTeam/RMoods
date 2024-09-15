@@ -22,23 +22,19 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </head>
-      <body style={{ width: "100%" }}>
-        <Providers>
-          <Sheet
-            variant="plain"
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              minHeight: "100vh",
-              minWidth: "100%",
-            }}
-          >
-            <Navbar />
-            <MainContainer>{children}</MainContainer>
-            <Footer />
-          </Sheet>
-        </Providers>
-      </body>
+      <Providers>
+        <body
+          style={{
+            minHeight: "100vh",
+            display: "grid",
+            gridTemplateRows: "auto 1fr auto",
+          }}
+        >
+          <Navbar />
+          <MainContainer>{children}</MainContainer>
+          <Footer />
+        </body>
+      </Providers>
     </html>
   );
 }

@@ -1,4 +1,4 @@
-import { Box } from "@mui/joy";
+import { Sheet } from "@mui/joy";
 
 /**
  * Main div container for all content.
@@ -8,17 +8,17 @@ const MainContainer = ({
   children,
 }: Readonly<{ children: React.ReactNode }>) => {
   return (
-    <Box
+    <Sheet
       sx={{
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        width: "100%",
+        width: "100vw",
       }}
     >
       {children}
-    </Box>
+    </Sheet>
   );
 };
 

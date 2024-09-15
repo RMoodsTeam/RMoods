@@ -6,6 +6,7 @@ import MenuItem from "@mui/joy/MenuItem";
 import ListItemDecorator from "@mui/joy/ListItemDecorator";
 import MenuButton from "@mui/joy/MenuButton";
 import { Link } from "@mui/joy";
+import Cookies from "js-cookie";
 
 const UserMenu = () => {
   return (
