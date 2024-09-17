@@ -1,4 +1,6 @@
 import React from "react";
+import { Button } from "@mui/joy";
+import Image from "next/image";
 
 /**
  * @param params - onClick function
@@ -6,18 +8,21 @@ import React from "react";
  */
 export default function GoogleSignInButton(params: { onClick: any }) {
   return (
-    <button
+    <Button
+      variant="outlined"
       onClick={params.onClick}
-      className="px-4 py-2 flex gap-2 rounded-full border bg-primary-light items-center justify-center text-primary-dark hover:bg-primary-dark hover:text-primary-light transition-colors"
       id="google-sign-in-button"
+      startDecorator={
+        <Image
+          src="https://www.svgrepo.com/show/475656/google-color.svg"
+          loading="lazy"
+          alt="google logo"
+          width={30}
+          height={30}
+        />
+      }
     >
-      <img
-        className="w-6 h-6"
-        src="https://www.svgrepo.com/show/475656/google-color.svg"
-        loading="lazy"
-        alt="google logo"
-      />
-      <span id="google-sign-in-button-text">Sign in with Google</span>
-    </button>
+      <div id="google-sign-in-button-text">Continue with Google</div>
+    </Button>
   );
 }

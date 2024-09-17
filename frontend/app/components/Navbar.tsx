@@ -1,20 +1,48 @@
 import React from "react";
-import ThemeSwitch from "./ThemeSwitch";
-import Link from "./Link";
-import User from "./User";
+import { Box, Card, Link } from "@mui/joy";
+import UserMenu from "./UserMenu";
+
+const gridNav = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr 1fr",
+  gap: "1rem",
+};
+
+const LeftNavItems = () => {
+  return (
+    <Box sx={{ verticalAlign: "center", display: "flex", gap: 10 }}>
+      <Link href="/">Main</Link>
+      <Link href="/about">About</Link>
+    </Box>
+  );
+};
+
+const RightNavItems = () => {
+  return (
+    <Box sx={{ display: "flex", justifyContent: "right" }}>
+      <UserMenu />
+    </Box>
+  );
+};
 
 /**
  * Navbar contains components to navigate the website
- * @returns Element
  */
 const Navbar = () => {
   return (
-    <nav className="bg-primary-light dark:bg-primary-dark sticky top-0 z-50 w-full p-4 shadow-md grid grid-cols-[100px_1fr_100px_100px] place-items-start">
-      <Link href="/">Main</Link>
-      <Link href="/about">About</Link>
-      <ThemeSwitch className="col-start-3" />
-      <User>User</User>
-    </nav>
+    <Box
+      sx={{
+        width: "100%",
+      }}
+    >
+      <nav>
+        <Card sx={{ ...gridNav, borderRadius: 0, padding: 1 }}>
+          <LeftNavItems />
+          <div />
+          <RightNavItems />
+        </Card>
+      </nav>
+    </Box>
   );
 };
 

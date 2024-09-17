@@ -14,7 +14,7 @@ describe("Login", () => {
   it("Google button has the correct text", () => {
     cy.get("#google-sign-in-button-text").should(
       "have.text",
-      "Sign in with Google",
+      "Continue with Google",
     );
   });
 });

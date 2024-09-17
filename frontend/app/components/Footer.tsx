@@ -1,3 +1,4 @@
+import { Card, Sheet } from "@mui/joy";
 import React from "react";
 
 /**
@@ -5,7 +6,21 @@ import React from "react";
  * @returns Element
  */
 const Footer = () => {
-  return <footer className="mt-auto w-full p-8 text-center ">RMoods</footer>;
+  return (
+    <Card
+      sx={{
+        borderRadius: 0,
+        minHeight: "100px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Sheet>
+        <footer>RMoods</footer>
+      </Sheet>
+    </Card>
+  );
 };
 
 export default Footer;

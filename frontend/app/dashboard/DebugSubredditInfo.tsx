@@ -1,4 +1,4 @@
-import Title from "../components/Title";
+import { Card, Typography } from "@mui/joy";
 import { fetchSubredditInfo } from "../rmoods/api";
 
 /**
@@ -8,9 +8,9 @@ import { fetchSubredditInfo } from "../rmoods/api";
 export default async function DebugSubredditInfo() {
   const subredditData = await fetchSubredditInfo("Polska");
   return (
-    <>
-      <Title>Debug subreddit info</Title>
+    <Card>
+      <Typography level="h3">Debug subreddit info</Typography>
       <div>{JSON.stringify(subredditData, null, 2)}</div>
-    </>
+    </Card>
   );
 }

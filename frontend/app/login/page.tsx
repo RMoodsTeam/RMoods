@@ -6,8 +6,7 @@ import { useAtom } from "jotai";
 import Cookies from "js-cookie";
 import { userInfoAtom } from "../atoms";
 import { postGoogleCode, serverRedirect } from "./postGoogleCode";
-import Title from "../components/Title";
-import Card from "../components/Card";
+import { Card, Typography } from "@mui/joy";
 
 /**
  * Login card with Google sign in button
@@ -24,14 +23,13 @@ const LoginCard = () => {
     },
     flow: "auth-code",
   });
+
   return (
     <Card>
-      <div className="m-8 flex align-center flex-col">
-        <Title className="m-4" id="login-title">
-          Sign in to RMoods
-        </Title>
-        <GoogleSignInButton onClick={() => googleLogin()} />
-      </div>
+      <Typography level="h1" id="login-title">
+        Sign in to RMoods
+      </Typography>
+      <GoogleSignInButton onClick={() => googleLogin()} />
     </Card>
   );
 };

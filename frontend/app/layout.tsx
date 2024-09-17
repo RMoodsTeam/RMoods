@@ -19,16 +19,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/*eslint-disable*/}
-        <script id="theme" src="/initializeTheme.js" />
+        <meta name="viewport" content="initial-scale=1, width=device-width" />
       </head>
-      <body className=" bg-primary-light dark:bg-primary-dark text-primary-dark dark:text-primary-light transition-colors w-full">
-        <Providers>
+      <Providers>
+        <body
+          style={{
+            minHeight: "100vh",
+            display: "grid",
+            gridTemplateRows: "auto 1fr auto",
+          }}
+        >
           <Navbar />
           <MainContainer>{children}</MainContainer>
           <Footer />
-        </Providers>
-      </body>
+        </body>
+      </Providers>
     </html>
   );
 }
