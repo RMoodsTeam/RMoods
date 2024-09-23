@@ -17,7 +17,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      style={{ backgroundColor: "var(--joy-palette-background-body)" }}
+    >
       <head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </head>
