@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Card, Link } from "@mui/joy";
 import UserMenu from "./UserMenu";
+import ThemeSwitch from "./ThemeSwitch";
 
 const gridNav = {
   display: "grid",
@@ -20,6 +21,7 @@ const LeftNavItems = () => {
 const RightNavItems = () => {
   return (
     <Box sx={{ display: "flex", justifyContent: "right" }}>
+      <ThemeSwitch />
       <UserMenu />
     </Box>
   );

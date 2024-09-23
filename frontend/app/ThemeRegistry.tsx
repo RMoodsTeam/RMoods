@@ -2,10 +2,23 @@
 import createCache from "@emotion/cache";
 import { useServerInsertedHTML } from "next/navigation";
 import { CacheProvider } from "@emotion/react";
-import { CssVarsProvider } from "@mui/joy/styles";
+import { CssVarsProvider, extendTheme } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
 //import theme from "/path/to/custom/theme"; // OPTIONAL
 import { useState } from "react";
+
+// for now this default theme override will be here, in case of bigger overrides in the future we can move it to a separate file
+const theme = extendTheme({
+  components: {
+    JoyCard: {
+      styleOverrides: {
+        root: {
+          margin: "16px", // Set the default margin here
+        },
+      },
+    },
+  },
+});
 
 // This implementation is from emotion-js
 // https://github.com/emotion-js/emotion/issues/2928#issuecomment-1319747902
@@ -54,7 +67,7 @@ export default function ThemeRegistry(props: any) {
 
   return (
     <CacheProvider value={cache}>
-      <CssVarsProvider>
+      <CssVarsProvider theme={theme}>
         {/* the custom theme is optional */}
         {/* <CssBaseline /> */}
         {children}
