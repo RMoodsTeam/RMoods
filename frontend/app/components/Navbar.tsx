@@ -7,6 +7,7 @@ const gridNav = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr 1fr",
   gap: "1rem",
+  margin: "0",
 };
 
 const LeftNavItems = () => {
@@ -20,7 +21,7 @@ const LeftNavItems = () => {
 
 const RightNavItems = () => {
   return (
-    <Box sx={{ display: "flex", justifyContent: "right" }}>
+    <Box sx={{ display: "flex", justifyContent: "right", gap: 10 }}>
       <ThemeSwitch />
       <UserMenu />
     </Box>
