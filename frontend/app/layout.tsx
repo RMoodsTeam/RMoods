@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Providers from "./Providers";
 import MainContainer from "./components/MainContainer";
+import InitColorSchemeScript from "@mui/joy/InitColorSchemeScript";
 
 export const metadata: Metadata = {
   title: "RMoods",
@@ -24,6 +25,7 @@ export default function RootLayout({
     >
       <head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <InitColorSchemeScript />
       </head>
       <Providers>
         <body
