@@ -17,3 +17,9 @@ venv/
 
 # File types
 *.json
+
+# Environment variables
+.env
+
+# Pickle files
+*.pickle

@@ -2,3 +2,7 @@ pytest==8.2.2
 sphinx==7.3.7
 sphinx_rtd_theme==2.0.0
 flask==3.0.3
+gdown==5.2.0
+google-api-python-client==2.144.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.1
