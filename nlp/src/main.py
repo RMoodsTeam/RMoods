@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import json
+from version_checker import get_version
 
 app = Flask(__name__)
 
@@ -54,4 +54,5 @@ def process_data(data):
 
 
 if __name__ == '__main__':
+    get_version()
     app.run(host='0.0.0.0', port='8002')

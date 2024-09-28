@@ -2,6 +2,7 @@
 .pytest_cache
 .idea/
 docs
+models
 
 # Source folder
 src/__pycache__
