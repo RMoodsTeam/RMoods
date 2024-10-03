@@ -4,7 +4,7 @@ import GoogleSignInButton from "./GoogleSignInButton";
 import { useAtom } from "jotai";
 import Cookies from "js-cookie";
 import { userInfoAtom } from "../../atoms";
-import { Card, Heading } from "@chakra-ui/react";
+import { Card, Center, Heading } from "@chakra-ui/react";
 //import { postGoogleCode, serverRedirect } from "./postGoogleCode";
 
 /**
@@ -39,9 +39,9 @@ const LoginCard = () => {
  */
 const Login = () => {
   return (
-    <div className="flex flex-col items-center justify-center">
+    <Center>
       <LoginCard />
-    </div>
+    </Center>
   );
 };
 

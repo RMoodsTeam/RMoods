@@ -1,14 +1,17 @@
+import { Outlet } from "react-router-dom";
 import Footer from "./Footer";
 import MainContainer from "./MainContainer";
 import Navbar from "./Navbar";
 
-const Layout = ({ children }: any) => {
+const Layout = () => {
   return (
-    <>
+    <div style={{ minHeight: "100vh", position: "relative" }}>
       <Navbar />
-      <MainContainer>{children}</MainContainer>
+      <MainContainer>
+        <Outlet />
+      </MainContainer>
       <Footer />
-    </>
+    </div>
   );
 };
 

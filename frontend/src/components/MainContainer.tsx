@@ -6,7 +6,7 @@ const flexMain = {
   justifyContent: "center",
   alignItems: "center",
   width: "100vw",
-  paddingX: 25,
+  paddingX: "20%",
 };
 
 /**
