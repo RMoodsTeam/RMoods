@@ -1,13 +1,13 @@
 import { Card } from "@chakra-ui/react";
 
-// const flexFooter = {
-//   borderRadius: 0,
-//   minHeight: "100px",
-//   display: "flex",
-//   alignItems: "center",
-//   justifyContent: "center",
-//   margin: 0,
-// };
+const flexFooter = {
+  borderRadius: 0,
+  minHeight: "100px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  marginTop: "auto",
+};
 
 /**
  * Footer component rendering authors credentials
@@ -15,7 +15,7 @@ import { Card } from "@chakra-ui/react";
  */
 const Footer = () => {
   return (
-    <Card>
+    <Card sx={{ ...flexFooter }}>
       <footer>RMoods</footer>
     </Card>
   );
