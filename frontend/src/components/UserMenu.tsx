@@ -1,11 +1,11 @@
-import { Link, Menu, MenuButton, MenuItem } from "@chakra-ui/react";
+import { Link, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 import Cookies from "js-cookie";
 
 const UserMenu = () => {
   return (
     <Menu id="user-dropdown">
       <MenuButton>User Menu</MenuButton>
-      <Menu placement="bottom-end">
+      <MenuList>
         <MenuItem>
           <Link href="/dashboard">Dashboard</Link>
         </MenuItem>
@@ -14,7 +14,7 @@ const UserMenu = () => {
             Log out
           </Link>
         </MenuItem>
-      </Menu>
+      </MenuList>
     </Menu>
   );
 };

@@ -1,29 +1,22 @@
 import UserMenu from "./UserMenu";
 //import ThemeSwitch from "./ThemeSwitch";
-import { Box, Card, Link } from "@chakra-ui/react";
-
-const gridNav = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr 1fr",
-  gap: "1rem",
-  margin: "0",
-};
+import { Card, Flex, Grid, Link } from "@chakra-ui/react";
 
 const LeftNavItems = () => {
   return (
-    <Box sx={{ verticalAlign: "center", display: "flex", gap: 10 }}>
+    <Flex gap={10}>
       <Link href="/">Main</Link>
       <Link href="/about">About</Link>
-    </Box>
+    </Flex>
   );
 };
 
 const RightNavItems = () => {
   return (
-    <Box sx={{ display: "flex", justifyContent: "right", gap: 10 }}>
+    <Flex gap={10} justifyContent={"right"}>
       {/* <ThemeSwitch /> */}
       <UserMenu />
-    </Box>
+    </Flex>
   );
 };
 
@@ -32,19 +25,15 @@ const RightNavItems = () => {
  */
 const Navbar = () => {
   return (
-    <Box
-      sx={{
-        width: "100%",
-      }}
-    >
+    <Card>
       <nav>
-        <Card sx={{ ...gridNav, borderRadius: 0, padding: 1 }}>
+        <Grid templateColumns="repeat(3, 1fr)" padding={3}>
           <LeftNavItems />
           <div />
           <RightNavItems />
-        </Card>
+        </Grid>
       </nav>
-    </Box>
+    </Card>
   );
 };
 
