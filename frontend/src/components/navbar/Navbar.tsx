@@ -1,6 +1,6 @@
-import UserMenu from "./UserMenu";
-//import ThemeSwitch from "./ThemeSwitch";
 import { Card, Flex, Grid, Link } from "@chakra-ui/react";
+import UserMenu from "./UserMenu";
+import ThemeSwitch from "./ThemeSwitch";
 
 const LeftNavItems = () => {
   return (
@@ -14,7 +14,7 @@ const LeftNavItems = () => {
 const RightNavItems = () => {
   return (
     <Flex gap={10} justifyContent={"right"}>
-      {/* <ThemeSwitch /> */}
+      <ThemeSwitch />
       <UserMenu />
     </Flex>
   );
