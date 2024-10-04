@@ -7,15 +7,14 @@ from google.auth.transport.requests import Request
 
 def create_service(client_secret_file, api_name, api_version, scopes):
     """Shows basic usage of the Drive v3 API.
-     Prints the names and ids of the first 10 files the user has access to.
      Based on Google Documentation https://developers.google.com/drive/api/quickstart/python?hl=pl
-     Inputs:
-        :param client_secret_file: The client secret file.
-        :param api_name: The name of the API.
-        :param api_version: The version of the API.
-        :param scopes: The scopes needed for the API.
-    Returns:
-        :return: The service object or None.
+
+    :param client_secret_file: The client secret file.
+    :param api_name: The name of the API.
+    :param api_version: The version of the API.
+    :param scopes: The scopes needed for the API.
+
+    :return: The service object or None.
      """
     CLIENT_SECRET_FILE = client_secret_file
     API_SERVICE_NAME = api_name

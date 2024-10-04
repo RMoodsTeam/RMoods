@@ -1,6 +1,7 @@
 import io
 import os
 
+from docs.conf import project
 from google_service import create_service
 from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.errors import HttpError
@@ -14,10 +15,9 @@ SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 def read_model_file():
     """
-    This function reads the models.version file and returns the data.
+    This function reads the file with the models version.
 
-    Returns:
-        :return: The data from the models.version file.
+    :return: The data read from file.
     """
     with open("models.version", "r") as f:
         return json.load(f)
@@ -27,12 +27,10 @@ def find_folder(service, folder_name):
     """
     This function finds the folder with the given name.
 
-    Inputs:
-        :param service: The Google Drive service.
-        :param folder_name: The name of the folder to find.
+    :param service: The Google Drive service.
+    :param folder_name: The name of the folder to find.
 
-    Returns:
-        :return: The folder ID if found, None otherwise.
+    :return: The folder ID if found, None otherwise.
     """
     query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder'"
     response = service.files().list(q=query).execute()
@@ -46,12 +44,10 @@ def list_folder_contents(service, folder_id):
     """
     This function lists the contents of the folder with the given ID.
 
-    Inputs:
-        :param service: The Google Drive service.
-        :param folder_id: The ID of the folder to list.
+    :param service: The Google Drive service.
+    :param folder_id: The ID of the folder to list.
 
-    Returns:
-        :return: A dictionary containing the directories or files name and ID.
+    :return: A dictionary containing the directories or files name and ID.
     """
     query = f"'{folder_id}' in parents"
     response = service.files().list(q=query).execute()
@@ -70,11 +66,10 @@ def download_file(service, file_id, file_name, models_directory):
     This function downloads the file with the given ID.
     Based on Google Documentation https://developers.google.com/drive/api/guides/manage-downloads?hl=pl#python
 
-    Inputs:
-        :param service: The Google Drive service.
-        :param file_id: The ID of the file to download.
-        :param file_name: The name of the file to download.
-        :param models_directory: The directory to save the downloaded file.
+    :param service: The Google Drive service.
+    :param file_id: The ID of the file to download.
+    :param file_name: The name of the file to download.
+    :param models_directory: The directory to save the downloaded file.
     """
     request = service.files().get_media(fileId=file_id)
 
@@ -105,8 +100,8 @@ def download_file(service, file_id, file_name, models_directory):
 
 def get_version():
     """
-    This function is the main function of the script. It reads the models.version file, finds the folder with the given
-    name, lists the contents of the folder and downloads the file.
+    This function is the main function of the script. It reads the file containing model versions,
+    finds the folder with the given name, lists the contents of the folder and downloads the file.
     """
     data = read_model_file()
     service = create_service("client_secret_file.json", API_NAME, API_VERSION, SCOPES)
@@ -125,4 +120,11 @@ def get_version():
                     file_id = list(list_files.values())[0]
                     file_name = list(list_files.keys())[0]
                     models_directory = f"models/{key}/{current_version}"
-                    download_file(service, file_id, file_name, models_directory)
+
+                    try:
+                        dir_list = os.listdir(f"{models_directory}/")
+                    except FileNotFoundError:
+                        dir_list = []
+
+                    if file_name not in dir_list:
+                        download_file(service, file_id, file_name, models_directory)
