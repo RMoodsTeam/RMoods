@@ -7,7 +7,13 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cypress:open": "cypress open",
+    "build-docs": "typedoc --plugin typedoc-plugin-rename-defaults --entryPointStrategy expand src/",
+    "e2e": "start-server-and-test dev http://localhost:8000 \"cypress open --e2e\"",
+    "e2e:headless": "start-server-and-test dev http://localhost:8000 \"cypress run --e2e\"",
+    "component": "cypress open --component",
+    "component:headless": "cypress run --component"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.9.3",
@@ -24,14 +30,19 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@types/cypress": "^1.1.3",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "cypress": "^13.15.0",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
+    "start-server-and-test": "^2.0.8",
+    "typedoc": "^0.26.8",
+    "typedoc-plugin-rename-defaults": "^0.7.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1"
