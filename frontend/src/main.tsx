@@ -11,7 +11,7 @@ import rmoodsTheme from "./theme.ts";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">
-      <ChakraProvider theme={rmoodsTheme}>
+      <ChakraProvider theme={rmoodsTheme} resetCSS>
         <JotaiProvider>
           <RouterProvider router={router} />
         </JotaiProvider>
