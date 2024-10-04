@@ -1,7 +1,15 @@
 import { Link, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
 
 const UserMenu = () => {
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    console.log("Logging out");
+    Cookies.remove("RMOODS_JWT");
+    navigate("/login");
+  };
+
   return (
     <Menu id="user-dropdown">
       <MenuButton>User Menu</MenuButton>
@@ -9,11 +17,7 @@ const UserMenu = () => {
         <MenuItem>
           <Link href="/dashboard">Dashboard</Link>
         </MenuItem>
-        <MenuItem>
-          <Link href="/login" onClick={() => Cookies.remove("RMOODS_JWT")}>
-            Log out
-          </Link>
-        </MenuItem>
+        <MenuItem onClick={() => handleLogout()}>Log out</MenuItem>
       </MenuList>
     </Menu>
   );

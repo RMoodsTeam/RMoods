@@ -4,6 +4,7 @@ import Dashboard from "./routes/dashboard/page";
 import Login from "./routes/login/page";
 import Root from "./routes/page";
 import Layout from "./Layout";
+import ProtectedRoute, { protectRoute } from "./components/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -19,7 +20,11 @@ const router = createBrowserRouter([
       },
       {
         path: "dashboard",
-        element: <Dashboard />,
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "login",
