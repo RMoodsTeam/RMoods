@@ -6,6 +6,7 @@ const flexFooter = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  margin: 0,
   marginTop: "auto",
 };
 

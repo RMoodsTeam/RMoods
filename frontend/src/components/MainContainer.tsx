@@ -1,7 +1,6 @@
-import { Box } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 
 const flexMain = {
-  display: "flex",
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
@@ -18,13 +17,13 @@ const MainContainer = ({
   children,
 }: Readonly<{ children: React.ReactNode }>) => {
   return (
-    <Box
+    <Flex
       sx={{
         ...flexMain,
       }}
     >
       {children}
-    </Box>
+    </Flex>
   );
 };
 

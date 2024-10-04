@@ -7,6 +7,16 @@ const config: ThemeConfig = {
 }
 
 const rmoodsTheme = extendTheme({
+  components: {
+    Card: {
+      baseStyle: {
+        container:{
+          padding: 4,
+          margin: 4,
+        }
+      }
+    }
+  },
   config, styles: {
     global: {
       body: {
