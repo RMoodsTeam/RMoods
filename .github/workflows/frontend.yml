@@ -1,4 +1,4 @@
-name: NextJS Frontend
+name: React Frontend
 
 on:
   push:
