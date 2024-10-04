@@ -1,7 +1,6 @@
 # Main folder
 .pytest_cache
 .idea/
-docs
 models
 
 # Source folder
