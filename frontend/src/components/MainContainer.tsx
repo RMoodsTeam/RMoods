@@ -4,8 +4,7 @@ const flexMain = {
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
-  width: "100vw",
-  paddingX: "20%",
+  paddingX: "60px",
 };
 
 /**
