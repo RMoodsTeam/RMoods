@@ -1,8 +1,14 @@
 import { Avatar, Box, Card, Heading } from "@chakra-ui/react";
-import { userInfoFromJWT } from "../../utility/serverActions";
+//import { userInfoFromJWT } from "../../utility/serverActions";
 
 const LoggedUserInfo = async () => {
-  const userInfo = await userInfoFromJWT();
+  // const userInfo = await userInfoFromJWT();
+  const userInfo = {
+    name: "John Doe",
+    email: "",
+    picture: "https://bit.ly/dan-abramov",
+  };
+
   return (
     <Card>
       <Box>

@@ -316,19 +316,23 @@ const Demo: React.FC = () => {
           Overlay Components
         </Heading>
         <Button onClick={() => setIsOpen(true)}>Open Alert Dialog</Button>
-        <AlertDialog isOpen={isOpen} onClose={onClose}>
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogHeader>Alert Dialog</AlertDialogHeader>
-              <AlertDialogBody>
-                This is an alert dialog message.
-              </AlertDialogBody>
-              <AlertDialogFooter>
-                <Button onClick={onClose}>Close</Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
+        {/* <AlertDialog */}
+        {/*   isOpen={isOpen} */}
+        {/*   onClose={onClose} */}
+        {/*   leastDestructiveRef={undefined} */}
+        {/* > */}
+        {/*   <AlertDialogOverlay> */}
+        {/*     <AlertDialogContent> */}
+        {/*       <AlertDialogHeader>Alert Dialog</AlertDialogHeader> */}
+        {/*       <AlertDialogBody> */}
+        {/*         This is an alert dialog message. */}
+        {/*       </AlertDialogBody> */}
+        {/*       <AlertDialogFooter> */}
+        {/*         <Button onClick={onClose}>Close</Button> */}
+        {/*       </AlertDialogFooter> */}
+        {/*     </AlertDialogContent> */}
+        {/*   </AlertDialogOverlay> */}
+        {/* </AlertDialog> */}
 
         <Drawer isOpen={isOpen} onClose={onClose}>
           <DrawerOverlay />
@@ -448,7 +452,6 @@ const Demo: React.FC = () => {
         <NumberInput mt={4}>
           <NumberInputField />
         </NumberInput>
-        <PinInput mt={4} placeholder="•" />
         <Radio mt={4}>Radio</Radio>
         <RangeSlider defaultValue={[10, 30]} mt={4} />
         <Select mt={4}>
