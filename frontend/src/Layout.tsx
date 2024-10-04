@@ -2,13 +2,14 @@ import { Outlet } from "react-router-dom";
 import Navbar from "./components/navbar/Navbar";
 import MainContainer from "./components/MainContainer";
 import Footer from "./components/Footer";
+import { Flex } from "@chakra-ui/react";
 
 const Layout = () => {
   return (
-    <div
+    <Flex
       style={{
         minHeight: "100vh",
-        position: "relative",
+        flexDirection: "column",
       }}
     >
       <Navbar />
@@ -16,7 +17,7 @@ const Layout = () => {
         <Outlet />
       </MainContainer>
       <Footer />
-    </div>
+    </Flex>
   );
 };
 
