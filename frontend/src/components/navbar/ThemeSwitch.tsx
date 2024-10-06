@@ -28,11 +28,11 @@ const ThemeSwitch = () => {
 
     setTrueColorMode(nextMode);
 
-    if (nextMode === "system") {
-      if (colorMode !== systemMode) {
-        toggleColorMode();
-      }
-    } else if (nextMode !== colorMode) {
+    // Toggle ChakraUI color mode if it's different from the desired true mode
+    if (
+      (nextMode === "system" && colorMode !== systemMode) ||
+      (nextMode !== "system" && nextMode !== colorMode)
+    ) {
       toggleColorMode();
     }
   };
