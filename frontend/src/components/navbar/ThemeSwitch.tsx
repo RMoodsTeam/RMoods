@@ -1,45 +1,35 @@
 import { Button, useColorMode } from "@chakra-ui/react";
-import {
-  DEFAULT_COLOR_MODE,
-  getNextMode,
-  getSystemMode,
-  RMoodsColorMode,
-} from "../../theme";
-import { useState } from "react";
+import { getNextMode, getSystemMode, RMoodsColorMode } from "../../theme";
+import { useAtom } from "jotai";
+import { useEffect } from "react";
+import { atomWithStorage } from "jotai/utils";
+
+// Initialize the atom using localStorage's current value, fallback to "light"
+const colorModeAtom = atomWithStorage<RMoodsColorMode>(
+  "COLOR_MODE",
+  (localStorage.getItem("COLOR_MODE") as RMoodsColorMode) || "light",
+);
 
 const ThemeSwitch = () => {
-  if (!localStorage.getItem("COLOR_MODE")) {
-    localStorage.setItem("COLOR_MODE", DEFAULT_COLOR_MODE);
-  }
-  let currentMode = localStorage.getItem("COLOR_MODE");
-  const [trueColorMode, setTrueColorMode] = useState(currentMode);
-
+  // ChakraUI handles only light and dark modes, so we need to keep track of the true color mode
   const { colorMode, toggleColorMode } = useColorMode();
-  if (!colorMode) {
-    return <></>;
-  }
+  const [trueColorMode, setTrueColorMode] = useAtom(colorModeAtom);
 
-  const onSystemColorSchemeChange = () => {
-    const newPreference = getSystemMode();
-    if (localStorage.getItem("COLOR_MODE") === "system") {
-      if (newPreference !== colorMode) {
-        toggleColorMode();
-      }
+  const handleSystemSchemeChange = () => {
+    const systemMode = getSystemMode();
+    if (trueColorMode === "system" && colorMode !== systemMode) {
+      toggleColorMode();
     }
   };
 
-  const handleThemeChange = () => {
-    window
-      .matchMedia("(prefers-color-scheme: dark)")
-      .addEventListener("change", () => onSystemColorSchemeChange());
-    const currentMode = (localStorage.getItem("COLOR_MODE") ||
-      "light") as RMoodsColorMode;
-    const nextMode = getNextMode(currentMode);
-    const systemPreference = getSystemMode();
-    localStorage.setItem("COLOR_MODE", nextMode);
+  const onThemeChange = () => {
+    const nextMode = getNextMode(trueColorMode);
+    const systemMode = getSystemMode();
+
     setTrueColorMode(nextMode);
+
     if (nextMode === "system") {
-      if (colorMode !== systemPreference) {
+      if (colorMode !== systemMode) {
         toggleColorMode();
       }
     } else if (nextMode !== colorMode) {
@@ -47,9 +37,20 @@ const ThemeSwitch = () => {
     }
   };
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", handleSystemSchemeChange);
+    return () =>
+      mediaQuery.removeEventListener("change", handleSystemSchemeChange);
+  }, [colorMode, trueColorMode]);
+
   return (
     <header>
-      <Button onClick={() => handleThemeChange()}>{trueColorMode}</Button>
+      <Button onClick={onThemeChange}>
+        {trueColorMode === "system"
+          ? `System (${getSystemMode()})`
+          : trueColorMode.charAt(0).toUpperCase() + trueColorMode.slice(1)}
+      </Button>
     </header>
   );
 };
