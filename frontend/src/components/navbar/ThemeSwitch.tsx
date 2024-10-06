@@ -1,20 +1,29 @@
-import { Button, useColorMode } from "@chakra-ui/react";
-import { getNextMode, getSystemMode, RMoodsColorMode } from "../../theme";
+import { Button, Icon, useColorMode, HStack } from "@chakra-ui/react";
+import { FaSun, FaMoon, FaDesktop } from "react-icons/fa";
+import { getNextMode, getSystemMode } from "../../theme";
 import { useAtom } from "jotai";
 import { useEffect } from "react";
-import { atomWithStorage } from "jotai/utils";
-
-// Initialize the atom using localStorage's current value, fallback to "light"
-const colorModeAtom = atomWithStorage<RMoodsColorMode>(
-  "COLOR_MODE",
-  (localStorage.getItem("COLOR_MODE") as RMoodsColorMode) || "light",
-);
+import { colorModeAtom } from "../../atoms";
 
 const ThemeSwitch = () => {
-  // ChakraUI handles only light and dark modes, so we need to keep track of the true color mode
   const { colorMode, toggleColorMode } = useColorMode();
   const [trueColorMode, setTrueColorMode] = useAtom(colorModeAtom);
 
+  // Determine the current icon based on the mode
+  const getIcon = () => {
+    switch (trueColorMode) {
+      case "light":
+        return FaSun;
+      case "dark":
+        return FaMoon;
+      case "system":
+        return FaDesktop;
+      default:
+        return FaSun;
+    }
+  };
+
+  // Handle system color scheme preference changes
   const handleSystemSchemeChange = () => {
     const systemMode = getSystemMode();
     if (trueColorMode === "system" && colorMode !== systemMode) {
@@ -22,13 +31,13 @@ const ThemeSwitch = () => {
     }
   };
 
+  // Handle theme change logic
   const onThemeChange = () => {
     const nextMode = getNextMode(trueColorMode);
     const systemMode = getSystemMode();
 
     setTrueColorMode(nextMode);
 
-    // Toggle ChakraUI color mode if it's different from the desired true mode
     if (
       (nextMode === "system" && colorMode !== systemMode) ||
       (nextMode !== "system" && nextMode !== colorMode)
@@ -46,10 +55,10 @@ const ThemeSwitch = () => {
 
   return (
     <header>
-      <Button onClick={onThemeChange}>
-        {trueColorMode === "system"
-          ? `System (${getSystemMode()})`
-          : trueColorMode.charAt(0).toUpperCase() + trueColorMode.slice(1)}
+      <Button onClick={onThemeChange} aria-label="Toggle Theme" px={4} py={2}>
+        <HStack spacing={2}>
+          <Icon as={getIcon()} boxSize={5} />
+        </HStack>
       </Button>
     </header>
   );
