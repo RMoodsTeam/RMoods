@@ -1,4 +1,4 @@
-import { Link, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 
@@ -14,9 +14,7 @@ const UserMenu = () => {
     <Menu id="user-dropdown">
       <MenuButton>User Menu</MenuButton>
       <MenuList>
-        <MenuItem>
-          <Link href="/dashboard">Dashboard</Link>
-        </MenuItem>
+        <MenuItem onClick={() => navigate("/dashboard")}>Dashboard</MenuItem>
         <MenuItem onClick={() => handleLogout()}>Log out</MenuItem>
       </MenuList>
     </Menu>

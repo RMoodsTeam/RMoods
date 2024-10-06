@@ -1,16 +1,43 @@
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
 
+export type RMoodsColorMode = 'light' | 'dark' | 'system';
+export const DEFAULT_COLOR_MODE: RMoodsColorMode = localStorage.getItem('COLOR_MODE') as RMoodsColorMode || 'light';
+
+export const getSystemMode = (): 'light' | 'dark' => {
+  if (window.matchMedia) {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark'
+    }
+  }
+  return 'light'
+}
+
+export const getNextMode = (currentMode: RMoodsColorMode): RMoodsColorMode => {
+  console.log('Next mode for', currentMode)
+  switch (currentMode) {
+    case 'light':
+      return 'dark'
+    case 'dark':
+      return 'system'
+    case 'system':
+      return 'light'
+  }
+}
+
+if (!localStorage.getItem("COLOR_MODE")) {
+  localStorage.setItem("COLOR_MODE", DEFAULT_COLOR_MODE);
+}
 const config: ThemeConfig = {
-  initialColorMode: 'light',
+  initialColorMode: localStorage.getItem('COLOR_MODE') as RMoodsColorMode,
   useSystemColorMode: false,
   disableTransitionOnChange: false,
 }
 
-const rmoodsTheme = extendTheme({
+export const rmoodsTheme = extendTheme({
   components: {
     Card: {
       baseStyle: {
-        container:{
+        container: {
           padding: 4,
           margin: 4,
         }
@@ -26,5 +53,3 @@ const rmoodsTheme = extendTheme({
     }
   }
 })
-
-export default rmoodsTheme;
