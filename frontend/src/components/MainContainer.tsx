@@ -1,10 +1,12 @@
 import { Flex } from "@chakra-ui/react";
+import Sidebar from "./Sidebar";
 
 const flexMain = {
+  flex: "auto",
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
-  paddingX: "60px",
+  paddingTop: "60px",
 };
 
 /**
@@ -16,12 +18,15 @@ const MainContainer = ({
   children,
 }: Readonly<{ children: React.ReactNode }>) => {
   return (
-    <Flex
-      sx={{
-        ...flexMain,
-      }}
-    >
-      {children}
+    <Flex>
+      <Sidebar />
+      <Flex
+        sx={{
+          ...flexMain,
+        }}
+      >
+        {children}
+      </Flex>
     </Flex>
   );
 };
