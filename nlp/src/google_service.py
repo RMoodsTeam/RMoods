@@ -6,8 +6,9 @@ from google.auth.transport.requests import Request
 
 
 def create_service(client_secret_file, api_name, api_version, scopes):
-    """Shows basic usage of the Drive v3 API.
-     Based on Google Documentation https://developers.google.com/drive/api/quickstart/python?hl=pl
+    """
+    Shows basic usage of the Drive v3 API. Based on Google Documentation
+    https://developers.google.com/drive/api/quickstart/python?hl=pl
 
     :param client_secret_file: The client secret file.
     :param api_name: The name of the API.
@@ -19,7 +20,7 @@ def create_service(client_secret_file, api_name, api_version, scopes):
     CLIENT_SECRET_FILE = client_secret_file
     API_SERVICE_NAME = api_name
     API_VERSION = api_version
-    SCOPES = [scope for scope in scopes[0]]
+    SCOPES = scopes
 
     cred = None
 
@@ -33,7 +34,8 @@ def create_service(client_secret_file, api_name, api_version, scopes):
         if cred and cred.expired and cred.refresh_token:
             cred.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE
+                                                             , SCOPES)
             cred = flow.run_local_server(port=8002)
 
         with open(pickle_file, 'wb') as token:

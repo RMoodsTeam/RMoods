@@ -1,7 +1,7 @@
 # Welcome to nlp's documentation!
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 :caption: Installation:
 
 installation.md
@@ -10,7 +10,7 @@ env_example.md
 ```
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 :caption: Code:
 
 main.md
