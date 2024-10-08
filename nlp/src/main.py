@@ -18,7 +18,7 @@ def get_json_data():
 
 
 @app.errorhandler(415)
-def unsupported_media_type():
+def unsupported_media_type(error):
     """
     This function is called when a 415 error occurs.
 

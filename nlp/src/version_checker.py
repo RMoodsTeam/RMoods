@@ -18,7 +18,7 @@ if os.path.exists("client_secret_file.json"):
                              API_VERSION, SCOPES)
 else:
     print("client_secret_file.json file not found. Check if the file exists.")
-    raise SystemExit
+
 
 def read_model_file():
     """
@@ -40,17 +40,17 @@ def find_folder(service, folder_name):
     :return: The folder ID if found, None otherwise.
     """
     try:
-        query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder'"
+        query = (f"name='{folder_name}' and mimeType='application/"
+                 f"vnd.google-apps.folder'")
         response = service.files().list(q=query).execute()
         if "files" in response and len(response['files']) > 0:
             return response["files"][0]["id"]
     except ServerNotFoundError as e:
         print(f"Server not found. Stopping looking for folder. {e}")
-        return 0
+        return None
     except TimeoutError as e:
         print(f"Connection timed out. Stopping download. {e}")
-        return 0
-
+        return None
 
 
 def list_folder_contents(service, folder_id):
@@ -73,10 +73,10 @@ def list_folder_contents(service, folder_id):
         return files
     except ServerNotFoundError as e:
         print(f"Server not found. Stopping listing files. {e}")
-        return False
+        return None
     except TimeoutError as e:
         print(f"Connection timed out. Stopping download. {e}")
-        return False
+        return None
 
 
 def download_file(service, file_id, file_name, models_directory):
@@ -152,10 +152,7 @@ def is_file_up_to_date(file_id, file_exists, file_path):
 
         local_date = datetime.datetime.strptime(formatted_time,
                                                 '%Y-%m-%dT%H:%M:%S.%fZ')
-        if online_date < local_date:
-            return True
-        else:
-            return False
+        return bool(online_date < local_date)
     else:
         return False
 
@@ -189,7 +186,8 @@ def get_version(folder_id, current_version, model_name):
                 newest = is_file_up_to_date(file_id, file_exists, full_models_path)
 
                 if not newest or not file_exists:
-                    status = download_file(SERVICE, file_id, file_name, models_directory)
+                    status = download_file(SERVICE, file_id, file_name,
+                                           models_directory)
                     if not status:
                         print(f"An error occurred while downloading the "
                               f"file {model_name}.")
@@ -218,7 +216,7 @@ def update_model_versions(models_names=None):
         current_version = data[model_name]
         folder_id = find_folder(SERVICE, model_name)
 
-        if folder_id == 0:
+        if folder_id is None:
             return False
 
         download_status = get_version(folder_id, current_version,
@@ -228,10 +226,7 @@ def update_model_versions(models_names=None):
         else:
             count_correct += 1
 
-    if count_correct == len(models_names):
-        return True
-    else:
-        return False
+    return bool(count_correct == len(models_names))
 
 
 def get_status_information(service, parent_id='root', level=0, path='models/'
@@ -246,7 +241,8 @@ def get_status_information(service, parent_id='root', level=0, path='models/'
     :param print_output: True if the function should print the folders and files.
     """
     try:
-        query = f"'{parent_id}' in parents and mimeType='application/vnd.google-apps.folder'"
+        query = (f"'{parent_id}' in parents and mimeType='application/"
+                 f"vnd.google-apps.folder'")
         response = service.files().list(q=query).execute()
         folders = response.get('files', [])
         if not folders:
@@ -261,7 +257,8 @@ def get_status_information(service, parent_id='root', level=0, path='models/'
                 else:
                     file_conditions = ""
 
-                if print_output: print('  ' * level + f"File online: {file}{file_conditions}")
+                if print_output:
+                    print('  ' * level + f"File online: {file}{file_conditions}")
 
         for folder in folders:
             if not os.path.exists(path + folder['name']):
@@ -269,7 +266,8 @@ def get_status_information(service, parent_id='root', level=0, path='models/'
             else:
                 folder_conditions = ""
 
-            if print_output: print('  ' * level + f"Folder online: {folder['name']} "
+            if print_output:
+                print('  ' * level + f"Folder online: {folder['name']} "
                                                   f"{folder_conditions}")
 
             get_status_information(service, folder['id'], level + 1, path +
@@ -282,8 +280,5 @@ def get_status_information(service, parent_id='root', level=0, path='models/'
 
 
 def get_status():
-    """
-    This function prints the status of the files and folders.
-    """
+    """This function prints the status of the files and folders."""
     get_status_information(SERVICE, print_output=True)
-
