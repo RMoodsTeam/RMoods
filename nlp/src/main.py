@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import json
+from version_checker import update_model_versions
 
 app = Flask(__name__)
 
@@ -22,19 +22,15 @@ def unsupported_media_type(error):
     """
     This function is called when a 415 error occurs.
 
-    :param error: The error message.
-
     :return: The error message.
     """
     return jsonify({'error': 'Unsupported media type'}), 415
 
 
 @app.errorhandler(404)
-def page_not_found(error):
+def page_not_found():
     """
     This function is called when a 404 error occurs.
-
-    :param error: The error message.
 
     :return: The error message.
     """
@@ -54,4 +50,5 @@ def process_data(data):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='8002')
+    if update_model_versions():
+        app.run(host='0.0.0.0', port=8002)

@@ -1,7 +1,7 @@
 # Main folder
 .pytest_cache
 .idea/
-docs
+models
 
 # Source folder
 src/__pycache__
@@ -17,3 +17,9 @@ venv/
 
 # File types
 *.json
+
+# Environment variables
+.env
+
+# Pickle files
+*.pickle
