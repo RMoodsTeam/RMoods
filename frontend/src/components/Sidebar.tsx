@@ -4,36 +4,31 @@ import {
   VStack,
   Heading,
   Collapse,
-  useDisclosure,
+  useDisclosure, Card,
 } from "@chakra-ui/react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { useState } from "react";
 
 const Sidebar = ({ title, children, width = "300px" }: any) => {
   const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true });
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleToggle = () => {
-    if (isCollapsed) {
-      setIsCollapsed(false);
+    if (!isOpen) {
       setTimeout(onToggle, 100); // Delay to ensure smooth animation
     } else {
       onToggle();
-      setTimeout(() => setIsCollapsed(true), 300); // Delay to match transition duration
     }
   };
 
   return (
-    <Box
+    <Card
       margin={0}
-      bg="gray"
-      width={isCollapsed ? "50px" : width}
-      boxShadow="lg"
-      transition="width 0.3s ease"
+      minWidth={isOpen ? width : "50px"}
+      transition="min-width 0.3s ease"
       zIndex={1000}
+      marginY="2px"
     >
       <Button position="fixed" top="50%" onClick={handleToggle}>
-        {isCollapsed ? <FaChevronLeft /> : <FaChevronRight />}
+        {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
       </Button>
 
       <Collapse in={isOpen} animateOpacity>
@@ -42,7 +37,7 @@ const Sidebar = ({ title, children, width = "300px" }: any) => {
           {children}
         </VStack>
       </Collapse>
-    </Box>
+    </Card>
   );
 };
 

@@ -6,7 +6,7 @@ const flexMain = {
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
-  paddingTop: "60px",
+  padding: "60px 1em 0",
 };
 
 /**
@@ -18,7 +18,8 @@ const MainContainer = ({
   children,
 }: Readonly<{ children: React.ReactNode }>) => {
   return (
-    <Flex>
+    <Flex
+    sx={{flex: "auto"}}>
       <Sidebar />
       <Flex
         sx={{
