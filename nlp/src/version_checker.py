@@ -356,14 +356,11 @@ def upload_file(folder_name, version, file_name):
         if folder_id is None:
             folder_name_id = create_folder(folder_name)
             version_folder_id = create_folder(version, folder_name_id)
-            file_create = create_file(folder_name_id, version_folder_id, file_path, file_name)
+            file_create = create_file(folder_name_id, version_folder_id,
+                                      file_path, file_name)
 
             if file_create is None:
                 return False
-
-            data = {folder_name: version}
-            with open("models.version", "a") as f:
-                json.dump(data, f, indent=4)
 
             print(f"File {file_name} uploaded successfully. Model file updated.")
             return True
@@ -382,7 +379,8 @@ def upload_file(folder_name, version, file_name):
             if version_folder_id is None:
                 version_folder_id = create_folder(version, folder_id)
 
-            response_files = SERVICE.files().list(q=f"'{version_folder_id}' in parents").execute()
+            response_files = SERVICE.files().list(q=f"'{version_folder_id}' "
+                                                    f"in parents").execute()
             files = response_files.get('files', [])
 
             proceed = False
@@ -403,16 +401,10 @@ def upload_file(folder_name, version, file_name):
                     SERVICE.files().update(fileId=file['id'], body=body_value).execute()
                     break
 
-            file_create = create_file(folder_id, version_folder_id, file_path, file_name)
+            file_create = create_file(folder_id, version_folder_id,
+                                      file_path, file_name)
             if file_create is None:
                 return False
-
-            with open("models.version", "r+") as f:
-                data = json.load(f)
-                data[folder_name] = version
-                f.seek(0)
-                json.dump(data, f, indent=4)
-                f.truncate()
 
             print(f"File {file_name} uploaded successfully. Models file updated.")
             return True
@@ -437,12 +429,17 @@ def upload_manager(folders=None):
 
     data = read_model_file()
     for folder in folders:
-        version = data[folder]
-        files = os.listdir(f"models/{folder}/{version}")
-        for file_name in files:
-            print(f"Uploading {folder} model with version {version}, file {file_name}")
-            update_successful = upload_file(folder, version, file_name)
-            if update_successful is None:
-                print(f"File {file_name} already exists. Skipping file.")
-            elif not update_successful:
-                print(f"Error occurred while uploading the file {file_name}.")
+        try:
+            version = data[folder]
+            files = os.listdir(f"models/{folder}/{version}")
+            for file_name in files:
+                print(f"Uploading {folder} model with version {version}, file {file_name}")
+                update_successful = upload_file(folder, version, file_name)
+                if update_successful is None:
+                    print(f"File {file_name} already exists. Skipping file.")
+                elif not update_successful:
+                    print(f"Error occurred while uploading the file {file_name}.")
+        except KeyError:
+            print(f"Model {folder} not found in the models.version file. "
+                  f"Check out name of the model file.")
+            continue
