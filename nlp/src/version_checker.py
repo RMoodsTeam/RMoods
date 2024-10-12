@@ -4,7 +4,7 @@ import datetime
 
 from httplib2 import ServerNotFoundError
 from google_service import create_service
-from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from googleapiclient.errors import HttpError
 from tqdm import tqdm
 import json
@@ -212,8 +212,16 @@ def update_model_versions(models_names=None):
         [models_names.append(x) for x in data]
 
     count_correct = 0
+    errors = 0
     for model_name in models_names:
-        current_version = data[model_name]
+        try:
+            current_version = data[model_name]
+        except KeyError:
+            print(f"Model {model_name} not found in the models.version file. "
+                  f"Check out name of the model file.")
+            errors += 1
+            continue
+
         folder_id = find_folder(SERVICE, model_name)
 
         if folder_id is None:
@@ -223,10 +231,11 @@ def update_model_versions(models_names=None):
                                       model_name)
         if not download_status:
             print("Error occurred while downloading the file.")
+            errors += 1
         else:
             count_correct += 1
 
-    return bool(count_correct == len(models_names))
+    return bool(count_correct == len(models_names) - errors)
 
 
 def get_status_information(service, parent_id='root', level=0, path='models/'
@@ -251,7 +260,6 @@ def get_status_information(service, parent_id='root', level=0, path='models/'
                 file_exists = os.path.exists(path + file)
                 is_not_outdated = is_file_up_to_date(files[file], file_exists,
                                                      path + file)
-
                 if (not file_exists) or (not is_not_outdated):
                     file_conditions = "   --->   File diverged from online version"
                 else:
@@ -281,4 +289,160 @@ def get_status_information(service, parent_id='root', level=0, path='models/'
 
 def get_status():
     """This function prints the status of the files and folders."""
-    get_status_information(SERVICE, print_output=True)
+    get_status_information(SERVICE)
+
+
+def create_folder(folder_name, parent_id='root'):
+    """
+    This function creates a folder in the Google Drive.
+    :param folder_name: The name of the folder to create.
+    :param parent_id: The ID of the parent folder.
+
+    :return: The ID of the created folder.
+    """
+    folder_name = {
+        'name': folder_name,
+        'parents': [parent_id],
+        'mimeType': 'application/vnd.google-apps.folder'
+    }
+
+    file = (SERVICE.files().create(
+        body=folder_name)
+            .execute())
+
+    return file.get('id')
+
+
+def create_file(folder_name_id, version_folder_id, file_path, file_name):
+    """
+    This function creates a file in the Google Drive folder.
+    :param folder_name_id: The ID of the folder to create the file.
+    :param version_folder_id: The ID of the version folder to create the file.
+    :param file_path: The path to the file to upload.
+    :param file_name: The name of the file to upload.
+
+    :return: The file created. Or False if the folder_name_id or version_folder_id is None.
+    """
+    if folder_name_id is None or version_folder_id is None:
+        return False
+
+    file_metadata = {
+        'name': file_name,
+        'parents': [version_folder_id]
+    }
+
+    media = MediaFileUpload(file_path, resumable=True)
+    file = SERVICE.files().create(body=file_metadata,
+                                  media_body=media).execute()
+    return file
+
+
+def upload_file(folder_name, version, file_name):
+    """
+    This function uploads the file to the Google Drive folder.
+    :param folder_name: The name of the folder to upload.
+    :param version: The version of the model.
+    :param file_name: The name of the file to upload.
+
+    :return: True if the file was uploaded successfully, False otherwise.
+    """
+    try:
+        file_path = f"models/{folder_name}/{version}/{file_name}"
+        if not os.path.exists(file_path):
+            print(f"File {file_name} not found. Stopping upload.")
+            return False
+
+        folder_id = find_folder(SERVICE, folder_name)
+        if folder_id is None:
+            folder_name_id = create_folder(folder_name)
+            version_folder_id = create_folder(version, folder_name_id)
+            file_create = create_file(folder_name_id, version_folder_id, file_path, file_name)
+
+            if file_create is None:
+                return False
+
+            data = {folder_name: version}
+            with open("models.version", "a") as f:
+                json.dump(data, f, indent=4)
+
+            print(f"File {file_name} uploaded successfully. Model file updated.")
+            return True
+        else:
+            query = (f"'{folder_id}' in parents and mimeType='application/"
+                     f"vnd.google-apps.folder'")
+            response = SERVICE.files().list(q=query).execute()
+            folders = response.get('files', [])
+
+            version_folder_id = None
+            for folder in folders:
+                if folder['name'] == version:
+                    version_folder_id = folder['id']
+                    break
+
+            if version_folder_id is None:
+                version_folder_id = create_folder(version, folder_id)
+
+            response_files = SERVICE.files().list(q=f"'{version_folder_id}' in parents").execute()
+            files = response_files.get('files', [])
+
+            proceed = False
+            for file in files:
+                if file['name'] == file_name:
+                    while True:
+                        answer = input(f"File {file_name} already exists Do you "
+                                       f"want to overwrite the file? (y/n): ")
+                        if answer == 'n':
+                            return None
+                        elif answer == 'y':
+                            proceed = True
+                            break
+                        else:
+                            continue
+                if proceed:
+                    body_value = {'trashed': True}
+                    SERVICE.files().update(fileId=file['id'], body=body_value).execute()
+                    break
+
+            file_create = create_file(folder_id, version_folder_id, file_path, file_name)
+            if file_create is None:
+                return False
+
+            with open("models.version", "r+") as f:
+                data = json.load(f)
+                data[folder_name] = version
+                f.seek(0)
+                json.dump(data, f, indent=4)
+                f.truncate()
+
+            print(f"File {file_name} uploaded successfully. Models file updated.")
+            return True
+    except HttpError as e:
+        print(f"An error occurred: {e}")
+        return False
+    except ServerNotFoundError as e:
+        print(f"Server not found. Stopping upload. {e}")
+        return False
+    except TimeoutError as e:
+        print(f"Connection timed out. Stopping upload. {e}")
+        return False
+
+
+def upload_manager(folders=None):
+    """
+    This function manages uploads to the Google Drive folder.
+    :param folders: The names of the folders to upload. If None, all folders are uploaded.
+    """
+    if folders is None:
+        folders = read_model_file()
+
+    data = read_model_file()
+    for folder in folders:
+        version = data[folder]
+        files = os.listdir(f"models/{folder}/{version}")
+        for file_name in files:
+            print(f"Uploading {folder} model with version {version}, file {file_name}")
+            update_successful = upload_file(folder, version, file_name)
+            if update_successful is None:
+                print(f"File {file_name} already exists. Skipping file.")
+            elif not update_successful:
+                print(f"Error occurred while uploading the file {file_name}.")
