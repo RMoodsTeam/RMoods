@@ -115,7 +115,7 @@ pub async fn post_comments(
     let req = RedditRequest::PostComments {
         subreddit: r,
         post_id: id,
-        params: Default::default(),
+        sorting: Default::default(),
     };
 
     let json = state.reddit.fetch_raw(req).await?;
@@ -156,7 +156,7 @@ pub async fn subreddit_posts(
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `r` parameter"))?;
     let req = RedditRequest::SubredditPosts {
         subreddit: subreddit.into(),
-        params: Default::default(),
+        sorting: Default::default(),
     };
     let json = state.reddit.fetch_raw(req).await?;
 
@@ -175,7 +175,7 @@ pub async fn user_posts(
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
     let req = RedditRequest::UserPosts {
         username: user.into(),
-        params: Default::default(),
+        sorting: Default::default(),
     };
     let json = state.reddit.fetch_raw(req).await?;
 

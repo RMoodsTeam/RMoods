@@ -1,5 +1,3 @@
-use std::{default, fmt::Display};
-
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 
@@ -68,42 +66,49 @@ impl FeedSorting {
     }
 }
 
-/// Represents the number of posts to fetch from a feed.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
-pub enum RequestSize {
-    #[default]
-    Small,
-    Medium,
-    Large,
-    /// Custom number of posts to fetch as u16
-    Custom(u16),
-}
+// /// Represents the number of Reddit API requests that should be done to fullfill the report request.
+// ///
+// /// Each Reddit API request is done with the maximum per-request limit of 100 posts.
+// #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
+// pub enum RequestSize {
+//     #[default]
+//     Small,
+//     Medium,
+//     Large,
+//     Custom(u16),
+// }
 
-impl From<RequestSize> for u16 {
-    fn from(value: RequestSize) -> Self {
-        match value {
-            RequestSize::Small => 50,
-            RequestSize::Medium => 250,
-            RequestSize::Large => 100,
-            RequestSize::Custom(n) => n,
-        }
-    }
-}
+// impl From<RequestSize> for u16 {
+//     fn from(value: RequestSize) -> Self {
+//         match value {
+//             RequestSize::Small => 50,
+//             RequestSize::Medium => 250,
+//             RequestSize::Large => 500,
+//             RequestSize::Custom(n) => n,
+//         }
+//     }
+// }
 
-impl ToString for RequestSize {
-    fn to_string(&self) -> String {
-        let n = u16::from(*self);
-        n.to_string()
-    }
-}
+// impl ToString for RequestSize {
+//     fn to_string(&self) -> String {
+//         let n = u16::from(*self);
+//         n.to_string()
+//     }
+// }
 
-/// Represents the parameters for fetching a feed of posts.
-#[derive(Debug, Serialize, Deserialize, Getters, Default)]
-pub struct FeedRequestParams {
-    /// Number of posts to fetch
-    #[serde(flatten)]
-    pub size: RequestSize,
-    /// Sorting method for posts
-    #[serde(flatten)]
-    pub sorting: FeedSorting,
-}
+// /// Represents the parameters for fetching a feed of posts.
+// #[derive(Debug, Serialize, Deserialize, Getters, Default)]
+// pub struct FeedRequestParams {
+//     /// Number of requests to use to fetch the feed
+//     #[serde(flatten)]
+//     pub size: RequestSize,
+//     /// Sorting method for posts
+//     #[serde(flatten)]
+//     pub sorting: FeedSorting,
+// }
+
+// impl FeedRequestParams {
+//     pub fn into_http_request_part(&self) -> Vec<(String, String)> {
+
+//     }
+// }

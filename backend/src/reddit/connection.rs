@@ -60,12 +60,13 @@ impl RedditConnection {
             info!("New access token fetched");
         }
 
-        let (url, _) = request.into_http_request_parts();
-        info!("Fetching data from: {}", url);
+        let (url, query) = request.into_http_request_parts();
+        info!("Fetching data from: {url:?}\nWith query params: {query:?}");
 
         let req = self
             .http
             .get(url)
+            .query(&query)
             .bearer_auth(&self.access_token.token())
             .build()?;
 
