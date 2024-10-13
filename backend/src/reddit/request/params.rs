@@ -1,4 +1,3 @@
-use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 
 /// Represents a time period for sorting posts in a feed.

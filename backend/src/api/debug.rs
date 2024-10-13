@@ -12,8 +12,8 @@ use serde_json::{json, Value};
 
 use crate::{
     app_error::AppError,
-    fetcher::{ParsedSubredditInfo, ParsedUserInfo, PostComments, Posts, RedditData, UserPosts},
-    reddit::{model::listing::KindContainer, request::RedditRequest},
+    fetcher::{PostComments, Posts, RedditData, SubredditInfo, UserInfo, UserPosts},
+    reddit::{model::RawContainer, request::RedditRequest},
     AppState,
 };
 
@@ -84,7 +84,7 @@ pub async fn lorem(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppEr
 pub async fn subreddit_info(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
-) -> Result<Json<ParsedSubredditInfo>, AppError> {
+) -> Result<Json<SubredditInfo>, AppError> {
     let subreddit = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
@@ -93,9 +93,9 @@ pub async fn subreddit_info(
     };
     let json = state.reddit.fetch_raw(req).await?;
 
-    let info = serde_json::from_value::<KindContainer>(json).unwrap();
+    let info = serde_json::from_value::<RawContainer>(json).unwrap();
 
-    let parsed = ParsedSubredditInfo::from_reddit_container(info).unwrap();
+    let parsed = SubredditInfo::from_reddit_container(info).unwrap();
 
     Ok(Json(parsed))
 }
@@ -124,7 +124,7 @@ pub async fn post_comments(
     let json = state.reddit.fetch_raw(req).await?;
 
     let start = SystemTime::now();
-    let val = serde_json::from_value::<Vec<KindContainer>>(json).unwrap();
+    let val = serde_json::from_value::<Vec<RawContainer>>(json).unwrap();
     let elapsed = SystemTime::now().duration_since(start).unwrap();
     info!("Data parsed successfully. Took {:?}", elapsed);
 
@@ -137,7 +137,7 @@ pub async fn post_comments(
 pub async fn user_info(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
-) -> Result<Json<ParsedUserInfo>, AppError> {
+) -> Result<Json<UserInfo>, AppError> {
     let user = params
         .get("u")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
@@ -147,9 +147,9 @@ pub async fn user_info(
 
     let json = state.reddit.fetch_raw(req).await?;
 
-    let info = serde_json::from_value::<KindContainer>(json).unwrap();
+    let info = serde_json::from_value::<RawContainer>(json).unwrap();
 
-    let parsed = ParsedUserInfo::from_reddit_container(info).unwrap();
+    let parsed = UserInfo::from_reddit_container(info).unwrap();
 
     Ok(Json(parsed))
 }
@@ -168,7 +168,7 @@ pub async fn subreddit_posts(
     };
     let json = state.reddit.fetch_raw(req).await?;
 
-    let info = serde_json::from_value::<KindContainer>(json).unwrap();
+    let info = serde_json::from_value::<RawContainer>(json).unwrap();
 
     let parsed = Posts::from_reddit_container(info).unwrap();
     debug!("Returning {} subreddit posts", parsed.list.len());
