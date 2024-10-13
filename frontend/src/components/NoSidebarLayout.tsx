@@ -1,5 +1,4 @@
-import { Flex } from "@chakra-ui/react";
-import Sidebar from "./Sidebar";
+import {Flex} from "@chakra-ui/react";
 
 const flexMain = {
   flex: "auto",
@@ -14,13 +13,12 @@ const flexMain = {
  * Centers children vertically and horizontally.
  */
 
-const MainContainer = ({
-  children,
-}: Readonly<{ children: React.ReactNode }>) => {
+const NoSidebarLayout = ({
+                           children,
+                         }: Readonly<{ children: React.ReactNode }>) => {
   return (
     <Flex
-    sx={{flex: "auto"}}>
-      <Sidebar />
+      sx={{flex: "auto"}}>
       <Flex
         sx={{
           ...flexMain,
@@ -32,4 +30,4 @@ const MainContainer = ({
   );
 };
 
-export default MainContainer;
+export default NoSidebarLayout;
