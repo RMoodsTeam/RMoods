@@ -1,5 +1,6 @@
-use crate::reddit::model::listing;
 use crate::reddit::model::post::Post;
+use crate::reddit::model::subreddit_info::SubredditInfo;
+use crate::reddit::model::user::UserInfo;
 use crate::reddit::model::{comment::Comment, listing::KindContainer};
 use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
@@ -129,5 +130,31 @@ impl RedditData for PostComments {
         debug!("Returning {} post replies", { comments.len() });
 
         Ok(PostComments { list: comments })
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ParsedUserInfo {
+    info: UserInfo,
+}
+
+impl RedditData for ParsedUserInfo {
+    fn from_reddit_container(container: KindContainer) -> anyhow::Result<Self> {
+        let info = cast!(container, KindContainer::UserInfo);
+
+        Ok(ParsedUserInfo { info: *info })
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ParsedSubredditInfo {
+    info: SubredditInfo,
+}
+
+impl RedditData for ParsedSubredditInfo {
+    fn from_reddit_container(container: KindContainer) -> anyhow::Result<Self> {
+        let info = cast!(container, KindContainer::SubredditInfo);
+
+        Ok(ParsedSubredditInfo { info: *info })
     }
 }

@@ -12,7 +12,7 @@ use serde_json::{json, Value};
 
 use crate::{
     app_error::AppError,
-    fetcher::{PostComments, Posts, RedditData, UserPosts},
+    fetcher::{ParsedSubredditInfo, ParsedUserInfo, PostComments, Posts, RedditData, UserPosts},
     reddit::{model::listing::KindContainer, request::RedditRequest},
     AppState,
 };
@@ -84,7 +84,7 @@ pub async fn lorem(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppEr
 pub async fn subreddit_info(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
-) -> Result<Json<KindContainer>, AppError> {
+) -> Result<Json<ParsedSubredditInfo>, AppError> {
     let subreddit = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
@@ -95,7 +95,9 @@ pub async fn subreddit_info(
 
     let info = serde_json::from_value::<KindContainer>(json).unwrap();
 
-    Ok(Json(info))
+    let parsed = ParsedSubredditInfo::from_reddit_container(info).unwrap();
+
+    Ok(Json(parsed))
 }
 
 #[utoipa::path(get, path = "/api/debug/post_comments", responses(), params())]
@@ -135,7 +137,7 @@ pub async fn post_comments(
 pub async fn user_info(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
-) -> Result<Json<KindContainer>, AppError> {
+) -> Result<Json<ParsedUserInfo>, AppError> {
     let user = params
         .get("u")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
@@ -147,7 +149,9 @@ pub async fn user_info(
 
     let info = serde_json::from_value::<KindContainer>(json).unwrap();
 
-    Ok(Json(info))
+    let parsed = ParsedUserInfo::from_reddit_container(info).unwrap();
+
+    Ok(Json(parsed))
 }
 
 #[utoipa::path(get, path = "/api/debug/subreddit_posts", responses(), params())]
