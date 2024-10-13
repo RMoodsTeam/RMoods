@@ -7,14 +7,17 @@ use crate::reddit::model::{RawComment, RawContainer, RawPost, RawSubredditInfo, 
 macro_rules! cast {
     ($target: expr, $pat: path) => {{
         if let $pat(a) = $target {
-            a
+            Ok(a)
         } else {
-            panic!("Mismatch variant when cast to {}", stringify!($pat)); // #2
+            Err(FetcherError::RedditParseError(format!(
+                "Failed to cast to {}",
+                stringify!($pat)
+            )))
         }
     }};
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone)]
 pub enum FetcherError {
     #[error("Failed to parse data from Reddit: {0}")]
     RedditParseError(String),
@@ -26,19 +29,19 @@ pub struct Posts {
 }
 
 pub trait RedditData {
-    fn from_reddit_container(container: RawContainer) -> anyhow::Result<Self>
+    fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
         Self: Sized;
 }
 
 impl RedditData for Posts {
-    fn from_reddit_container(container: RawContainer) -> anyhow::Result<Self> {
+    fn from_reddit_container(container: RawContainer) -> Result<Posts, FetcherError> {
         let mut posts: Vec<RawPost> = Vec::new();
 
-        let listing = cast!(container, RawContainer::Listing);
+        let listing = cast!(container, RawContainer::Listing)?;
 
         for child in listing.children {
-            let post = cast!(child, RawContainer::Post);
+            let post = cast!(child, RawContainer::Post)?;
             posts.push(*post);
         }
 
@@ -53,11 +56,11 @@ pub struct UserPosts {
 }
 
 impl RedditData for UserPosts {
-    fn from_reddit_container(container: RawContainer) -> anyhow::Result<Self> {
+    fn from_reddit_container(container: RawContainer) -> Result<UserPosts, FetcherError> {
         let mut posts: Vec<RawPost> = Vec::new();
         let mut comments: Vec<RawComment> = Vec::new();
 
-        let listing = cast!(container, RawContainer::Listing);
+        let listing = cast!(container, RawContainer::Listing)?;
 
         for child in listing.children {
             match child {
@@ -81,44 +84,49 @@ pub struct PostComments {
     pub list: Vec<RawComment>,
 }
 
-fn flatten_replies_internal(comment: &RawComment, all_replies: &mut Vec<RawComment>, depth: u16) {
+fn flatten_replies_internal(
+    comment: &RawComment,
+    all_replies: &mut Vec<RawComment>,
+    depth: u16,
+) -> Result<(), FetcherError> {
     if let Some(replies_container) = comment.replies() {
-        let listing = cast!(replies_container, RawContainer::Listing);
+        let listing = cast!(replies_container, RawContainer::Listing)?;
 
         let mut replies = vec![];
         for x in listing.children.clone() {
-            replies.push(cast!(x, RawContainer::Comment));
+            replies.push(cast!(x, RawContainer::Comment)?);
         }
 
         let tabs = "  ".repeat((depth + 1).into());
 
         for mut reply in replies {
             debug!("{tabs}u/{}", reply.author());
-            flatten_replies_internal(&reply, all_replies, depth + 1);
+            let _ = flatten_replies_internal(&reply, all_replies, depth + 1)?;
             reply.replies = None;
             all_replies.push(*reply.clone());
         }
     }
+    Ok(())
 }
 
-fn flattened_replies(comment: &RawComment) -> Vec<RawComment> {
+fn flattened_replies(comment: &RawComment) -> Result<Vec<RawComment>, FetcherError> {
     debug!("u/{}", comment.author());
     let mut all_replies = Vec::new();
 
-    flatten_replies_internal(comment, &mut all_replies, 0);
+    let _ = flatten_replies_internal(comment, &mut all_replies, 0)?;
 
-    all_replies
+    Ok(all_replies)
 }
 
 impl RedditData for PostComments {
-    fn from_reddit_container(container: RawContainer) -> anyhow::Result<Self> {
+    fn from_reddit_container(container: RawContainer) -> Result<PostComments, FetcherError> {
         let mut comments: Vec<RawComment> = Vec::new();
 
-        let listing = cast!(container, RawContainer::Listing);
+        let listing = cast!(container, RawContainer::Listing)?;
 
         for child in listing.children {
-            let mut comment = cast!(child, RawContainer::Comment);
-            let mut replies = flattened_replies(&comment);
+            let mut comment = cast!(child, RawContainer::Comment)?;
+            let mut replies = flattened_replies(&comment)?;
             comments.append(&mut replies);
 
             comment.replies = None;
@@ -137,8 +145,8 @@ pub struct UserInfo {
 }
 
 impl RedditData for UserInfo {
-    fn from_reddit_container(container: RawContainer) -> anyhow::Result<Self> {
-        let info = cast!(container, RawContainer::UserInfo);
+    fn from_reddit_container(container: RawContainer) -> Result<UserInfo, FetcherError> {
+        let info = cast!(container, RawContainer::UserInfo)?;
 
         Ok(UserInfo { info: *info })
     }
@@ -150,8 +158,8 @@ pub struct SubredditInfo {
 }
 
 impl RedditData for SubredditInfo {
-    fn from_reddit_container(container: RawContainer) -> anyhow::Result<Self> {
-        let info = cast!(container, RawContainer::SubredditInfo);
+    fn from_reddit_container(container: RawContainer) -> Result<SubredditInfo, FetcherError> {
+        let info = cast!(container, RawContainer::SubredditInfo)?;
 
         Ok(SubredditInfo { info: *info })
     }
