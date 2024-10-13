@@ -8,7 +8,10 @@ use crate::auth::jwt::decode_jwt;
 /// Verify the `Authorization` header and decode the JWT.
 ///
 /// All requests to protected routes should pass through this middleware.
-#[logfn(err = "ERROR", fmt = "Authorization failed: {:?}")]
+#[logfn(
+    err = "ERROR",
+    fmt = "Authorization failed: {:?}. Invalid 'Authorization' header or JWT."
+)]
 pub async fn authorization(request: Request, next: Next) -> Result<Response, StatusCode> {
     let user_jwt = request
         .headers()

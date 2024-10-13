@@ -29,7 +29,7 @@ pub struct Comment {
     subreddit: String,
     /// Replies to the comment, if any
     #[serde(deserialize_with = "deserialize_replies")]
-    replies: Option<KindContainer>,
+    pub replies: Option<KindContainer>,
     /// Comment author, eg. spez, without `u/`
     author: String,
     /// Comment text

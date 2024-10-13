@@ -15,6 +15,7 @@ use utoipa_swagger_ui::SwaggerUi;
 mod api;
 mod app_error;
 mod auth;
+mod fetcher;
 mod open_api;
 mod reddit;
 

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use params::FeedSorting;
-mod params;
+pub mod params;
 mod tests;
 
 /// Represents a request to the Reddit API.
@@ -95,7 +95,7 @@ impl RedditRequest {
             } => Self::post_comments_to_http(&subreddit, &post_id, sorting),
         };
 
-        // Only add the limit parameter if it's a feed request.
+        // Only add the limit parameter if it's a feed request, it doesn't make sense for info requests.
         if self.is_feed_request() {
             parts.1.push(("limit", "100".to_string()));
         }

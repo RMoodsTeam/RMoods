@@ -20,7 +20,7 @@ pub struct Post {
     /// UNIX timestamp of the post creation
     created_utc: f32,
     /// Is the post NSFW?
-    /// This is inconsistent with the `over18` field in RedditSubreddit. THIS IS INTENTED AND CORRECT.
+    /// This is inconsistent with the `over18` field in Subreddit. THIS IS INTENTED AND CORRECT.
     over_18: bool,
     /// Fullname without the kind info, eg. 8z1v
     id: String,
