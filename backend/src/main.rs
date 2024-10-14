@@ -15,9 +15,9 @@ use utoipa_swagger_ui::SwaggerUi;
 mod api;
 mod app_error;
 mod auth;
-mod fetcher;
 mod open_api;
 mod reddit;
+mod rmoods_fetcher;
 
 /// State to be shared between all routes.
 /// Contains common resources that shouldn't be created over and over again.

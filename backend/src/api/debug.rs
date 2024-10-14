@@ -12,8 +12,8 @@ use serde_json::{json, Value};
 
 use crate::{
     app_error::AppError,
-    fetcher::{PostComments, Posts, RedditData, SubredditInfo, UserInfo, UserPosts},
     reddit::{model::RawContainer, request::RedditRequest},
+    rmoods_fetcher::{PostComments, Posts, RedditData, SubredditInfo, UserInfo, UserPosts},
     AppState,
 };
 

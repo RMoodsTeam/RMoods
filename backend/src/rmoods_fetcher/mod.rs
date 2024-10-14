@@ -4,6 +4,8 @@ use thiserror::Error;
 
 use crate::reddit::model::{RawComment, RawContainer, RawPost, RawSubredditInfo, RawUserInfo};
 
+pub mod rmoods_request;
+
 macro_rules! cast {
     ($target: expr, $pat: path) => {{
         if let $pat(a) = $target {
