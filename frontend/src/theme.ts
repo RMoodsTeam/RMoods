@@ -12,18 +12,6 @@ export const getSystemMode = (): 'light' | 'dark' => {
   return 'light'
 }
 
-export const getNextMode = (currentMode: RMoodsColorMode): RMoodsColorMode => {
-  console.log('Next mode for', currentMode)
-  switch (currentMode) {
-    case 'light':
-      return 'dark'
-    case 'dark':
-      return 'system'
-    case 'system':
-      return 'light'
-  }
-}
-
 if (!localStorage.getItem("COLOR_MODE")) {
   localStorage.setItem("COLOR_MODE", DEFAULT_COLOR_MODE);
 }
@@ -48,7 +36,7 @@ export const rmoodsTheme = extendTheme({
     global: {
       body: {
         transitionProperty: 'background-color',
-        transitionDuration: '0.2s',
+        transitionDuration: '0.3s',
       }
     }
   }
