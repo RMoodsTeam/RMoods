@@ -25,7 +25,7 @@ const RightNavItems = () => {
  */
 const Navbar = () => {
   return (
-    <Card sx={{ margin: 0, borderRadius: 0, marginBottom: 0 }}>
+    <Card sx={{ margin: 0, borderRadius: 0, marginBottom: 0, height: "10vh" }}>
       <nav>
         <Grid templateColumns="repeat(3, 1fr)">
           <LeftNavItems />
