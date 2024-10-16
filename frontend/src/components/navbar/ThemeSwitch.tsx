@@ -55,13 +55,6 @@ const ThemeSwitch = () => {
         toggleColorMode();
       }
     }
-
-    // if (
-    //   (newMode === "system" && newMode !== (systemMode as RMoodsColorMode)) ||
-    //   (newMode !== "system" && newMode !== colorMode)
-    // ) {
-    //   toggleColorMode();
-    // }
   };
 
   useEffect(() => {
@@ -74,36 +67,30 @@ const ThemeSwitch = () => {
   return (
     <header>
       <Menu>
-        <MenuButton as={Button} aria-label="Theme menu">
+        <MenuButton as={Button} aria-label="theme menu">
           <HStack spacing={2}>
             <Icon as={getIcon()} boxSize={5} />
           </HStack>
         </MenuButton>
         <MenuList>
-          <HStack>
-            <MenuItem
-              onClick={() => onThemeChange("light")}
-              icon={<FaSun size={16} />}
-            >
-              Light
-            </MenuItem>
-          </HStack>
-          <HStack>
-            <MenuItem
-              onClick={() => onThemeChange("dark")}
-              icon={<FaMoon size={16} />}
-            >
-              Dark
-            </MenuItem>
-          </HStack>
-          <HStack minWidth={24}>
-            <MenuItem
-              onClick={() => onThemeChange("system")}
-              icon={<FaDesktop size={16} />}
-            >
-              System
-            </MenuItem>
-          </HStack>
+          <MenuItem
+            onClick={() => onThemeChange("light")}
+            icon={<FaSun size={16} />}
+          >
+            Light
+          </MenuItem>
+          <MenuItem
+            onClick={() => onThemeChange("dark")}
+            icon={<FaMoon size={16} />}
+          >
+            Dark
+          </MenuItem>
+          <MenuItem
+            onClick={() => onThemeChange("system")}
+            icon={<FaDesktop size={16} />}
+          >
+            System
+          </MenuItem>
         </MenuList>
       </Menu>
     </header>
