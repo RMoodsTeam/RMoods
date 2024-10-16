@@ -1,6 +1,15 @@
-import { Button, Icon, useColorMode, HStack } from "@chakra-ui/react";
+import {
+  Button,
+  Icon,
+  useColorMode,
+  HStack,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+} from "@chakra-ui/react";
 import { FaSun, FaMoon, FaDesktop } from "react-icons/fa";
-import { getNextMode, getSystemMode } from "../../theme";
+import { getSystemMode, RMoodsColorMode } from "../../theme";
 import { useAtom } from "jotai";
 import { useEffect } from "react";
 import { colorModeAtom } from "../../atoms";
@@ -32,18 +41,27 @@ const ThemeSwitch = () => {
   };
 
   // Handle theme change logic
-  const onThemeChange = () => {
-    const nextMode = getNextMode(trueColorMode);
+  const onThemeChange = (newMode: RMoodsColorMode) => {
     const systemMode = getSystemMode();
 
-    setTrueColorMode(nextMode);
+    setTrueColorMode(newMode);
 
-    if (
-      (nextMode === "system" && colorMode !== systemMode) ||
-      (nextMode !== "system" && nextMode !== colorMode)
-    ) {
-      toggleColorMode();
+    if (newMode === "system") {
+      if (colorMode !== systemMode) {
+        toggleColorMode();
+      }
+    } else {
+      if (colorMode !== newMode) {
+        toggleColorMode();
+      }
     }
+
+    // if (
+    //   (newMode === "system" && newMode !== (systemMode as RMoodsColorMode)) ||
+    //   (newMode !== "system" && newMode !== colorMode)
+    // ) {
+    //   toggleColorMode();
+    // }
   };
 
   useEffect(() => {
@@ -55,11 +73,39 @@ const ThemeSwitch = () => {
 
   return (
     <header>
-      <Button onClick={onThemeChange} aria-label="Toggle Theme" px={4} py={2}>
-        <HStack spacing={2}>
-          <Icon as={getIcon()} boxSize={5} />
-        </HStack>
-      </Button>
+      <Menu>
+        <MenuButton as={Button} aria-label="Theme menu">
+          <HStack spacing={2}>
+            <Icon as={getIcon()} boxSize={5} />
+          </HStack>
+        </MenuButton>
+        <MenuList>
+          <HStack>
+            <MenuItem
+              onClick={() => onThemeChange("light")}
+              icon={<FaSun size={16} />}
+            >
+              Light
+            </MenuItem>
+          </HStack>
+          <HStack>
+            <MenuItem
+              onClick={() => onThemeChange("dark")}
+              icon={<FaMoon size={16} />}
+            >
+              Dark
+            </MenuItem>
+          </HStack>
+          <HStack minWidth={24}>
+            <MenuItem
+              onClick={() => onThemeChange("system")}
+              icon={<FaDesktop size={16} />}
+            >
+              System
+            </MenuItem>
+          </HStack>
+        </MenuList>
+      </Menu>
     </header>
   );
 };
