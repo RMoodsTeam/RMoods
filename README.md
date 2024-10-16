@@ -31,6 +31,14 @@ TODO
 ## Documentation
 The documentation for each module is available [here](https://rmoodsteam.github.io/RMoods/).
 
+## Setup
+**TODO** Other setup steps
+
+For development, install our git hooks by running the install script:
+```sh
+sh .github/install_hooks.sh
+```
+
 ## Authors
 * [Katarzyna Jabłońska](https://github.com/katJablonska)
 * [Michał Miłek](https://github.com/m-milek)
