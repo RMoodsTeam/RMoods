@@ -7,6 +7,7 @@
 installation.md
 using_docker.md
 env_example.md
+using_manager.md
 ```
 
 ```{toctree}

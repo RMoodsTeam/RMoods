@@ -7,8 +7,8 @@ from google.auth.transport.requests import Request
 
 def create_service(client_secret_file, api_name, api_version, scopes):
     """
-    Shows basic usage of the Drive v3 API. Based on Google Documentation
-    https://developers.google.com/drive/api/quickstart/python?hl=pl
+    Create a service object for the Google Drive API. Function is based on the Google
+    API documentation: https://developers.google.com/drive/api/quickstart/python?hl=pl
 
     :param client_secret_file: The client secret file.
     :param api_name: The name of the API.
