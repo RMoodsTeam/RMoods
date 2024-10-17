@@ -5,25 +5,25 @@ import Login from "./routes/login/page";
 import Root from "./routes/page";
 import Layout from "./Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
-import SidebarLayout from "./components/SidebarLayout.tsx";
+import DashboardLayout from "./components/DashboardLayout.tsx";
 
 const router = createBrowserRouter([
   {
-    element: <Layout/>,
+    element: <DashboardLayout/>,
     children: [
       {
-        element: <SidebarLayout/>,
-        children: [
-          {
-            path: "dashboard",
-            element: (
-              <ProtectedRoute>
-                <Dashboard/>
-              </ProtectedRoute>
-            ),
-          },
-        ]
+        path: "dashboard",
+        element: (
+          <ProtectedRoute>
+            <Dashboard/>
+          </ProtectedRoute>
+        ),
       },
+    ]
+  },
+  {
+    element: <Layout/>,
+    children: [
       {
         path: "/",
         element: <Root/>,

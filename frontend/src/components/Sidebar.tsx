@@ -3,25 +3,25 @@ import {
   Heading,
   Card, useDisclosure, Box, Collapse, Icon, Flex,
 } from "@chakra-ui/react";
-import {FaChevronDown, FaChevronRight } from "react-icons/fa";
+import {FaChevronDown, FaChevronRight} from "react-icons/fa";
+import React from "react";
 
 
-const SidebarSection = ({sectionTitle, children}) => {
+const SidebarSection = ({sectionTitle, children}: {sectionTitle: string, children: React.ReactNode}) => {
   const {isOpen, onToggle} = useDisclosure()
 
   return (
     <>
       <Flex onClick={onToggle}
       >
-        <Icon as={isOpen ? FaChevronDown  : FaChevronRight}/>
+        <Icon as={isOpen ? FaChevronDown : FaChevronRight}/>
         {sectionTitle}
-      </Flex >
+      </Flex>
       <Collapse in={isOpen} animateOpacity>
         <Box
-          marginLeft="24px"
+          marginLeft="12px"
         >
           {children}
-
         </Box>
       </Collapse>
     </>
@@ -29,21 +29,21 @@ const SidebarSection = ({sectionTitle, children}) => {
 }
 
 const Sidebar = () => {
-
   return (
     <Card
       margin={0}
-      width="300px"
-      height="80vh" // Make the sidebar full height
+      minWidth="200px"
+      maxWidth="200px"
+      height="100vh"
       zIndex={1}
-      marginY="2px"
       overflow="hidden"
+      borderRadius={0}
       position="sticky" // Make the sidebar stick to the top
       top={0}
     >
       <Box
-        height="100%"
-        overflowY="auto" // Add vertical scroll to the content
+        height="100vh"
+        overflowY="auto"
         padding="16px"
       >
         <Heading size="md">Sidebar</Heading>
@@ -53,12 +53,6 @@ const Sidebar = () => {
             <Box>Assumenda, quia temporibus eveniet a libero incidunt suscipit</Box>
             <SidebarSection sectionTitle="Ipsum">
               <Box>Assumenda, quia temporibus eveniet a libero incidunt suscipit</Box>
-              <SidebarSection sectionTitle="Ipsum">
-                <Box>Assumenda, quia temporibus eveniet a libero incidunt suscipit</Box>
-                <SidebarSection sectionTitle="Ipsum">
-                  <Box>Assumenda, quia temporibus eveniet a libero incidunt suscipit</Box>
-                </SidebarSection>
-              </SidebarSection>
             </SidebarSection>
           </SidebarSection>
           <Box>Quidem, ipsam illum quis sed voluptatum quae eum fugit earum</Box>
