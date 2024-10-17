@@ -8,7 +8,6 @@ import { Box } from "@chakra-ui/react";
 const About = () => {
   return (
     <Box>
-      <h1 className="text-4xl font-bold text-center">About</h1>
       <Section
         title="Who Are We?"
         content="We are a group of dedicated students passionate about technology and innovation. Our team is composed of individuals with

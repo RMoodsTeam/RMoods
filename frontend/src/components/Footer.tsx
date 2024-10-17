@@ -2,7 +2,7 @@ import { Card } from "@chakra-ui/react";
 
 const flexFooter = {
   borderRadius: 0,
-  minHeight: "100px",
+  height: "10vh",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
