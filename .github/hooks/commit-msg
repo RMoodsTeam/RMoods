@@ -1,0 +1,17 @@
+#!/bin/sh
+
+message=$(cat "$1")
+
+pattern="^[0-9]+: .*$|^Merge.*$|^merge.*$"
+
+if [[ ! $message =~ $pattern ]]; then
+    echo 
+    echo "---------------------------------------------------------------------------------------------------------"
+    echo "Error: Rejecting commit message. It appears to be missing GitHub Issue information or merge information."
+    echo 
+    echo "Accepted message prefixes: '<number>: ', 'Merge', 'merge'"
+    echo "Example: '121: refactor'"
+    echo "---------------------------------------------------------------------------------------------------------"
+    echo
+  exit 1
+fi
