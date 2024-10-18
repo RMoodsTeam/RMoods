@@ -1,8 +1,7 @@
-import { Outlet } from "react-router-dom";
+import {Outlet} from "react-router-dom";
 import Navbar from "./components/navbar/Navbar";
-import MainContainer from "./components/MainContainer";
 import Footer from "./components/Footer";
-import { Flex } from "@chakra-ui/react";
+import {Flex} from "@chakra-ui/react";
 
 const Layout = () => {
   return (
@@ -12,11 +11,9 @@ const Layout = () => {
         flexDirection: "column",
       }}
     >
-      <Navbar />
-      <MainContainer>
-        <Outlet />
-      </MainContainer>
-      <Footer />
+      <Navbar/>
+      <Outlet/>
+      <Footer/>
     </Flex>
   );
 };
