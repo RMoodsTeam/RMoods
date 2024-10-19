@@ -25,5 +25,5 @@ case $command in
         PYTHONPATH=src python -c 'import version_checker; version_checker.get_status(True)'
     ;;
     "clean") rm -r models ;;
-    *) echo "Usage: $0 {install|clean|status|remote}" ;;
+    *) echo "Usage: $0 {install|clean|status|remote|upload}" ;;
 esac

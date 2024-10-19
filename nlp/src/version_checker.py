@@ -103,27 +103,19 @@ def download_file(service: object, file_id: str, file_name: str,
         done = False
 
         file = io.BytesIO()
+        file.seek(0)
         downloader = MediaIoBaseDownload(file, request)
         progress_bar = tqdm(total=100)
 
         while done is False:
-            try:
-                status, done = downloader.next_chunk()
-                progress_bar.update(status.progress() * 100)
-            except HttpError as e:
-                print(f"Connection lost. Stopping download. {e}")
-                return False
-            except TimeoutError as e:
-                print(f"Connection timed out. Stopping download. {e}")
-                return False
-            except ServerNotFoundError as e:
-                print(f"Server not found. Stopping download. {e}")
-                return False
+            status, done = downloader.next_chunk()
+            progress_bar.update(status.progress() * 100)
         progress_bar.close()
 
         if not os.path.exists(models_directory):
             os.makedirs(models_directory)
 
+        file.seek(0)
         with open(os.path.join(models_directory, file_name), "wb") as f:
             f.write(file.read())
 
@@ -168,8 +160,7 @@ def is_file_up_to_date(file_id: str, file_exists: bool, file_path: str) -> bool:
 
         if last_modified_time == create_time:
             return bool(local_date > last_modified_time)
-        else:
-            return False
+        return False
     else:
         return False
 
@@ -296,13 +287,12 @@ def get_status_information(data: dict, service: object, parent_id: str = 'root',
 
         for folder in folders:
             skip = False
-            if local_status:
-                if folder['name'] not in data.keys():
-                    try:
-                        file_version_exist = folder['name'] == data[parent_name]
-                    except KeyError:
-                        file_version_exist = False
-                    skip = not file_version_exist
+            if local_status and folder['name'] not in data.keys():
+                try:
+                    file_version_exist = folder['name'] == data[parent_name]
+                except KeyError:
+                    file_version_exist = False
+                skip = not file_version_exist
 
             if skip:
                 continue
@@ -361,7 +351,8 @@ def create_file(folder_name_id: str, version_folder_id: str, file_path: str,
     :param file_path: The path to the file to upload.
     :param file_name: The name of the file to upload.
 
-    :return: The file created. Or False if the folder_name_id or version_folder_id is None.
+    :return: The file created. Or False if the folder_name_id or version_folder_id
+    is None.
     """
     if folder_name_id is None or version_folder_id is None:
         return {}
@@ -404,50 +395,51 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
 
             print(f"File {file_name} uploaded successfully. Model file updated.")
             return True
-        else:
-            query = (f"'{folder_id}' in parents and mimeType='application/"
-                     f"vnd.google-apps.folder'")
-            response = SERVICE.files().list(q=query).execute()
-            folders = response.get('files', [])
 
-            version_folder_id = None
-            for folder in folders:
-                if folder['name'] == version:
-                    version_folder_id = folder['id']
-                    break
+        query = (f"'{folder_id}' in parents and mimeType='application/"
+                 f"vnd.google-apps.folder'")
+        response = SERVICE.files().list(q=query).execute()
+        folders = response.get('files', [])
 
-            if version_folder_id is None:
-                version_folder_id = create_folder(version, folder_id)
+        version_folder_id = None
+        for folder in folders:
+            if folder['name'] == version:
+                version_folder_id = folder['id']
+                break
 
-            response_files = SERVICE.files().list(q=f"'{version_folder_id}' "
-                                                    f"in parents").execute()
-            files = response_files.get('files', [])
+        if version_folder_id is None:
+            version_folder_id = create_folder(version, folder_id)
 
-            proceed = False
-            for file in files:
-                if file['name'] == file_name:
-                    while True:
-                        answer = input(f"File {file_name} already exists Do you "
-                                       f"want to overwrite the file? (y/n): ")
-                        if answer == 'n':
-                            return False
-                        elif answer == 'y':
-                            proceed = True
-                            break
-                        else:
-                            continue
-                if proceed:
-                    body_value = {'trashed': True}
-                    SERVICE.files().update(fileId=file['id'], body=body_value).execute()
-                    break
+        response_files = SERVICE.files().list(q=f"'{version_folder_id}' "
+                                                f"in parents").execute()
+        files = response_files.get('files', [])
 
-            file_create = create_file(folder_id, version_folder_id,
-                                      file_path, file_name)
-            if file_create is None:
-                return False
+        proceed = False
+        for file in files:
+            if file['name'] == file_name:
+                while True:
+                    answer = input(f"File {file_name} already exists Do you "
+                                   f"want to overwrite the file? (y/n): ")
+                    if answer == 'n':
+                        print("File skipped.")
+                        return False
+                    elif answer == 'y':
+                        proceed = True
+                        break
+                    else:
+                        continue
+            if proceed:
+                body_value = {'trashed': True}
+                SERVICE.files().update(fileId=file['id'], body=body_value).execute()
+                break
 
-            print(f"File {file_name} uploaded successfully. Models file updated.")
-            return True
+        file_create = create_file(folder_id, version_folder_id,
+                                  file_path, file_name)
+        if file_create is None:
+            return False
+
+        print(f"File {file_name} uploaded successfully. Models file updated.")
+        return True
     except HttpError as e:
         print(f"An error occurred: {e}")
         return False
@@ -462,7 +454,8 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
 def upload_manager(folders: str = None) -> None:
     """
     This function manages uploads to the Google Drive folder.
-    :param folders: The names of the folders to upload. If None, all folders are uploaded.
+    :param folders: The names of the folders to upload. If None, all folders are
+    uploaded.
     """
     if folders is None:
         folders = read_model_file()
@@ -479,7 +472,7 @@ def upload_manager(folders: str = None) -> None:
                 if update_successful == {}:
                     print(f"File {file_name} already exists. Skipping file.")
                 elif not update_successful:
-                    print(f"Error occurred while uploading the file {file_name}.")
+                    print(f"Error occurred with file {file_name}.")
         except KeyError:
             print(f"Model {folder} not found in the version_models.json file. "
                   f"Check out name of the model file.")
