@@ -2,6 +2,7 @@ use std::time::SystemTime;
 
 use log::{info, warn};
 use log_derive::logfn;
+use serde_json::Value;
 
 use super::{
     auth::{RedditAccessToken, RedditApp},
@@ -82,11 +83,18 @@ impl RedditConnection {
 
         info!("Data fetched successfully. Took {:?}", elapsed);
 
-        let json = res.json().await?;
+        let json: Value = res.json().await?;
 
-        let parsed = serde_json::from_value::<RawContainer>(json)?;
-
-        Ok(parsed)
+        // Special case for comments, as they are wrapped in an array
+        // First element of said array is the post, second is the comments
+        // We only care about the comments.
+        // [Post, Listing<Comment>]
+        if json.is_array() && json.as_array().unwrap().len() > 1 {
+            let comments_container = json.as_array().and_then(|a| a.get(1).cloned()).unwrap();
+            Ok(serde_json::from_value(comments_container)?)
+        } else {
+            Ok(serde_json::from_value::<RawContainer>(json)?)
+        }
     }
 }
 

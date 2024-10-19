@@ -11,7 +11,7 @@ use serde_json::{json, Value};
 use crate::{
     app_error::AppError,
     reddit::request::{PostCommentsRequest, SubredditPostsRequest, UserPostsRequest},
-    rmoods_fetcher::{PostComments, Posts, RedditData, UserPosts},
+    rmoods_fetcher::{PostComments, RedditData, SubredditPosts, UserPosts},
     AppState,
 };
 
@@ -147,7 +147,7 @@ pub async fn post_comments(
 pub async fn subreddit_posts(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
-) -> Result<Json<Posts>, AppError> {
+) -> Result<Json<SubredditPosts>, AppError> {
     let subreddit = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `r` parameter"))?;
@@ -157,7 +157,7 @@ pub async fn subreddit_posts(
     };
     let json = state.reddit.fetch_raw(req).await?;
 
-    let parsed = Posts::from_reddit_container(json).unwrap();
+    let parsed = SubredditPosts::from_reddit_container(json).unwrap();
     debug!("Returning {} subreddit posts", parsed.list.len());
 
     Ok(Json(parsed))

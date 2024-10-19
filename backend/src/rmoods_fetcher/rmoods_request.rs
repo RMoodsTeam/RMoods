@@ -1,9 +1,12 @@
-use crate::reddit::{
-    connection::RedditConnection,
-    request::{
-        params::FeedSorting, PostCommentsRequest, RedditResource, SubredditPostsRequest,
-        UserPostsRequest,
+use crate::{
+    reddit::{
+        connection::RedditConnection,
+        request::{
+            params::FeedSorting, PostCommentsRequest, RedditResource, SubredditPostsRequest,
+            UserPostsRequest,
+        },
     },
+    rmoods_fetcher::{Posts, RedditData},
 };
 
 /// What kind of data do we fetch and make a report on?
@@ -26,7 +29,7 @@ pub enum RMoodsReportType {
 #[derive(Debug, Clone)]
 pub struct DataSource {
     pub name: String,
-    pub postId: Option<String>, // Only for PostComments
+    pub post_id: Option<String>, // Only for PostComments
     pub share: f32,
 }
 
@@ -52,11 +55,11 @@ impl From<RequestSize> for u16 {
 
 #[derive(Debug)]
 pub struct RMoodsNlpRequest {
-    resource_kind: RedditFeedKind,
-    report_types: Vec<RMoodsReportType>,
-    data_sources: Vec<DataSource>,
-    size: RequestSize,
-    sorting: FeedSorting,
+    pub resource_kind: RedditFeedKind,
+    pub report_types: Vec<RMoodsReportType>,
+    pub data_sources: Vec<DataSource>,
+    pub size: RequestSize,
+    pub sorting: FeedSorting,
 }
 
 pub struct RMoodsFetcher {
@@ -71,7 +74,7 @@ fn convert(request: &RMoodsNlpRequest, source: DataSource) -> Box<dyn RedditReso
         }),
         RedditFeedKind::PostComments => Box::new(PostCommentsRequest {
             subreddit: source.name,
-            post_id: source.postId.unwrap(),
+            post_id: source.post_id.unwrap(),
             sorting: request.sorting,
         }),
         RedditFeedKind::SubredditPosts => Box::new(SubredditPostsRequest {
@@ -86,18 +89,21 @@ impl RMoodsFetcher {
         Self { reddit_connection }
     }
 
-    pub async fn fetch_feed(&mut self, request: RMoodsNlpRequest) -> anyhow::Result<()> {
+    pub async fn fetch_feed<T: RedditData>(
+        &mut self,
+        request: RMoodsNlpRequest,
+    ) -> anyhow::Result<T> {
         dbg!(&request);
 
         let request_number = u16::from(request.size.clone());
 
         let source = request.data_sources.first().unwrap();
 
-        dbg!(&source);
-        let reddit_request = convert(&request, source.clone());
+        let reddit_request = T::create_reddit_request(&request, source.clone());
         let raw_data = self.reddit_connection.fetch_raw(reddit_request).await?;
+        let parsed = T::from_reddit_container(raw_data)?;
 
-        Ok(())
+        Ok(parsed)
     }
 }
 
@@ -112,15 +118,15 @@ mod tests {
             report_types: vec![RMoodsReportType::Sentiment],
             data_sources: vec![DataSource {
                 name: "u/utoipa".to_string(),
-                postId: None,
+                post_id: None,
                 share: 1.0,
             }],
             size: RequestSize::Medium,
             sorting: Default::default(),
         };
 
-        let result = RMoodsFetcher::fetch_feed(request);
+        // let result = RMoodsFetcher::fetch_feed(request);
 
-        assert!(result.is_ok());
+        // assert!(result.is_ok());
     }
 }

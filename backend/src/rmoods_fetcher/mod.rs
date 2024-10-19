@@ -1,9 +1,12 @@
 use log::debug;
-use rmoods_request::RedditFeedKind;
+use rmoods_request::{DataSource, RMoodsNlpRequest};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::reddit::model::{RawComment, RawContainer, RawPost, RawSubredditInfo, RawUserInfo};
+use crate::reddit::{
+    model::{RawComment, RawContainer, RawPost},
+    request::{RedditResource, SubredditPostsRequest},
+};
 
 pub mod rmoods_request;
 
@@ -27,9 +30,11 @@ pub enum FetcherError {
 }
 
 pub trait RedditData {
+    type RequestType: RedditResource;
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
         Self: Sized;
+    fn create_reddit_request(request: &RMoodsNlpRequest, source: DataSource) -> Self::RequestType;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -49,6 +54,13 @@ impl RedditData for Posts {
         }
 
         Ok(Posts { list: posts })
+    }
+    type RequestType = SubredditPostsRequest;
+    fn create_reddit_request(request: &RMoodsNlpRequest, source: DataSource) -> Self::RequestType {
+        SubredditPostsRequest {
+            subreddit: source.name,
+            sorting: request.sorting,
+        }
     }
 }
 
@@ -79,6 +91,13 @@ impl RedditData for UserPosts {
         }
 
         Ok(UserPosts { posts, comments })
+    }
+    type RequestType = SubredditPostsRequest;
+    fn create_reddit_request(request: &RMoodsNlpRequest, source: DataSource) -> Self::RequestType {
+        SubredditPostsRequest {
+            subreddit: source.name,
+            sorting: request.sorting,
+        }
     }
 }
 
@@ -139,6 +158,13 @@ impl RedditData for PostComments {
         debug!("Returning {} post replies", { comments.len() });
 
         Ok(PostComments { list: comments })
+    }
+    type RequestType = SubredditPostsRequest;
+    fn create_reddit_request(request: &RMoodsNlpRequest, source: DataSource) -> Self::RequestType {
+        SubredditPostsRequest {
+            subreddit: source.name,
+            sorting: request.sorting,
+        }
     }
 }
 
