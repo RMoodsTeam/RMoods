@@ -2,28 +2,28 @@
 
 ## Building and running your application
 
-When you're ready, start your application by running:
-```bash
-docker compose up --build .
-```
-Your application will be available at http://localhost:8000.
+When you're ready, build your application by running:
+```docker build -t rmoods-nlp .```
 
-## Deploying your application to the cloud
+The ```-t``` parameter refers to tag, which is the name of the image. 
+You can replace ``rmoods-nlp`` with any name you like.
 
-First, build your image, e.g.: ```bash docker build -t myapp . .``` 
-If your cloud uses a different CPU architecture than your development
-machine (e.g., you are on a Mac M1 and your cloud provider is amd64),
-you'll want to build the image for that platform, e.g.:
+After the build completes, you can run your application using the following command:
+```docker run --name rmoods-nlp -d rmoods-nlp```
 
-```bash 
-docker build --platform=linux/amd64 -t myapp . .
-```
+The ```-d``` parameter runs the container in detached mode, which means the container 
+runs in the background ```--name``` refers to docker name, it can be used 
+instead of container id. 
 
-Then, push it to your registry, e.g. ```bash docker push myregistry.com/myapp .
+If you want to open docker image console run:
+```docker exec -it rmoods-nlp /bin/bash```
 
-Consult Docker's `getting started <https://docs.docker.com/go/get-started-sharing/>`_
-docs for more detail on building and pushing.
+```rmoods-nlp``` is the name of the container. If we did not specify a name,
+Docker would have assigned a random name to the container. To check the name of the container, run:
+```docker ps```
+
+To stop the container, run:
+```docker stop rmoods-nlp```
 
 ## References
-
-* `Docker's Python guide <https://docs.docker.com/language/python/>`_
+* [Docker's Python guide](https://docs.docker.com/language/python/)
