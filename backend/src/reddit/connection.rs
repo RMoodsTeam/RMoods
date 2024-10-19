@@ -2,12 +2,12 @@ use std::time::SystemTime;
 
 use log::{info, warn};
 use log_derive::logfn;
-use serde_json::Value;
 
 use super::{
     auth::{RedditAccessToken, RedditApp},
     error::RedditError,
-    request::RedditRequest,
+    model::RawContainer,
+    request::RedditResource,
 };
 
 /// Manages a collection of RedditApp clients and their access tokens.
@@ -53,14 +53,17 @@ impl RedditConnection {
     ///
     /// Temporarily public for testing and debugging in the `api/debug.rs` module.
     #[logfn(err = "ERROR", fmt = "Failed to execute request: {:?}")]
-    pub async fn fetch_raw(&mut self, request: RedditRequest) -> Result<Value, RedditError> {
+    pub async fn fetch_raw(
+        &mut self,
+        request: impl RedditResource,
+    ) -> Result<RawContainer, RedditError> {
         if self.access_token.is_expired() {
             warn!("Access token expired, fetching new one");
             self.access_token = self.client.fetch_access_token(&self.http).await?;
             info!("New access token fetched");
         }
 
-        let (url, query) = request.into_http_request_parts();
+        let (url, query) = request.into_request_parts();
         info!("Fetching data from: {url:?}\nWith query params: {query:?}");
 
         let req = self
@@ -80,7 +83,10 @@ impl RedditConnection {
         info!("Data fetched successfully. Took {:?}", elapsed);
 
         let json = res.json().await?;
-        Ok(json)
+
+        let parsed = serde_json::from_value::<RawContainer>(json)?;
+
+        Ok(parsed)
     }
 }
 

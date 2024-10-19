@@ -1,4 +1,5 @@
 use log::debug;
+use rmoods_request::RedditFeedKind;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -25,15 +26,15 @@ pub enum FetcherError {
     RedditParseError(String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Posts {
-    pub list: Vec<RawPost>,
-}
-
 pub trait RedditData {
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
         Self: Sized;
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Posts {
+    pub list: Vec<RawPost>,
 }
 
 impl RedditData for Posts {
@@ -141,28 +142,28 @@ impl RedditData for PostComments {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UserInfo {
-    info: RawUserInfo,
-}
+// #[derive(Debug, Serialize, Deserialize)]
+// pub struct UserInfo {
+//     info: RawUserInfo,
+// }
 
-impl RedditData for UserInfo {
-    fn from_reddit_container(container: RawContainer) -> Result<UserInfo, FetcherError> {
-        let info = cast!(container, RawContainer::UserInfo)?;
+// impl RedditData for UserInfo {
+//     fn from_reddit_container(container: RawContainer) -> Result<UserInfo, FetcherError> {
+//         let info = cast!(container, RawContainer::UserInfo)?;
 
-        Ok(UserInfo { info: *info })
-    }
-}
+//         Ok(UserInfo { info: *info })
+//     }
+// }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SubredditInfo {
-    info: RawSubredditInfo,
-}
+// #[derive(Debug, Serialize, Deserialize)]
+// pub struct SubredditInfo {
+//     info: RawSubredditInfo,
+// }
 
-impl RedditData for SubredditInfo {
-    fn from_reddit_container(container: RawContainer) -> Result<SubredditInfo, FetcherError> {
-        let info = cast!(container, RawContainer::SubredditInfo)?;
+// impl RedditData for SubredditInfo {
+//     fn from_reddit_container(container: RawContainer) -> Result<SubredditInfo, FetcherError> {
+//         let info = cast!(container, RawContainer::SubredditInfo)?;
 
-        Ok(SubredditInfo { info: *info })
-    }
-}
+//         Ok(SubredditInfo { info: *info })
+//     }
+// }

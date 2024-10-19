@@ -1,19 +1,17 @@
-use std::time::SystemTime;
-
 use axum::{
     extract::{Query, State},
     Json,
 };
 use lipsum::lipsum;
-use log::{debug, info};
+use log::debug;
 use log_derive::logfn;
 use reqwest::StatusCode;
 use serde_json::{json, Value};
 
 use crate::{
     app_error::AppError,
-    reddit::{model::RawContainer, request::RedditRequest},
-    rmoods_fetcher::{PostComments, Posts, RedditData, SubredditInfo, UserInfo, UserPosts},
+    reddit::request::{PostCommentsRequest, SubredditPostsRequest, UserPostsRequest},
+    rmoods_fetcher::{PostComments, Posts, RedditData, UserPosts},
     AppState,
 };
 
@@ -80,25 +78,24 @@ pub async fn lorem(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppEr
     .into())
 }
 
-#[utoipa::path(get, path = "/api/debug/subreddit_info", responses(), params())]
-pub async fn subreddit_info(
-    State(mut state): State<AppState>,
-    Query(params): Query<AnyParams>,
-) -> Result<Json<SubredditInfo>, AppError> {
-    let subreddit = params
-        .get("r")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
-    let req = RedditRequest::SubredditInfo {
-        subreddit: subreddit.to_string(),
-    };
-    let json = state.reddit.fetch_raw(req).await?;
+// #[utoipa::path(get, path = "/api/debug/subreddit_info", responses(), params())]
+// pub async fn subreddit_info(
+//     State(mut state): State<AppState>,
+//     Query(params): Query<AnyParams>,
+// ) -> Result<Json<SubredditInfo>, AppError> {
+//     // let subreddit = params
+//     //     .get("r")
+//     //     .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
+//     // let req = SubredditInfoRequest {
+//     //     subreddit: subreddit.to_string(),
+//     // };
+//     // let json = state.reddit.fetch_raw(req).await?;
 
-    let info = serde_json::from_value::<RawContainer>(json).unwrap();
+//     // let parsed = SubredditInfo::from_reddit_container(json).unwrap();
 
-    let parsed = SubredditInfo::from_reddit_container(info).unwrap();
-
-    Ok(Json(parsed))
-}
+//     // Ok(Json(parsed))
+//     todo!();
+// }
 
 #[utoipa::path(get, path = "/api/debug/post_comments", responses(), params())]
 pub async fn post_comments(
@@ -115,44 +112,36 @@ pub async fn post_comments(
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `id` parameter"))?
         .to_string();
 
-    let req = RedditRequest::PostComments {
+    let req = PostCommentsRequest {
         subreddit: r,
         post_id: id,
         sorting: Default::default(),
     };
 
     let json = state.reddit.fetch_raw(req).await?;
-
-    let start = SystemTime::now();
-    let val = serde_json::from_value::<Vec<RawContainer>>(json).unwrap();
-    let elapsed = SystemTime::now().duration_since(start).unwrap();
-    info!("Data parsed successfully. Took {:?}", elapsed);
-
-    let parsed = PostComments::from_reddit_container(val[1].clone()).expect("second");
+    let parsed = PostComments::from_reddit_container(json).expect("second");
 
     Ok(Json(parsed))
 }
 
-#[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
-pub async fn user_info(
-    State(mut state): State<AppState>,
-    Query(params): Query<AnyParams>,
-) -> Result<Json<UserInfo>, AppError> {
-    let user = params
-        .get("u")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
-    let req = RedditRequest::UserInfo {
-        username: user.to_string(),
-    };
+// #[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
+// pub async fn user_info(
+//     State(mut state): State<AppState>,
+//     Query(params): Query<AnyParams>,
+// ) -> Result<Json<UserInfo>, AppError> {
+//     // let user = params
+//     //     .get("u")
+//     //     .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
+//     // let req = UserInfoRequest {
+//     //     username: user.to_string(),
+//     // };
 
-    let json = state.reddit.fetch_raw(req).await?;
+//     // let json = state.reddit.fetch_raw(req).await?;
 
-    let info = serde_json::from_value::<RawContainer>(json).unwrap();
-
-    let parsed = UserInfo::from_reddit_container(info).unwrap();
-
-    Ok(Json(parsed))
-}
+//     // let parsed = UserInfo::from_reddit_container(json).unwrap();
+//     // Ok(Json(parsed))
+//     todo!();
+// }
 
 #[utoipa::path(get, path = "/api/debug/subreddit_posts", responses(), params())]
 pub async fn subreddit_posts(
@@ -162,15 +151,13 @@ pub async fn subreddit_posts(
     let subreddit = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `r` parameter"))?;
-    let req = RedditRequest::SubredditPosts {
+    let req = SubredditPostsRequest {
         subreddit: subreddit.into(),
         sorting: Default::default(),
     };
     let json = state.reddit.fetch_raw(req).await?;
 
-    let info = serde_json::from_value::<RawContainer>(json).unwrap();
-
-    let parsed = Posts::from_reddit_container(info).unwrap();
+    let parsed = Posts::from_reddit_container(json).unwrap();
     debug!("Returning {} subreddit posts", parsed.list.len());
 
     Ok(Json(parsed))
@@ -184,14 +171,14 @@ pub async fn user_posts(
     let user = params
         .get("u")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
-    let req = RedditRequest::UserPosts {
+    let req = UserPostsRequest {
         username: user.into(),
         sorting: Default::default(),
     };
     let json = state.reddit.fetch_raw(req).await?;
 
-    let info = serde_json::from_value(json).unwrap();
-    let parsed = UserPosts::from_reddit_container(info).unwrap();
+    let parsed = UserPosts::from_reddit_container(json).unwrap();
+
     debug!("Returning {} user posts", parsed.posts.len());
     debug!("Returning {} user comments", parsed.comments.len());
 
