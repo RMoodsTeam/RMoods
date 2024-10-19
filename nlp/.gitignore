@@ -18,6 +18,7 @@ venv/
 
 # File types
 *.json
+!version_models.json
 
 # Environment variables
 .env
