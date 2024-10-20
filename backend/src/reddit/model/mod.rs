@@ -52,7 +52,7 @@ pub enum RawContainer {
     Listing(Box<RawListing>),
 
     #[serde(rename = "more")]
-    More(Box<MoreData>),
+    More(Box<MoreComments>),
 
     #[serde(rename = "t1")]
     Comment(Box<RawComment>),
@@ -75,7 +75,7 @@ pub enum RawContainer {
 
 /// List of IDs of items to fetch to get the ones that didn't fit in the first response.
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct MoreData {
+pub struct MoreComments {
     count: u32,
     name: String,
     id: String,

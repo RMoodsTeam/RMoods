@@ -11,7 +11,7 @@ use serde_json::{json, Value};
 use crate::{
     app_error::AppError,
     reddit::request::{PostCommentsRequest, SubredditPostsRequest, UserPostsRequest},
-    rmoods_fetcher::{PostComments, RedditData, SubredditPosts, UserPosts},
+    rmoods_fetcher::{PostComments, Posts, RedditData, UserPosts},
     AppState,
 };
 
@@ -116,10 +116,12 @@ pub async fn post_comments(
         subreddit: r,
         post_id: id,
         sorting: Default::default(),
+        after: None,
     };
 
-    let json = state.reddit.fetch_raw(req).await?;
-    let parsed = PostComments::from_reddit_container(json).expect("second");
+    let (data, after) = state.reddit.fetch_raw(req).await?;
+    let parsed = PostComments::from_reddit_container(data).expect("second");
+    dbg!(&parsed.more);
 
     Ok(Json(parsed))
 }
@@ -147,17 +149,18 @@ pub async fn post_comments(
 pub async fn subreddit_posts(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
-) -> Result<Json<SubredditPosts>, AppError> {
+) -> Result<Json<Posts>, AppError> {
     let subreddit = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `r` parameter"))?;
     let req = SubredditPostsRequest {
         subreddit: subreddit.into(),
         sorting: Default::default(),
+        after: None,
     };
-    let json = state.reddit.fetch_raw(req).await?;
+    let (data, after) = state.reddit.fetch_raw(req).await?;
 
-    let parsed = SubredditPosts::from_reddit_container(json).unwrap();
+    let parsed = Posts::from_reddit_container(data).unwrap();
     debug!("Returning {} subreddit posts", parsed.list.len());
 
     Ok(Json(parsed))
@@ -174,10 +177,12 @@ pub async fn user_posts(
     let req = UserPostsRequest {
         username: user.into(),
         sorting: Default::default(),
+        after: None,
     };
-    let json = state.reddit.fetch_raw(req).await?;
 
-    let parsed = UserPosts::from_reddit_container(json).unwrap();
+    let (data, after) = state.reddit.fetch_raw(req).await?;
+
+    let parsed = UserPosts::from_reddit_container(data).unwrap();
 
     debug!("Returning {} user posts", parsed.posts.len());
     debug!("Returning {} user comments", parsed.comments.len());

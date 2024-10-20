@@ -1,6 +1,6 @@
 use std::time::SystemTime;
 
-use log::{info, warn};
+use log::{debug, info, warn};
 use log_derive::logfn;
 use serde_json::Value;
 
@@ -41,6 +41,7 @@ impl RedditConnection {
 
         info!("Fetching initial access token");
         let access_token = client.fetch_access_token(&http).await?;
+        debug!("Access token: {:?}", access_token);
         info!("Done fetching access token");
 
         Ok(RedditConnection {
@@ -57,7 +58,7 @@ impl RedditConnection {
     pub async fn fetch_raw(
         &mut self,
         request: impl RedditResource,
-    ) -> Result<RawContainer, RedditError> {
+    ) -> Result<(RawContainer, Option<String>), RedditError> {
         if self.access_token.is_expired() {
             warn!("Access token expired, fetching new one");
             self.access_token = self.client.fetch_access_token(&self.http).await?;
@@ -74,6 +75,8 @@ impl RedditConnection {
             .bearer_auth(&self.access_token.token())
             .build()?;
 
+        debug!("Request: {:?}", req);
+
         let start = SystemTime::now();
         let res = self.http.execute(req).await?;
         let elapsed = SystemTime::now().duration_since(start).unwrap();
@@ -89,11 +92,20 @@ impl RedditConnection {
         // First element of said array is the post, second is the comments
         // We only care about the comments.
         // [Post, Listing<Comment>]
-        if json.is_array() && json.as_array().unwrap().len() > 1 {
+        if json.is_array() && json.as_array().unwrap().len() == 2 {
             let comments_container = json.as_array().and_then(|a| a.get(1).cloned()).unwrap();
-            Ok(serde_json::from_value(comments_container)?)
+            let after = comments_container
+                .get("after")
+                .and_then(|a| a.as_str())
+                .map(|s| s.to_string());
+            Ok((serde_json::from_value(comments_container)?, after))
         } else {
-            Ok(serde_json::from_value::<RawContainer>(json)?)
+            let after = json
+                .get("data")
+                .and_then(|d| d.get("after"))
+                .and_then(|a| a.as_str())
+                .map(|s| s.to_string());
+            Ok((serde_json::from_value::<RawContainer>(json)?, after))
         }
     }
 }

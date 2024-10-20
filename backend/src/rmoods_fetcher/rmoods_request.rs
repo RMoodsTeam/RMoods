@@ -1,6 +1,7 @@
 use crate::{
     reddit::{
         connection::RedditConnection,
+        model::{MoreComments, RawComment},
         request::{
             params::FeedSorting, PostCommentsRequest, RedditResource, SubredditPostsRequest,
             UserPostsRequest,
@@ -8,6 +9,8 @@ use crate::{
     },
     rmoods_fetcher::{Posts, RedditData},
 };
+
+use super::PostComments;
 
 /// What kind of data do we fetch and make a report on?
 #[derive(Debug)]
@@ -66,24 +69,6 @@ pub struct RMoodsFetcher {
     reddit_connection: RedditConnection,
 }
 
-fn convert(request: &RMoodsNlpRequest, source: DataSource) -> Box<dyn RedditResource> {
-    match request.resource_kind {
-        RedditFeedKind::UserPosts => Box::new(UserPostsRequest {
-            username: source.name,
-            sorting: request.sorting,
-        }),
-        RedditFeedKind::PostComments => Box::new(PostCommentsRequest {
-            subreddit: source.name,
-            post_id: source.post_id.unwrap(),
-            sorting: request.sorting,
-        }),
-        RedditFeedKind::SubredditPosts => Box::new(SubredditPostsRequest {
-            subreddit: source.name,
-            sorting: request.sorting,
-        }),
-    }
-}
-
 impl RMoodsFetcher {
     pub fn new(reddit_connection: RedditConnection) -> Self {
         Self { reddit_connection }
@@ -92,18 +77,36 @@ impl RMoodsFetcher {
     pub async fn fetch_feed<T: RedditData>(
         &mut self,
         request: RMoodsNlpRequest,
-    ) -> anyhow::Result<T> {
+    ) -> anyhow::Result<(T, u16)> {
         dbg!(&request);
 
-        let request_number = u16::from(request.size.clone());
+        let requests_to_make = u16::from(request.size.clone());
 
-        let source = request.data_sources.first().unwrap();
+        let source = request.data_sources.first().unwrap().clone();
 
-        let reddit_request = T::create_reddit_request(&request, source.clone());
-        let raw_data = self.reddit_connection.fetch_raw(reddit_request).await?;
-        let parsed = T::from_reddit_container(raw_data)?;
+        // Initial request, no `after` parameter
+        let initial_request = T::create_reddit_request(&request, source.clone(), None);
+        let (raw_data, mut after) = self.reddit_connection.fetch_raw(initial_request).await?;
+        let mut parsed = T::from_reddit_container(raw_data)?;
+        let mut requests_made = 1;
 
-        Ok(parsed)
+        // Loop until `after` becomes `None`
+        while requests_made < requests_to_make && after.is_some() {
+            let next_request = T::create_reddit_request(&request, source.clone(), after.clone());
+            let (raw_data, next_after) = self.reddit_connection.fetch_raw(next_request).await?;
+            parsed = T::from_reddit_container(raw_data)?.concat(parsed); // Chain parsed data
+            after = next_after; // Update `after`
+            requests_made += 1;
+        }
+
+        Ok((parsed, requests_made))
+    }
+
+    pub async fn fetch_more_comments(
+        post_comments: PostComments,
+        requests_left: u16,
+    ) -> anyhow::Result<PostComments> {
+        todo!()
     }
 }
 

@@ -28,6 +28,7 @@ pub struct SubredditPostsRequest {
     /// The subreddit name.
     pub subreddit: String,
     pub sorting: FeedSorting,
+    pub after: Option<String>,
 }
 
 /// Fetch information about a subreddit.
@@ -40,6 +41,7 @@ pub struct UserPostsRequest {
     /// The user's username.
     pub username: String,
     pub sorting: FeedSorting,
+    pub after: Option<String>,
 }
 
 /// Fetch information about a user.
@@ -55,6 +57,7 @@ pub struct PostCommentsRequest {
     /// The post's ID, eg. 1eubxgg
     pub post_id: String,
     pub sorting: FeedSorting,
+    pub after: Option<String>,
 }
 
 /// The parts of an HTTP request: URL and query parameters.
@@ -64,12 +67,12 @@ pub trait RedditResource {
     fn into_request_parts(&self) -> RequestParts;
 }
 
-/// Implement the trait for Box<T> so that we can call into_request_parts() on a Box<dyn RedditResource>.
-impl<T: RedditResource + ?Sized> RedditResource for Box<T> {
-    fn into_request_parts(&self) -> RequestParts {
-        (**self).into_request_parts()
-    }
-}
+// /// Implement the trait for Box<T> so that we can call into_request_parts() on a Box<dyn RedditResource>.
+// impl<T: RedditResource + ?Sized> RedditResource for Box<T> {
+//     fn into_request_parts(&self) -> RequestParts {
+//         (**self).into_request_parts()
+//     }
+// }
 
 impl RedditResource for SubredditPostsRequest {
     fn into_request_parts(&self) -> RequestParts {
@@ -84,6 +87,10 @@ impl RedditResource for SubredditPostsRequest {
             query.push(("t", time.to_string()));
         }
         query.push(("limit", "100".to_string()));
+
+        if let Some(after) = &self.after {
+            query.push(("after", after.to_string()));
+        }
 
         (url, query)
     }
@@ -105,6 +112,10 @@ impl RedditResource for UserPostsRequest {
             query.push(("t", time.to_string()));
         }
         query.push(("limit", "100".to_string()));
+
+        if let Some(after) = &self.after {
+            query.push(("after", after.to_string()));
+        }
 
         (url, query)
     }
@@ -129,6 +140,10 @@ impl RedditResource for PostCommentsRequest {
             query.push(("t", time.to_string()));
         }
         query.push(("limit", "100".to_string()));
+
+        if let Some(after) = &self.after {
+            query.push(("after", after.to_string()));
+        }
 
         (url, query)
     }

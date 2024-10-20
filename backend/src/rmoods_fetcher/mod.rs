@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::reddit::{
-    model::{RawComment, RawContainer, RawPost},
+    model::{MoreComments, RawComment, RawContainer, RawPost},
     request::{RedditResource, SubredditPostsRequest},
 };
 
@@ -34,7 +34,17 @@ pub trait RedditData {
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
         Self: Sized;
-    fn create_reddit_request(request: &RMoodsNlpRequest, source: DataSource) -> Self::RequestType;
+    fn create_reddit_request(
+        request: &RMoodsNlpRequest,
+        source: DataSource,
+        after: Option<String>,
+    ) -> Self::RequestType;
+    fn concat(&mut self, other: Self) -> Self
+    where
+        Self: Sized,
+    {
+        unimplemented!()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -56,10 +66,15 @@ impl RedditData for Posts {
         Ok(Posts { list: posts })
     }
     type RequestType = SubredditPostsRequest;
-    fn create_reddit_request(request: &RMoodsNlpRequest, source: DataSource) -> Self::RequestType {
+    fn create_reddit_request(
+        request: &RMoodsNlpRequest,
+        source: DataSource,
+        after: Option<String>,
+    ) -> Self::RequestType {
         SubredditPostsRequest {
             subreddit: source.name,
             sorting: request.sorting,
+            after,
         }
     }
 }
@@ -93,10 +108,15 @@ impl RedditData for UserPosts {
         Ok(UserPosts { posts, comments })
     }
     type RequestType = SubredditPostsRequest;
-    fn create_reddit_request(request: &RMoodsNlpRequest, source: DataSource) -> Self::RequestType {
+    fn create_reddit_request(
+        request: &RMoodsNlpRequest,
+        source: DataSource,
+        after: Option<String>,
+    ) -> Self::RequestType {
         SubredditPostsRequest {
             subreddit: source.name,
             sorting: request.sorting,
+            after,
         }
     }
 }
@@ -104,40 +124,54 @@ impl RedditData for UserPosts {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PostComments {
     pub list: Vec<RawComment>,
+    pub more: Vec<MoreComments>,
 }
 
 fn flatten_replies_internal(
     comment: &RawComment,
     all_replies: &mut Vec<RawComment>,
+    mores: &mut Vec<MoreComments>,
     depth: u16,
 ) -> Result<(), FetcherError> {
     if let Some(replies_container) = comment.replies() {
         let listing = cast!(replies_container, RawContainer::Listing)?;
 
         let mut replies = vec![];
-        for x in listing.children.clone() {
-            replies.push(cast!(x, RawContainer::Comment)?);
+        for raw_reply in listing.children.clone() {
+            // replies.push(cast!(raw_reply, RawContainer::Comment)?);
+            match raw_reply {
+                RawContainer::Comment(reply) => replies.push(*reply),
+                RawContainer::More(more) => mores.push(*more),
+                _ => {
+                    return Err(FetcherError::RedditParseError(
+                        "Failed to parse comment from Reddit container".to_string(),
+                    )
+                    .into());
+                }
+            }
         }
 
         let tabs = "  ".repeat((depth + 1).into());
 
         for mut reply in replies {
             debug!("{tabs}u/{}", reply.author());
-            let _ = flatten_replies_internal(&reply, all_replies, depth + 1)?;
+            let _ = flatten_replies_internal(&reply, all_replies, mores, depth + 1)?;
             reply.replies = None;
-            all_replies.push(*reply.clone());
+            all_replies.push(reply.clone());
         }
     }
     Ok(())
 }
 
-fn flattened_replies(comment: &RawComment) -> Result<Vec<RawComment>, FetcherError> {
-    debug!("u/{}", comment.author());
-    let mut all_replies = Vec::new();
+fn flattened_replies(
+    comment: &RawComment,
+) -> Result<(Vec<RawComment>, Vec<MoreComments>), FetcherError> {
+    let mut all_replies = vec![];
+    let mut mores = vec![];
 
-    let _ = flatten_replies_internal(comment, &mut all_replies, 0)?;
+    let _ = flatten_replies_internal(comment, &mut all_replies, &mut mores, 0)?;
 
-    Ok(all_replies)
+    Ok((all_replies, mores))
 }
 
 impl RedditData for PostComments {
@@ -145,25 +179,56 @@ impl RedditData for PostComments {
         let mut comments: Vec<RawComment> = Vec::new();
 
         let listing = cast!(container, RawContainer::Listing)?;
+        let mut mores = vec![];
 
         for child in listing.children {
-            let mut comment = cast!(child, RawContainer::Comment)?;
-            let mut replies = flattened_replies(&comment)?;
-            comments.append(&mut replies);
+            // let mut comment = cast!(child, RawContainer::Comment)?;
+            match child {
+                RawContainer::Comment(mut comment) => {
+                    let (mut replies, mut mores_2) = flattened_replies(&comment)?;
+                    mores.append(&mut mores_2);
+                    comments.append(&mut replies);
 
-            comment.replies = None;
-            comments.push(*comment);
+                    comment.replies = None;
+                    comments.push(*comment);
+                }
+                RawContainer::More(more) => {
+                    dbg!(&more);
+                    mores.push(*more)
+                }
+                _ => {
+                    return Err(FetcherError::RedditParseError(
+                        "Failed to parse comment from Reddit container".to_string(),
+                    )
+                    .into());
+                }
+            }
+
+            // let mut replies = flattened_replies(&comment)?;
+            // comments.append(&mut replies);
+
+            // comment.replies = None;
+            // comments.push(*comment);
         }
 
         debug!("Returning {} post replies", { comments.len() });
+        dbg!(&mores);
 
-        Ok(PostComments { list: comments })
+        Ok(PostComments {
+            list: comments,
+            more: mores,
+        })
     }
     type RequestType = SubredditPostsRequest;
-    fn create_reddit_request(request: &RMoodsNlpRequest, source: DataSource) -> Self::RequestType {
+    fn create_reddit_request(
+        request: &RMoodsNlpRequest,
+        source: DataSource,
+        after: Option<String>,
+    ) -> Self::RequestType {
         SubredditPostsRequest {
             subreddit: source.name,
             sorting: request.sorting,
+            after,
         }
     }
 }
