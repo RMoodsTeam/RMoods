@@ -76,12 +76,12 @@ pub enum RawContainer {
 /// List of IDs of items to fetch to get the ones that didn't fit in the first response.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MoreComments {
-    count: u32,
-    name: String,
-    id: String,
-    parent_id: String,
-    depth: u32,
-    children: Vec<String>,
+    pub count: u32,
+    pub name: String,
+    pub id: String,
+    pub parent_id: String,
+    pub depth: u32,
+    pub children: Vec<String>,
 }
 
 /// Describes a Reddit listing

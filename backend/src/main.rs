@@ -2,7 +2,6 @@ use crate::open_api::ApiDoc;
 use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
-use reddit::connection::RedditConnection;
 use reqwest::Client;
 use rmoods_fetcher::rmoods_request::RMoodsFetcher;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};

@@ -1,13 +1,13 @@
 use std::time::SystemTime;
 
-use log::{debug, info, warn};
+use log::{debug, error, info, warn};
 use log_derive::logfn;
 use serde_json::Value;
 
 use super::{
     auth::{RedditAccessToken, RedditApp},
     error::RedditError,
-    model::RawContainer,
+    model::{MoreComments, RawComment, RawContainer},
     request::RedditResource,
 };
 
@@ -104,6 +104,55 @@ impl RedditConnection {
                 .map(|s| s.to_string());
             Ok((serde_json::from_value(json).unwrap(), after))
         }
+    }
+
+    pub async fn fetch_more_comments(
+        &mut self,
+        more: &MoreComments,
+    ) -> Result<Vec<RawComment>, RedditError> {
+        let request_parts_vec = more.into_request_parts();
+
+        let mut comments = vec![];
+
+        for (url, query) in request_parts_vec {
+            let req = self
+                .http
+                .get(url)
+                .query(&query)
+                .bearer_auth(&self.access_token.token())
+                .build()
+                .unwrap();
+
+            let res = self.http.execute(req).await.unwrap();
+
+            let json: Value = res.json().await.unwrap();
+
+            let json_list = json
+                .get("json")
+                .and_then(|j| j.get("data"))
+                .and_then(|d| d.get("things"))
+                .cloned();
+
+            if let Some(list) = json_list {
+                let list = serde_json::from_value::<Vec<RawContainer>>(list).unwrap();
+                let new_comments = list
+                    .iter()
+                    .filter_map(|c| match c {
+                        RawContainer::Comment(c) => Some(*c.clone()),
+                        _ => None,
+                    })
+                    .collect::<Vec<RawComment>>();
+                comments.extend(new_comments);
+            } else {
+                return Err(RedditError::OtherJsonError(
+                    "Expected json.data.things to be present in response to MoreComments request"
+                        .to_string(),
+                )
+                .into());
+            }
+        }
+
+        Ok(comments)
     }
 }
 

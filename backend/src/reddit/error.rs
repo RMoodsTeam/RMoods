@@ -27,4 +27,7 @@ pub enum RedditError {
     /// * Reddit sent a malformed response (incredibly unlikely)
     #[error("JSON Error: `{0}`")]
     JsonError(#[from] serde_json::Error),
+
+    #[error("Failed to parse data from Reddit: {0}")]
+    OtherJsonError(String),
 }

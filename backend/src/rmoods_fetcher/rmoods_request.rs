@@ -4,12 +4,11 @@ use crate::{
     reddit::{
         connection::RedditConnection,
         error::RedditError,
+        model::{MoreComments, RawComment},
         request::{params::FeedSorting, RedditResource},
     },
     rmoods_fetcher::RedditData,
 };
-
-use super::PostComments;
 
 /// What kind of data do we fetch and make a report on?
 #[derive(Debug)]
@@ -119,9 +118,27 @@ impl RMoodsFetcher {
     }
 
     pub async fn fetch_more_comments(
-        post_comments: PostComments,
+        &mut self,
+        stubs: &[MoreComments],
         requests_left: u16,
-    ) -> anyhow::Result<PostComments> {
-        todo!()
+    ) -> anyhow::Result<Vec<RawComment>> {
+        let mut requests_left = requests_left;
+        let mut comments = vec![];
+
+        for more_comments in stubs {
+            if requests_left == 0 {
+                break;
+            }
+            let new_comments = self
+                .reddit_connection
+                .fetch_more_comments(&more_comments)
+                .await
+                .unwrap();
+
+            requests_left -= 1;
+            comments.extend(new_comments);
+        }
+
+        Ok(comments)
     }
 }

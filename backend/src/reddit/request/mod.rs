@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
 use params::FeedSorting;
+
+use super::model::MoreComments;
 pub mod params;
 mod tests;
 
@@ -66,13 +68,6 @@ pub type RequestParts = (String, Vec<(&'static str, String)>);
 pub trait RedditResource {
     fn into_request_parts(&self) -> RequestParts;
 }
-
-// /// Implement the trait for Box<T> so that we can call into_request_parts() on a Box<dyn RedditResource>.
-// impl<T: RedditResource + ?Sized> RedditResource for Box<T> {
-//     fn into_request_parts(&self) -> RequestParts {
-//         (**self).into_request_parts()
-//     }
-// }
 
 impl RedditResource for SubredditPostsRequest {
     fn into_request_parts(&self) -> RequestParts {
@@ -146,5 +141,24 @@ impl RedditResource for PostCommentsRequest {
         }
 
         (url, query)
+    }
+}
+
+impl MoreComments {
+    pub fn into_request_parts(&self) -> Vec<RequestParts> {
+        let url = format!("https://oauth.reddit.com/api/morechildren");
+
+        self.children
+            .chunks(20)
+            .map(|chunk| {
+                let query = vec![
+                    ("link_id", self.parent_id.clone()),
+                    ("children", chunk.join(",")),
+                    ("api_type", "json".to_string()),
+                ];
+
+                (url.clone(), query)
+            })
+            .collect()
     }
 }

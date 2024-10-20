@@ -10,15 +10,12 @@ use serde_json::{json, Value};
 
 use crate::{
     app_error::AppError,
-    reddit::request::{
-        params::FeedSorting, PostCommentsRequest, RedditResource, SubredditPostsRequest,
-        UserPostsRequest,
-    },
+    reddit::request::params::FeedSorting,
     rmoods_fetcher::{
         rmoods_request::{
             DataSource, RMoodsNlpRequest, RMoodsReportType, RedditFeedKind, RequestSize,
         },
-        PostComments, Posts, RedditData, UserPosts,
+        PostComments, Posts, UserPosts,
     },
     AppState,
 };
@@ -121,13 +118,21 @@ pub async fn post_comments(
         sorting: FeedSorting::New,
     };
 
-    let (data, _) = state
+    let (mut data, requests_left) = state
         .fetcher
         .fetch_feed::<PostComments>(request)
         .await
         .unwrap();
 
     debug!("Returning {} post comments", data.list.len());
+
+    let more_comments = state
+        .fetcher
+        .fetch_more_comments(&data.more, requests_left)
+        .await
+        .unwrap();
+
+    data.list.extend(more_comments);
 
     Ok(Json(data))
 }
