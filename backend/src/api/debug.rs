@@ -10,8 +10,16 @@ use serde_json::{json, Value};
 
 use crate::{
     app_error::AppError,
-    reddit::request::{PostCommentsRequest, SubredditPostsRequest, UserPostsRequest},
-    rmoods_fetcher::{PostComments, Posts, RedditData, UserPosts},
+    reddit::request::{
+        params::FeedSorting, PostCommentsRequest, RedditResource, SubredditPostsRequest,
+        UserPostsRequest,
+    },
+    rmoods_fetcher::{
+        rmoods_request::{
+            DataSource, RMoodsNlpRequest, RMoodsReportType, RedditFeedKind, RequestSize,
+        },
+        PostComments, Posts, RedditData, UserPosts,
+    },
     AppState,
 };
 
@@ -100,30 +108,28 @@ pub async fn lorem(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppEr
 #[utoipa::path(get, path = "/api/debug/post_comments", responses(), params())]
 pub async fn post_comments(
     State(mut state): State<AppState>,
-    Query(params): Query<AnyParams>,
 ) -> Result<Json<PostComments>, AppError> {
-    let r = params
-        .get("r")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `r` parameter"))?
-        .to_string();
-
-    let id = params
-        .get("id")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `id` parameter"))?
-        .to_string();
-
-    let req = PostCommentsRequest {
-        subreddit: r,
-        post_id: id,
-        sorting: Default::default(),
-        after: None,
+    let request = RMoodsNlpRequest {
+        resource_kind: RedditFeedKind::PostComments,
+        report_types: vec![RMoodsReportType::Sarcasm],
+        data_sources: vec![DataSource {
+            name: "interesting".to_string(),
+            post_id: Some("1g7e1g6".to_string()),
+            share: 1.0,
+        }],
+        size: RequestSize::Custom(10),
+        sorting: FeedSorting::New,
     };
 
-    let (data, after) = state.reddit.fetch_raw(req).await?;
-    let parsed = PostComments::from_reddit_container(data).expect("second");
-    dbg!(&parsed.more);
+    let (data, _) = state
+        .fetcher
+        .fetch_feed::<PostComments>(request)
+        .await
+        .unwrap();
 
-    Ok(Json(parsed))
+    debug!("Returning {} post comments", data.list.len());
+
+    Ok(Json(data))
 }
 
 // #[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
@@ -146,46 +152,48 @@ pub async fn post_comments(
 // }
 
 #[utoipa::path(get, path = "/api/debug/subreddit_posts", responses(), params())]
-pub async fn subreddit_posts(
-    State(mut state): State<AppState>,
-    Query(params): Query<AnyParams>,
-) -> Result<Json<Posts>, AppError> {
-    let subreddit = params
-        .get("r")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `r` parameter"))?;
-    let req = SubredditPostsRequest {
-        subreddit: subreddit.into(),
-        sorting: Default::default(),
-        after: None,
+pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<Json<Posts>, AppError> {
+    let request = RMoodsNlpRequest {
+        resource_kind: RedditFeedKind::PostComments,
+        report_types: vec![RMoodsReportType::Sarcasm],
+        data_sources: vec![DataSource {
+            name: "nosleep".to_string(),
+            post_id: None,
+            share: 1.0,
+        }],
+        size: RequestSize::Custom(30),
+        sorting: FeedSorting::New,
     };
-    let (data, after) = state.reddit.fetch_raw(req).await?;
 
-    let parsed = Posts::from_reddit_container(data).unwrap();
-    debug!("Returning {} subreddit posts", parsed.list.len());
+    let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await.unwrap();
 
-    Ok(Json(parsed))
+    debug!("Returning {} subreddit posts", data.list.len());
+
+    Ok(Json(data))
 }
 
 #[utoipa::path(get, path = "/api/debug/user_posts", responses(), params())]
-pub async fn user_posts(
-    State(mut state): State<AppState>,
-    Query(params): Query<AnyParams>,
-) -> Result<Json<UserPosts>, AppError> {
-    let user = params
-        .get("u")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
-    let req = UserPostsRequest {
-        username: user.into(),
+pub async fn user_posts(State(mut state): State<AppState>) -> Result<Json<UserPosts>, AppError> {
+    let request = RMoodsNlpRequest {
+        resource_kind: RedditFeedKind::UserPosts,
+        report_types: vec![RMoodsReportType::Sarcasm],
+        data_sources: vec![DataSource {
+            name: "spez".to_string(),
+            post_id: None,
+            share: 1.0,
+        }],
+        size: RequestSize::Custom(10),
         sorting: Default::default(),
-        after: None,
     };
 
-    let (data, after) = state.reddit.fetch_raw(req).await?;
+    let (data, _) = state
+        .fetcher
+        .fetch_feed::<UserPosts>(request)
+        .await
+        .unwrap();
 
-    let parsed = UserPosts::from_reddit_container(data).unwrap();
+    debug!("Returning {} user posts", data.posts.len());
+    debug!("Returning {} user comments", data.comments.len());
 
-    debug!("Returning {} user posts", parsed.posts.len());
-    debug!("Returning {} user comments", parsed.comments.len());
-
-    Ok(Json(parsed))
+    Ok(Json(data))
 }

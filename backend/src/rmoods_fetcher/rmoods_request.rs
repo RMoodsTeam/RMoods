@@ -1,13 +1,12 @@
+use log::{debug, info};
+
 use crate::{
     reddit::{
         connection::RedditConnection,
-        model::{MoreComments, RawComment},
-        request::{
-            params::FeedSorting, PostCommentsRequest, RedditResource, SubredditPostsRequest,
-            UserPostsRequest,
-        },
+        error::RedditError,
+        request::{params::FeedSorting, RedditResource},
     },
-    rmoods_fetcher::{Posts, RedditData},
+    rmoods_fetcher::RedditData,
 };
 
 use super::PostComments;
@@ -65,13 +64,15 @@ pub struct RMoodsNlpRequest {
     pub sorting: FeedSorting,
 }
 
+#[derive(Clone)]
 pub struct RMoodsFetcher {
     reddit_connection: RedditConnection,
 }
 
 impl RMoodsFetcher {
-    pub fn new(reddit_connection: RedditConnection) -> Self {
-        Self { reddit_connection }
+    pub async fn new(http: reqwest::Client) -> Result<Self, RedditError> {
+        let reddit_connection = RedditConnection::new(http).await?;
+        Ok(Self { reddit_connection })
     }
 
     pub async fn fetch_feed<T: RedditData>(
@@ -79,6 +80,7 @@ impl RMoodsFetcher {
         request: RMoodsNlpRequest,
     ) -> anyhow::Result<(T, u16)> {
         dbg!(&request);
+        info!("Fetching feed: {:?}", request);
 
         let requests_to_make = u16::from(request.size.clone());
 
@@ -86,18 +88,32 @@ impl RMoodsFetcher {
 
         // Initial request, no `after` parameter
         let initial_request = T::create_reddit_request(&request, source.clone(), None);
-        let (raw_data, mut after) = self.reddit_connection.fetch_raw(initial_request).await?;
-        let mut parsed = T::from_reddit_container(raw_data)?;
+        dbg!("{:?}", initial_request.into_request_parts());
+        let (raw_data, mut after) = self
+            .reddit_connection
+            .fetch_raw(initial_request)
+            .await
+            .unwrap();
+        let mut parsed = T::from_reddit_container(raw_data).unwrap();
         let mut requests_made = 1;
 
-        // Loop until `after` becomes `None`
+        // Loop until `after` becomes `None` or we reach the limit of requests
         while requests_made < requests_to_make && after.is_some() {
             let next_request = T::create_reddit_request(&request, source.clone(), after.clone());
-            let (raw_data, next_after) = self.reddit_connection.fetch_raw(next_request).await?;
-            parsed = T::from_reddit_container(raw_data)?.concat(parsed); // Chain parsed data
+            let (raw_data, next_after) = self
+                .reddit_connection
+                .fetch_raw(next_request)
+                .await
+                .unwrap();
+            parsed = T::from_reddit_container(raw_data).unwrap().concat(parsed); // Chain parsed data
             after = next_after; // Update `after`
             requests_made += 1;
         }
+
+        debug!("Requests made: {}/{}", requests_made, requests_to_make);
+        debug!("After: {:?}", after);
+
+        info!("Done fetching feed: {:?}", request);
 
         Ok((parsed, requests_made))
     }
@@ -107,29 +123,5 @@ impl RMoodsFetcher {
         requests_left: u16,
     ) -> anyhow::Result<PostComments> {
         todo!()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_rmoods_fetcher() {
-        let request = RMoodsNlpRequest {
-            resource_kind: RedditFeedKind::UserPosts,
-            report_types: vec![RMoodsReportType::Sentiment],
-            data_sources: vec![DataSource {
-                name: "u/utoipa".to_string(),
-                post_id: None,
-                share: 1.0,
-            }],
-            size: RequestSize::Medium,
-            sorting: Default::default(),
-        };
-
-        // let result = RMoodsFetcher::fetch_feed(request);
-
-        // assert!(result.is_ok());
     }
 }

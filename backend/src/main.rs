@@ -4,6 +4,7 @@ use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reddit::connection::RedditConnection;
 use reqwest::Client;
+use rmoods_fetcher::rmoods_request::RMoodsFetcher;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -23,7 +24,7 @@ mod rmoods_fetcher;
 /// Contains common resources that shouldn't be created over and over again.
 #[derive(Clone)]
 pub struct AppState {
-    pub reddit: RedditConnection,
+    pub fetcher: RMoodsFetcher,
     pub pool: Pool<Postgres>,
     pub http: Client,
 }
@@ -62,10 +63,14 @@ async fn run() -> anyhow::Result<()> {
     info!("Connected to the database");
 
     let http = reqwest::ClientBuilder::new().user_agent("RMoods").build()?;
-    let reddit = RedditConnection::new(http.clone()).await?;
+    let fetcher = RMoodsFetcher::new(http.clone()).await?;
     info!("Connected to Reddit");
 
-    let state = AppState { reddit, pool, http };
+    let state = AppState {
+        fetcher,
+        pool,
+        http,
+    };
 
     // Allow browsers to use GET and PUT from any origin
     let cors =

@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use crate::reddit::{
     model::{MoreComments, RawComment, RawContainer, RawPost},
-    request::{RedditResource, SubredditPostsRequest},
+    request::{PostCommentsRequest, RedditResource, SubredditPostsRequest, UserPostsRequest},
 };
 
 pub mod rmoods_request;
@@ -41,10 +41,7 @@ pub trait RedditData {
     ) -> Self::RequestType;
     fn concat(&mut self, other: Self) -> Self
     where
-        Self: Sized,
-    {
-        unimplemented!()
-    }
+        Self: Sized;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -77,6 +74,11 @@ impl RedditData for Posts {
             after,
         }
     }
+    fn concat(&mut self, other: Self) -> Self {
+        Self {
+            list: [self.list.clone(), other.list].concat(),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -107,16 +109,22 @@ impl RedditData for UserPosts {
 
         Ok(UserPosts { posts, comments })
     }
-    type RequestType = SubredditPostsRequest;
+    type RequestType = UserPostsRequest;
     fn create_reddit_request(
         request: &RMoodsNlpRequest,
         source: DataSource,
         after: Option<String>,
     ) -> Self::RequestType {
-        SubredditPostsRequest {
-            subreddit: source.name,
+        UserPostsRequest {
+            username: source.name,
             sorting: request.sorting,
             after,
+        }
+    }
+    fn concat(&mut self, other: Self) -> Self {
+        Self {
+            posts: [self.posts.clone(), other.posts].concat(),
+            comments: [self.comments.clone(), other.comments].concat(),
         }
     }
 }
@@ -203,12 +211,6 @@ impl RedditData for PostComments {
                     .into());
                 }
             }
-
-            // let mut replies = flattened_replies(&comment)?;
-            // comments.append(&mut replies);
-
-            // comment.replies = None;
-            // comments.push(*comment);
         }
 
         debug!("Returning {} post replies", { comments.len() });
@@ -219,16 +221,23 @@ impl RedditData for PostComments {
             more: mores,
         })
     }
-    type RequestType = SubredditPostsRequest;
+    type RequestType = PostCommentsRequest;
     fn create_reddit_request(
         request: &RMoodsNlpRequest,
         source: DataSource,
         after: Option<String>,
     ) -> Self::RequestType {
-        SubredditPostsRequest {
+        PostCommentsRequest {
             subreddit: source.name,
+            post_id: source.post_id.expect("Must be here"),
             sorting: request.sorting,
             after,
+        }
+    }
+    fn concat(&mut self, other: Self) -> Self {
+        Self {
+            list: [self.list.clone(), other.list].concat(),
+            more: [self.more.clone(), other.more].concat(),
         }
     }
 }

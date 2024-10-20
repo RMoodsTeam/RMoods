@@ -15,6 +15,7 @@ mod tests {
         let req = SubredditPostsRequest {
             subreddit: "Polska".to_string(),
             sorting: FeedSorting::New,
+            after: None,
         };
         let (url, query) = req.into_request_parts();
         assert_eq!(url, "https://oauth.reddit.com/r/Polska/new.json");
@@ -36,6 +37,7 @@ mod tests {
         let req = UserPostsRequest {
             username: "spez".to_string(),
             sorting: FeedSorting::Top(FeedSortingTime::All),
+            after: None,
         };
         let (url, query) = req.into_request_parts();
         assert_eq!(url, "https://oauth.reddit.com/user/spez.json");
@@ -65,6 +67,7 @@ mod tests {
             subreddit: "Polska".to_string(),
             post_id: "abc123".to_string(),
             sorting: FeedSorting::Controversial(FeedSortingTime::Day),
+            after: None,
         };
         let (url, query) = req.into_request_parts();
         assert_eq!(
@@ -87,6 +90,7 @@ mod tests {
             subreddit: "Polska".to_string(),
             post_id: "abc123".to_string(),
             sorting: FeedSorting::default(),
+            after: None,
         };
         let (url, query) = req.into_request_parts();
         assert_eq!(

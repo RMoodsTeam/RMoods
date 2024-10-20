@@ -25,9 +25,6 @@ pub struct RedditConnection {
 }
 
 impl RedditConnection {
-    /// Reddit API hostname
-    pub const API_HOSTNAME: &'static str = "oauth.reddit.com";
-
     /// Read credentials from the environment and create a new [RedditConnection]
     #[logfn(err = "ERROR", fmt = "Failed to create RedditConnection: {:?}")]
     pub async fn new(http: reqwest::Client) -> Result<RedditConnection, RedditError> {
@@ -92,20 +89,20 @@ impl RedditConnection {
         // First element of said array is the post, second is the comments
         // We only care about the comments.
         // [Post, Listing<Comment>]
-        if json.is_array() && json.as_array().unwrap().len() == 2 {
+        if json.is_array() {
             let comments_container = json.as_array().and_then(|a| a.get(1).cloned()).unwrap();
             let after = comments_container
                 .get("after")
                 .and_then(|a| a.as_str())
                 .map(|s| s.to_string());
-            Ok((serde_json::from_value(comments_container)?, after))
+            Ok((serde_json::from_value(comments_container).unwrap(), after))
         } else {
             let after = json
                 .get("data")
                 .and_then(|d| d.get("after"))
                 .and_then(|a| a.as_str())
                 .map(|s| s.to_string());
-            Ok((serde_json::from_value::<RawContainer>(json)?, after))
+            Ok((serde_json::from_value(json).unwrap(), after))
         }
     }
 }
