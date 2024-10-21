@@ -3,7 +3,7 @@ use axum::{
     Json,
 };
 use lipsum::lipsum;
-use log::debug;
+use log::{debug, info};
 use log_derive::logfn;
 use reqwest::StatusCode;
 use serde_json::{json, Value};
@@ -117,8 +117,9 @@ pub async fn post_comments(
         size: RequestSize::Custom(10),
         sorting: FeedSorting::New,
     };
+    let requests_to_make = u16::from(request.size.clone());
 
-    let (mut data, requests_left) = state
+    let (mut data, requests_made) = state
         .fetcher
         .fetch_feed::<PostComments>(request)
         .await
@@ -128,11 +129,13 @@ pub async fn post_comments(
 
     let more_comments = state
         .fetcher
-        .fetch_more_comments(&data.more, requests_left)
+        .fetch_more_comments(&data.more, requests_to_make - requests_made)
         .await
         .unwrap();
 
     data.list.extend(more_comments);
+
+    info!("Returning {} post comments", data.list.len());
 
     Ok(Json(data))
 }

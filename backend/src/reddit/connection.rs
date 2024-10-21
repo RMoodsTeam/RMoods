@@ -48,22 +48,18 @@ impl RedditConnection {
         })
     }
 
-    /// Execute a request to the Reddit API.
-    ///
-    /// Temporarily public for testing and debugging in the `api/debug.rs` module.
-    #[logfn(err = "ERROR", fmt = "Failed to execute request: {:?}")]
-    pub async fn fetch_raw(
+    async fn inner_fetch(
         &mut self,
-        request: impl RedditResource,
-    ) -> Result<(RawContainer, Option<String>), RedditError> {
+        url: String,
+        query: Vec<(&str, String)>,
+    ) -> Result<Value, RedditError> {
+        info!("Fetching data from: {url:?}\nWith query params: {query:?}");
+
         if self.access_token.is_expired() {
             warn!("Access token expired, fetching new one");
             self.access_token = self.client.fetch_access_token(&self.http).await?;
             info!("New access token fetched");
         }
-
-        let (url, query) = request.into_request_parts();
-        info!("Fetching data from: {url:?}\nWith query params: {query:?}");
 
         let req = self
             .http
@@ -72,7 +68,7 @@ impl RedditConnection {
             .bearer_auth(&self.access_token.token())
             .build()?;
 
-        debug!("Request: {:?}", req);
+        //debug!("Request: {:?}", req);
 
         let start = SystemTime::now();
         let res = self.http.execute(req).await?;
@@ -83,7 +79,20 @@ impl RedditConnection {
 
         info!("Data fetched successfully. Took {:?}", elapsed);
 
-        let json: Value = res.json().await?;
+        Ok(res.json().await?)
+    }
+
+    /// Execute a request to the Reddit API.
+    ///
+    /// Temporarily public for testing and debugging in the `api/debug.rs` module.
+    #[logfn(err = "ERROR", fmt = "Failed to execute request: {:?}")]
+    pub async fn fetch_raw(
+        &mut self,
+        request: impl RedditResource,
+    ) -> Result<(RawContainer, Option<String>), RedditError> {
+        let (url, query) = request.into_request_parts();
+
+        let json = self.inner_fetch(url, query).await?;
 
         // Special case for comments, as they are wrapped in an array
         // First element of said array is the post, second is the comments
@@ -109,23 +118,17 @@ impl RedditConnection {
     pub async fn fetch_more_comments(
         &mut self,
         more: &MoreComments,
-    ) -> Result<Vec<RawComment>, RedditError> {
+        requests_left: u16,
+    ) -> Result<(Vec<RawComment>, u16), RedditError> {
         let request_parts_vec = more.into_request_parts();
 
         let mut comments = vec![];
+        let mut requests_made = 0;
 
         for (url, query) in request_parts_vec {
-            let req = self
-                .http
-                .get(url)
-                .query(&query)
-                .bearer_auth(&self.access_token.token())
-                .build()
-                .unwrap();
-
-            let res = self.http.execute(req).await.unwrap();
-
-            let json: Value = res.json().await.unwrap();
+            let json = self.inner_fetch(url, query).await?;
+            requests_made += 1;
+            debug!("Comment requests made: {}/{}", requests_made, requests_left);
 
             let json_list = json
                 .get("json")
@@ -150,9 +153,13 @@ impl RedditConnection {
                 )
                 .into());
             }
+            if requests_made >= requests_left {
+                debug!("No more comments- no requests left");
+                break;
+            }
         }
 
-        Ok(comments)
+        Ok((comments, requests_made))
     }
 }
 

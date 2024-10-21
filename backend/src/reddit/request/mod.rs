@@ -149,7 +149,7 @@ impl MoreComments {
         let url = format!("https://oauth.reddit.com/api/morechildren");
 
         self.children
-            .chunks(20)
+            .chunks(100)
             .map(|chunk| {
                 let query = vec![
                     ("link_id", self.parent_id.clone()),

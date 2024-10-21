@@ -1,4 +1,4 @@
-use log::{debug, info};
+use log::{debug, info, warn};
 
 use crate::{
     reddit::{
@@ -125,17 +125,20 @@ impl RMoodsFetcher {
         let mut requests_left = requests_left;
         let mut comments = vec![];
 
+        debug!("Fetching more comments with {} requests left", requests_left);
+
         for more_comments in stubs {
             if requests_left == 0 {
                 break;
             }
-            let new_comments = self
+            let (new_comments, requests_made) = self
                 .reddit_connection
-                .fetch_more_comments(&more_comments)
+                .fetch_more_comments(&more_comments, requests_left)
                 .await
                 .unwrap();
 
-            requests_left -= 1;
+            requests_left -= requests_made;
+            info!("Requests left: {}", requests_left);
             comments.extend(new_comments);
         }
 

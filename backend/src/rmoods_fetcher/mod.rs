@@ -201,7 +201,6 @@ impl RedditData for PostComments {
                     comments.push(*comment);
                 }
                 RawContainer::More(more) => {
-                    dbg!(&more);
                     mores.push(*more)
                 }
                 _ => {
@@ -214,7 +213,6 @@ impl RedditData for PostComments {
         }
 
         debug!("Returning {} post replies", { comments.len() });
-        dbg!(&mores);
 
         Ok(PostComments {
             list: comments,
