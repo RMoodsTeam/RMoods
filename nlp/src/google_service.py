@@ -5,10 +5,11 @@ from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 
 
-def create_service(client_secret_file, api_name, api_version, scopes):
+def create_service(client_secret_file: str, api_name: str, api_version: str,
+                   scopes: list) -> object:
     """
-    Shows basic usage of the Drive v3 API. Based on Google Documentation
-    https://developers.google.com/drive/api/quickstart/python?hl=pl
+    Create a service object for the Google Drive API. Function is based on the Google
+    API documentation: https://developers.google.com/drive/api/quickstart/python?hl=pl
 
     :param client_secret_file: The client secret file.
     :param api_name: The name of the API.
@@ -17,14 +18,8 @@ def create_service(client_secret_file, api_name, api_version, scopes):
 
     :return: The service object or None.
     """
-    CLIENT_SECRET_FILE = client_secret_file
-    API_SERVICE_NAME = api_name
-    API_VERSION = api_version
-    SCOPES = scopes
-
     cred = None
-
-    pickle_file = f'token_{API_SERVICE_NAME}_{API_VERSION}.pickle'
+    pickle_file = f'token_{api_name}_{api_version}.pickle'
 
     if os.path.exists(pickle_file):
         with open(pickle_file, 'rb') as token:
@@ -34,15 +29,15 @@ def create_service(client_secret_file, api_name, api_version, scopes):
         if cred and cred.expired and cred.refresh_token:
             cred.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE
-                                                             , SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(client_secret_file
+                                                             , scopes)
             cred = flow.run_local_server(port=8002)
 
         with open(pickle_file, 'wb') as token:
             pickle.dump(cred, token)
 
     try:
-        service = build(API_SERVICE_NAME, API_VERSION, credentials=cred)
+        service = build(api_name, api_version, credentials=cred)
         return service
     except Exception as e:
         print('Unable to connect.')
