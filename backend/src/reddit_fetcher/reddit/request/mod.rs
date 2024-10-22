@@ -66,11 +66,12 @@ pub struct PostCommentsRequest {
 pub type RequestParts = (String, Vec<(&'static str, String)>);
 
 pub trait RedditResource {
-    fn into_request_parts(&self) -> RequestParts;
+    fn to_request_parts(&self) -> RequestParts;
+    fn resource_name(&self) -> String;
 }
 
 impl RedditResource for SubredditPostsRequest {
-    fn into_request_parts(&self) -> RequestParts {
+    fn to_request_parts(&self) -> RequestParts {
         let url = format!(
             "https://oauth.reddit.com/r/{}/{}.json",
             self.subreddit,
@@ -89,17 +90,23 @@ impl RedditResource for SubredditPostsRequest {
 
         (url, query)
     }
+    fn resource_name(&self) -> String {
+        format!("r/{}", self.subreddit)
+    }
 }
 
 impl RedditResource for SubredditInfoRequest {
-    fn into_request_parts(&self) -> RequestParts {
+    fn to_request_parts(&self) -> RequestParts {
         let url = format!("https://oauth.reddit.com/r/{}/about.json", self.subreddit);
         (url, vec![])
+    }
+    fn resource_name(&self) -> String {
+        format!("r/{}", self.subreddit)
     }
 }
 
 impl RedditResource for UserPostsRequest {
-    fn into_request_parts(&self) -> RequestParts {
+    fn to_request_parts(&self) -> RequestParts {
         let url = format!("https://oauth.reddit.com/user/{}.json", self.username);
 
         let mut query = vec![("sort", self.sorting.to_string())];
@@ -114,17 +121,23 @@ impl RedditResource for UserPostsRequest {
 
         (url, query)
     }
+    fn resource_name(&self) -> String {
+        format!("u/{}", self.username)
+    }
 }
 
 impl RedditResource for UserInfoRequest {
-    fn into_request_parts(&self) -> RequestParts {
+    fn to_request_parts(&self) -> RequestParts {
         let url = format!("https://oauth.reddit.com/user/{}/about.json", self.username);
         (url, vec![])
+    }
+    fn resource_name(&self) -> String {
+        format!("u/{}", self.username)
     }
 }
 
 impl RedditResource for PostCommentsRequest {
-    fn into_request_parts(&self) -> RequestParts {
+    fn to_request_parts(&self) -> RequestParts {
         let url = format!(
             "https://oauth.reddit.com/r/{}/comments/{}.json",
             self.subreddit, self.post_id
@@ -142,11 +155,14 @@ impl RedditResource for PostCommentsRequest {
 
         (url, query)
     }
+    fn resource_name(&self) -> String {
+        format!("r/{}/comments/{}", self.subreddit, self.post_id)
+    }
 }
 
 impl MoreComments {
-    pub fn into_request_parts(&self) -> Vec<RequestParts> {
-        let url = format!("https://oauth.reddit.com/api/morechildren");
+    pub fn into_request_parts(self) -> Vec<RequestParts> {
+        let url = "https://oauth.reddit.com/api/morechildren".to_string();
 
         self.children
             .chunks(100)

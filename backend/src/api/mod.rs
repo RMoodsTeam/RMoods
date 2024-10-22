@@ -2,6 +2,7 @@ use crate::AppState;
 use axum::{routing::get, Router};
 use std::collections::HashMap;
 
+pub mod auth;
 pub mod debug;
 pub mod report;
 

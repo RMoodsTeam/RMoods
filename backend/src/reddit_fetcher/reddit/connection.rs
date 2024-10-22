@@ -1,8 +1,8 @@
-use std::time::SystemTime;
-
-use log::{debug, error, info, warn};
+use http::StatusCode;
+use log::{debug, info, warn};
 use log_derive::logfn;
 use serde_json::Value;
+use std::time::SystemTime;
 
 use super::{
     auth::{RedditAccessToken, RedditApp},
@@ -17,16 +17,19 @@ use super::{
 #[derive(Debug, Clone)]
 pub struct RedditConnection {
     /// For now, it's a single app
-    pub(super) client: RedditApp,
+    pub(crate) client: RedditApp,
     /// Token from the app
-    pub(super) access_token: RedditAccessToken,
+    pub(crate) access_token: RedditAccessToken,
     /// The connection's own HTTP client, decoupled from our main app. Can remove, but it would hurt performance a bit when making many requests.
-    pub(super) http: reqwest::Client,
+    pub(crate) http: reqwest::Client,
 }
 
 impl RedditConnection {
     /// Read credentials from the environment and create a new [RedditConnection]
-    #[logfn(err = "ERROR", fmt = "Failed to create RedditConnection: {:?}")]
+    #[logfn(
+        err = "ERROR",
+        fmt = "Fetcher - Failed to create RedditConnection: {:?}"
+    )]
     pub async fn new(http: reqwest::Client) -> Result<RedditConnection, RedditError> {
         let id = std::env::var("CLIENT_ID").expect("CLIENT_ID should be set");
         let secret = std::env::var("CLIENT_SECRET").expect("CLIENT_SECRET should be set");
@@ -37,7 +40,9 @@ impl RedditConnection {
         let client = RedditApp::new(id, secret);
 
         info!("Fetching initial access token");
-        let access_token = client.fetch_access_token(&http).await?;
+        let access_token = client.fetch_access_token(&http).await.or(Err(
+            RedditError::FailedToFetchAccessToken(client.client_id.to_string()),
+        ))?;
         debug!("Access token: {:?}", access_token);
         info!("Done fetching access token");
 
@@ -48,18 +53,23 @@ impl RedditConnection {
         })
     }
 
-    async fn inner_fetch(
-        &mut self,
-        url: String,
-        query: Vec<(&str, String)>,
-    ) -> Result<Value, RedditError> {
-        info!("Fetching data from: {url:?}\nWith query params: {query:?}");
-
+    #[logfn(err = "ERROR", fmt = "Failed to refresh access token: {0}")]
+    async fn refresh_access_token(&mut self) -> Result<(), RedditError> {
         if self.access_token.is_expired() {
             warn!("Access token expired, fetching new one");
             self.access_token = self.client.fetch_access_token(&self.http).await?;
             info!("New access token fetched");
         }
+        Ok(())
+    }
+
+    #[logfn(err = "ERROR", fmt = "Failed inner_fetch: {0}")]
+    async fn inner_fetch(
+        &mut self,
+        url: String,
+        query: Vec<(&str, String)>,
+    ) -> Result<Value, reqwest::Error> {
+        info!("Fetching data from: {url:?}\nWith query params: {query:?}");
 
         let req = self
             .http
@@ -67,8 +77,6 @@ impl RedditConnection {
             .query(&query)
             .bearer_auth(&self.access_token.token())
             .build()?;
-
-        //debug!("Request: {:?}", req);
 
         let start = SystemTime::now();
         let res = self.http.execute(req).await?;
@@ -90,9 +98,18 @@ impl RedditConnection {
         &mut self,
         request: impl RedditResource,
     ) -> Result<(RawContainer, Option<String>), RedditError> {
-        let (url, query) = request.into_request_parts();
+        self.refresh_access_token().await?;
+        let (url, query) = request.to_request_parts();
 
-        let json = self.inner_fetch(url, query).await?;
+        let json = self.inner_fetch(url, query).await;
+
+        let json = json.map_err(|err| match err.status() {
+            Some(status) => match status {
+                StatusCode::NOT_FOUND => RedditError::ResourceNotFound(request.resource_name()),
+                _ => RedditError::HttpError(err),
+            },
+            None => RedditError::HttpError(err),
+        })?;
 
         // Special case for comments, as they are wrapped in an array
         // First element of said array is the post, second is the comments
@@ -104,29 +121,42 @@ impl RedditConnection {
                 .get("after")
                 .and_then(|a| a.as_str())
                 .map(|s| s.to_string());
-            Ok((serde_json::from_value(comments_container).unwrap(), after))
+            Ok((serde_json::from_value(comments_container)?, after))
         } else {
             let after = json
                 .get("data")
                 .and_then(|d| d.get("after"))
                 .and_then(|a| a.as_str())
                 .map(|s| s.to_string());
-            Ok((serde_json::from_value(json).unwrap(), after))
+            Ok((serde_json::from_value(json)?, after))
         }
     }
 
+    #[logfn(err = "ERROR", fmt = "Failed to fetch more comments: {0}")]
     pub async fn fetch_more_comments(
         &mut self,
         more: &MoreComments,
         requests_left: u16,
     ) -> Result<(Vec<RawComment>, u16), RedditError> {
-        let request_parts_vec = more.into_request_parts();
+        self.refresh_access_token().await?;
+        let request_parts_vec = more.clone().into_request_parts();
 
         let mut comments = vec![];
         let mut requests_made = 0;
 
         for (url, query) in request_parts_vec {
-            let json = self.inner_fetch(url, query).await?;
+            let json = self.inner_fetch(url, query).await;
+
+            let json = json.map_err(|err| match err.status() {
+                Some(status) => match status {
+                    StatusCode::NOT_FOUND => {
+                        RedditError::ResourceNotFound(format!("{}/children", more.parent_id))
+                    }
+                    _ => RedditError::HttpError(err),
+                },
+                None => RedditError::HttpError(err),
+            })?;
+
             requests_made += 1;
             debug!("Comment requests made: {}/{}", requests_made, requests_left);
 
@@ -136,8 +166,9 @@ impl RedditConnection {
                 .and_then(|d| d.get("things"))
                 .cloned();
 
+            // If the response is correct, we can extract the comments and add them to the list
             if let Some(list) = json_list {
-                let list = serde_json::from_value::<Vec<RawContainer>>(list).unwrap();
+                let list = serde_json::from_value::<Vec<RawContainer>>(list)?;
                 let new_comments = list
                     .iter()
                     .filter_map(|c| match c {
@@ -154,7 +185,7 @@ impl RedditConnection {
                 .into());
             }
             if requests_made >= requests_left {
-                debug!("No more comments- no requests left");
+                debug!("No more comments - no requests left");
                 break;
             }
         }
@@ -180,9 +211,12 @@ fn create_ratelimit_log(res: &reqwest::Response) -> String {
     };
     res.headers()
         .iter()
-        .filter(|h| ratelimit_headers.contains(&h.0.as_str()))
-        .fold(String::from("\n"), |acc, (k, v)| {
-            let s = format!("{}: {}\n", k, v.to_str().unwrap());
-            acc + s.as_str()
+        .filter_map(|(k, v)| {
+            if ratelimit_headers.contains(&k.as_str()) {
+                Some(format!("{}: {}\n", k, v.to_str().unwrap()))
+            } else {
+                None
+            }
         })
+        .collect::<String>()
 }

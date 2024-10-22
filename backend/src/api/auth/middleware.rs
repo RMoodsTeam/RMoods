@@ -3,7 +3,7 @@ use http::StatusCode;
 use log::info;
 use log_derive::logfn;
 
-use crate::auth::jwt::decode_jwt;
+use crate::api::auth::jwt::decode_jwt;
 
 /// Verify the `Authorization` header and decode the JWT.
 ///

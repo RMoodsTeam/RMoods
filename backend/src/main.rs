@@ -1,9 +1,10 @@
 use crate::open_api::ApiDoc;
+use crate::reddit_fetcher::fetcher::RMoodsFetcher;
+use api::auth;
 use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reqwest::Client;
-use rmoods_fetcher::rmoods_request::RMoodsFetcher;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -14,10 +15,8 @@ use utoipa_swagger_ui::SwaggerUi;
 
 mod api;
 mod app_error;
-mod auth;
 mod open_api;
-mod reddit;
-mod rmoods_fetcher;
+mod reddit_fetcher;
 
 /// State to be shared between all routes.
 /// Contains common resources that shouldn't be created over and over again.

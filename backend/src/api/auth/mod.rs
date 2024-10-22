@@ -4,7 +4,7 @@ use axum::{routing::post, Router};
 pub mod error;
 mod google;
 pub mod jwt;
-pub(super) mod login;
+pub(crate) mod login;
 pub mod middleware;
 
 // used for OpenAPI generation, maybe not picked up by the compiler as "used".

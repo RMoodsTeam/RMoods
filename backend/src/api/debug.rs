@@ -8,19 +8,15 @@ use log_derive::logfn;
 use reqwest::StatusCode;
 use serde_json::{json, Value};
 
-use crate::{
-    app_error::AppError,
-    reddit::request::params::FeedSorting,
-    rmoods_fetcher::{
-        rmoods_request::{
-            DataSource, RMoodsNlpRequest, RMoodsReportType, RedditFeedKind, RequestSize,
-        },
-        PostComments, Posts, UserPosts,
-    },
-    AppState,
-};
-
 use super::AnyParams;
+use crate::reddit_fetcher::model::post_comments::PostComments;
+use crate::reddit_fetcher::model::posts::Posts;
+use crate::reddit_fetcher::model::user_posts::UserPosts;
+use crate::reddit_fetcher::nlp_request::{
+    DataSource, RMoodsNlpRequest, RMoodsReportType, RedditFeedKind, RequestSize,
+};
+use crate::reddit_fetcher::reddit::request::params::FeedSorting;
+use crate::{app_error::AppError, AppState};
 
 /// Returns after a specified delay.
 #[utoipa::path(
@@ -134,6 +130,8 @@ pub async fn post_comments(
         .unwrap();
 
     data.list.extend(more_comments);
+    // Remove more comments, as they are already fetched and useless to consumers
+    data.more.clear();
 
     info!("Returning {} post comments", data.list.len());
 
