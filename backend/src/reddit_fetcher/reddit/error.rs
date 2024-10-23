@@ -11,11 +11,7 @@ pub enum RedditError {
     #[error("Failed to fetch Reddit access token for client_id '{0}'")]
     FailedToFetchAccessToken(String),
 
-    /// Invalid domain was given for the request
-    #[error("Domain '{0}' is not a valid Reddit API domain")]
-    InvalidDomain(String),
-
-    /// Some other HTTP error occured.
+    /// Some other HTTP error occurred.
     #[error("HTTP Error: `{0}`")]
     HttpError(#[from] reqwest::Error),
 
@@ -23,8 +19,11 @@ pub enum RedditError {
     ///
     /// Possible causes:
     /// * Our struct definitions are wrong
-    /// * We didn't check for an error status and we're trying to parse an error response to our structs
+    /// * We didn't check for an error status, and we're trying to parse an error response to our structs
     /// * Reddit sent a malformed response (incredibly unlikely)
     #[error("JSON Error: `{0}`")]
     JsonError(#[from] serde_json::Error),
+
+    #[error("Failed to parse data from Reddit: {0}")]
+    OtherJsonError(String),
 }

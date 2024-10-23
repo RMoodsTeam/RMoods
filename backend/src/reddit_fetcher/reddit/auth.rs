@@ -1,9 +1,8 @@
 use log::debug;
+use log_derive::logfn;
 use reqwest::Client;
 use serde::Deserialize;
 use std::time::SystemTime;
-
-use super::error::RedditError;
 
 /// Get the current system time in seconds since UNIX EPOCH
 fn get_sys_time_in_secs() -> u64 {
@@ -63,10 +62,11 @@ impl RedditApp {
     }
 
     /// Fetch an access token from the Reddit API for that particular app
+    #[logfn(err = "ERROR", fmt = "Failed to fetch Reddit API access token: {0}")]
     pub async fn fetch_access_token(
         &self,
         http_client: &Client,
-    ) -> Result<RedditAccessToken, RedditError> {
+    ) -> Result<RedditAccessToken, reqwest::Error> {
         let req = http_client
             .post("https://www.reddit.com/api/v1/access_token")
             .basic_auth(self.client_id.as_str(), Some(self.client_secret.as_str())) // basic http auth

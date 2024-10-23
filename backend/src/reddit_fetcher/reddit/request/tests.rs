@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::reddit::request::{
-        params::{FeedRequestParams, FeedSorting, FeedSortingTime, RequestSize},
-        RedditRequest,
+    use crate::reddit_fetcher::reddit::request::{
+        params::{FeedSorting, FeedSortingTime},
+        PostCommentsRequest, RedditResource, SubredditInfoRequest, SubredditPostsRequest,
+        UserInfoRequest, UserPostsRequest,
     };
 
     fn init() {
@@ -11,70 +12,64 @@ mod tests {
 
     #[test]
     fn test_create_url_subreddit_posts() {
-        let req = RedditRequest::SubredditPosts {
+        let req = SubredditPostsRequest {
             subreddit: "Polska".to_string(),
-            params: FeedRequestParams {
-                size: RequestSize::Medium,
-                sorting: FeedSorting::New,
-            },
+            sorting: FeedSorting::New,
+            after: None,
         };
-        let (url, query) = req.into_http_request_parts();
+        let (url, query) = req.to_request_parts();
         assert_eq!(url, "https://oauth.reddit.com/r/Polska/new.json");
-        assert_eq!(query, vec![("limit", "250".to_string())]);
+        assert_eq!(query, vec![("limit", "100".to_string())]);
     }
 
     #[test]
     fn test_create_url_subreddit_info() {
-        let req = RedditRequest::SubredditInfo {
+        let req = SubredditInfoRequest {
             subreddit: "Polska".to_string(),
         };
-        let (url, query) = req.into_http_request_parts();
+        let (url, query) = req.to_request_parts();
         assert_eq!(url, "https://oauth.reddit.com/r/Polska/about.json");
         assert_eq!(query, vec![]);
     }
 
     #[test]
     fn test_create_url_user_posts() {
-        let req = RedditRequest::UserPosts {
+        let req = UserPostsRequest {
             username: "spez".to_string(),
-            params: FeedRequestParams {
-                size: RequestSize::Small,
-                sorting: FeedSorting::Top(FeedSortingTime::All),
-            },
+            sorting: FeedSorting::Top(FeedSortingTime::All),
+            after: None,
         };
-        let (url, query) = req.into_http_request_parts();
+        let (url, query) = req.to_request_parts();
         assert_eq!(url, "https://oauth.reddit.com/user/spez.json");
         assert_eq!(
             query,
             vec![
-                ("limit", "50".to_string()),
                 ("sort", "top".to_string()),
-                ("t", "all".to_string())
+                ("t", "all".to_string()),
+                ("limit", "100".to_string()),
             ]
         );
     }
 
     #[test]
     fn test_create_url_user_info() {
-        let req = RedditRequest::UserInfo {
+        let req = UserInfoRequest {
             username: "spez".to_string(),
         };
-        let (url, query) = req.into_http_request_parts();
+        let (url, query) = req.to_request_parts();
         assert_eq!(url, "https://oauth.reddit.com/user/spez/about.json");
         assert_eq!(query, vec![]);
     }
 
     #[test]
     fn test_create_url_post_comments() {
-        let req = RedditRequest::PostComments {
+        let req = PostCommentsRequest {
             subreddit: "Polska".to_string(),
             post_id: "abc123".to_string(),
-            params: FeedRequestParams {
-                size: RequestSize::Custom(10),
-                sorting: FeedSorting::Controversial(FeedSortingTime::Day),
-            },
+            sorting: FeedSorting::Controversial(FeedSortingTime::Day),
+            after: None,
         };
-        let (url, query) = req.into_http_request_parts();
+        let (url, query) = req.to_request_parts();
         assert_eq!(
             url,
             "https://oauth.reddit.com/r/Polska/comments/abc123.json"
@@ -82,28 +77,29 @@ mod tests {
         assert_eq!(
             query,
             vec![
-                ("limit", "10".to_string()),
                 ("sort", "controversial".to_string()),
-                ("t", "day".to_string())
+                ("t", "day".to_string()),
+                ("limit", "100".to_string())
             ]
         );
     }
 
     #[test]
     fn test_create_default_params() {
-        let req = RedditRequest::PostComments {
+        let req = PostCommentsRequest {
             subreddit: "Polska".to_string(),
             post_id: "abc123".to_string(),
-            params: FeedRequestParams::default(),
+            sorting: FeedSorting::default(),
+            after: None,
         };
-        let (url, query) = req.into_http_request_parts();
+        let (url, query) = req.to_request_parts();
         assert_eq!(
             url,
             "https://oauth.reddit.com/r/Polska/comments/abc123.json"
         );
         assert_eq!(
             query,
-            vec![("limit", "50".to_string()), ("sort", "hot".to_string())]
+            vec![("sort", "hot".to_string()), ("limit", "100".to_string())]
         );
     }
 }

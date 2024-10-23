@@ -3,7 +3,8 @@ use derive_getters::Getters;
 use reqwest::StatusCode;
 use serde_json::json;
 
-use crate::{auth::error::AuthError, reddit::error::RedditError};
+use crate::api::auth::error::AuthError;
+use crate::reddit_fetcher::reddit::error::RedditError;
 
 /// Public-facing error kind. Contains an HTTP status code and a message describing the error.
 #[derive(Debug, Getters)]
@@ -89,14 +90,5 @@ mod tests {
         let app_error: AppError = error.into();
         assert_eq!(app_error.code, StatusCode::NOT_FOUND);
         assert_eq!(app_error.message, "Resource not found: 'r/Polska'");
-    }
-
-    #[test]
-    fn test_app_error_from_reddit_error_internal_server_error() {
-        let error = RedditError::InvalidDomain("Invalid domain".to_string());
-        let app_error: AppError = error.into();
-        let expected = AppError::internal_server_error();
-        assert_eq!(app_error.code, expected.code);
-        assert_eq!(app_error.message, expected.message);
     }
 }

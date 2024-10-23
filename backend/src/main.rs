@@ -1,8 +1,9 @@
 use crate::open_api::ApiDoc;
+use crate::reddit_fetcher::fetcher::RMoodsFetcher;
+use api::auth;
 use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
-use reddit::connection::RedditConnection;
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tower_http::{
@@ -14,15 +15,14 @@ use utoipa_swagger_ui::SwaggerUi;
 
 mod api;
 mod app_error;
-mod auth;
 mod open_api;
-mod reddit;
+mod reddit_fetcher;
 
 /// State to be shared between all routes.
 /// Contains common resources that shouldn't be created over and over again.
 #[derive(Clone)]
 pub struct AppState {
-    pub reddit: RedditConnection,
+    pub fetcher: RMoodsFetcher,
     pub pool: Pool<Postgres>,
     pub http: Client,
 }
@@ -61,10 +61,14 @@ async fn run() -> anyhow::Result<()> {
     info!("Connected to the database");
 
     let http = reqwest::ClientBuilder::new().user_agent("RMoods").build()?;
-    let reddit = RedditConnection::new(http.clone()).await?;
+    let fetcher = RMoodsFetcher::new(http.clone()).await?;
     info!("Connected to Reddit");
 
-    let state = AppState { reddit, pool, http };
+    let state = AppState {
+        fetcher,
+        pool,
+        http,
+    };
 
     // Allow browsers to use GET and PUT from any origin
     let cors =

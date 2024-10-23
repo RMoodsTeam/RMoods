@@ -5,7 +5,8 @@ use utoipa::ToSchema;
 
 use super::{google::fetch_google_access_token, jwt::create_jwt};
 
-use crate::{app_error::AppError, auth::google::fetch_google_user_info, AppState};
+use crate::api::auth::google::fetch_google_user_info;
+use crate::{app_error::AppError, AppState};
 
 #[derive(Serialize, Debug, ToSchema)]
 pub struct LoginResponse {

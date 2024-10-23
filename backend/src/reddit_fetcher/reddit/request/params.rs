@@ -1,7 +1,5 @@
-use std::{default, fmt::Display};
-
-use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 /// Represents a time period for sorting posts in a feed.
 ///
@@ -16,9 +14,9 @@ pub enum FeedSortingTime {
     All,
 }
 
-impl ToString for FeedSortingTime {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for FeedSortingTime {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             FeedSortingTime::Hour => "hour",
             FeedSortingTime::Day => "day",
             FeedSortingTime::Week => "week",
@@ -26,7 +24,8 @@ impl ToString for FeedSortingTime {
             FeedSortingTime::Year => "year",
             FeedSortingTime::All => "all",
         }
-        .to_string()
+        .to_string();
+        write!(f, "{}", str)
     }
 }
 
@@ -45,16 +44,17 @@ pub enum FeedSorting {
     Controversial(FeedSortingTime),
 }
 
-impl ToString for FeedSorting {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for FeedSorting {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             FeedSorting::Hot => "hot",
             FeedSorting::New => "new",
             FeedSorting::Rising => "rising",
             FeedSorting::Top(_) => "top",
             FeedSorting::Controversial(_) => "controversial",
         }
-        .to_string()
+        .to_string();
+        write!(f, "{}", str)
     }
 }
 
@@ -66,44 +66,4 @@ impl FeedSorting {
             _ => None,
         }
     }
-}
-
-/// Represents the number of posts to fetch from a feed.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
-pub enum RequestSize {
-    #[default]
-    Small,
-    Medium,
-    Large,
-    /// Custom number of posts to fetch as u16
-    Custom(u16),
-}
-
-impl From<RequestSize> for u16 {
-    fn from(value: RequestSize) -> Self {
-        match value {
-            RequestSize::Small => 50,
-            RequestSize::Medium => 250,
-            RequestSize::Large => 100,
-            RequestSize::Custom(n) => n,
-        }
-    }
-}
-
-impl ToString for RequestSize {
-    fn to_string(&self) -> String {
-        let n = u16::from(*self);
-        n.to_string()
-    }
-}
-
-/// Represents the parameters for fetching a feed of posts.
-#[derive(Debug, Serialize, Deserialize, Getters, Default)]
-pub struct FeedRequestParams {
-    /// Number of posts to fetch
-    #[serde(flatten)]
-    pub size: RequestSize,
-    /// Sorting method for posts
-    #[serde(flatten)]
-    pub sorting: FeedSorting,
 }
