@@ -21,3 +21,9 @@ Cargo.lock
 
 # HTTP test files for Emacs Restclient
 *.http
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore IntelliJ IDEA files
+.idea

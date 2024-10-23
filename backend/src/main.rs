@@ -1,5 +1,6 @@
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
+use crate::startup::{shutdown_signal, verify_environment};
 use api::auth;
 use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
@@ -17,6 +18,7 @@ mod api;
 mod app_error;
 mod open_api;
 mod reddit_fetcher;
+mod startup;
 
 /// State to be shared between all routes.
 /// Contains common resources that shouldn't be created over and over again.
@@ -25,30 +27,6 @@ pub struct AppState {
     pub fetcher: RMoodsFetcher,
     pub pool: Pool<Postgres>,
     pub http: Client,
-}
-
-/// Ensure that all necessary environment variables are available at server startup.
-/// It's important to keep this updated as our .env file grows.
-fn verify_environment() -> bool {
-    let needed_vars = [
-        "CLIENT_ID",
-        "CLIENT_SECRET",
-        "DATABASE_URL",
-        "JWT_SECRET",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET",
-    ];
-    let defined: Vec<String> = std::env::vars().map(|(k, _)| k).collect();
-
-    let mut is_ok = true;
-    needed_vars
-        .iter()
-        .filter(|&needed| !defined.contains(&needed.to_string()))
-        .for_each(|missing| {
-            log::error!("{missing} is not defined in the environment.");
-            is_ok = false
-        });
-    is_ok
 }
 
 /// Run the server, assuming the environment has been already validated.
@@ -98,7 +76,9 @@ async fn run() -> anyhow::Result<()> {
     let listener = tokio::net::TcpListener::bind(&addr).await?;
 
     info!("Started the RMoods server at {}", addr);
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
 
     Ok(())
 }
