@@ -10,6 +10,7 @@ pub fn verify_environment() -> bool {
         "JWT_SECRET",
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
+        "WEBSOCKET_PORT",
     ];
     let defined: Vec<String> = std::env::vars().map(|(k, _)| k).collect();
 

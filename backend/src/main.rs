@@ -1,6 +1,7 @@
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::startup::{shutdown_signal, verify_environment};
+use crate::websocket::WebSocketMessage;
 use api::auth;
 use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
@@ -19,6 +20,7 @@ mod app_error;
 mod open_api;
 mod reddit_fetcher;
 mod startup;
+mod websocket;
 
 /// State to be shared between all routes.
 /// Contains common resources that shouldn't be created over and over again.
@@ -27,6 +29,7 @@ pub struct AppState {
     pub fetcher: RMoodsFetcher,
     pub pool: Pool<Postgres>,
     pub http: Client,
+    pub websocket_service_tx: tokio::sync::mpsc::Sender<WebSocketMessage>,
 }
 
 /// Run the server, assuming the environment has been already validated.
@@ -42,10 +45,18 @@ async fn run() -> anyhow::Result<()> {
     let fetcher = RMoodsFetcher::new(http.clone()).await?;
     info!("Connected to Reddit");
 
+    info!("Starting the WebSocket service");
+    // Drop the receiver, we don't need it
+    let (tx, rx) = tokio::sync::mpsc::channel::<WebSocketMessage>(100);
+    let port = std::env::var("WEBSOCKET_PORT").expect("WEBSOCKET_PORT is set");
+    let port = port.parse::<u16>().expect("WEBSOCKET_PORT is a valid u16");
+    tokio::spawn(websocket::start_service(port, rx));
+
     let state = AppState {
         fetcher,
         pool,
         http,
+        websocket_service_tx: tx,
     };
 
     // Allow browsers to use GET and PUT from any origin
@@ -60,6 +71,7 @@ async fn run() -> anyhow::Result<()> {
     let authorization = axum::middleware::from_fn(auth::middleware::authorization);
 
     // Routes after the layers won't have the layers applied
+    // Example: /auth routes won't have the authorization layer, but /api will
     let app = Router::<AppState>::new()
         .nest("/api", api::router())
         .layer(authorization)
