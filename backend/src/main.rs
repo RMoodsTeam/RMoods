@@ -46,11 +46,16 @@ async fn run() -> anyhow::Result<()> {
     info!("Connected to Reddit");
 
     info!("Starting the WebSocket service");
+    let cancellation_token = tokio_util::sync::CancellationToken::new();
     // Drop the receiver, we don't need it
     let (tx, rx) = tokio::sync::mpsc::channel::<WebSocketMessage>(100);
     let port = std::env::var("WEBSOCKET_PORT").expect("WEBSOCKET_PORT is set");
     let port = port.parse::<u16>().expect("WEBSOCKET_PORT is a valid u16");
-    tokio::spawn(websocket::start_service(port, rx));
+    tokio::spawn(websocket::start_service(
+        port,
+        rx,
+        cancellation_token.clone(),
+    ));
 
     let state = AppState {
         fetcher,
@@ -89,7 +94,7 @@ async fn run() -> anyhow::Result<()> {
 
     info!("Started the RMoods server at {}", addr);
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(shutdown_signal(cancellation_token))
         .await?;
 
     Ok(())

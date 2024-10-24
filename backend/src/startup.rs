@@ -1,4 +1,6 @@
+use log::info;
 use tokio::signal;
+use tokio_util::sync::CancellationToken;
 
 /// Ensure that all necessary environment variables are available at server startup.
 /// It's important to keep this updated as our .env file grows.
@@ -25,7 +27,7 @@ pub fn verify_environment() -> bool {
     is_ok
 }
 
-pub async fn shutdown_signal() {
+pub async fn shutdown_signal(cancellation_token: CancellationToken) {
     let ctrl_c = async {
         signal::ctrl_c()
             .await
@@ -45,8 +47,17 @@ pub async fn shutdown_signal() {
 
     tokio::select! {
         _ = ctrl_c => {
-            log::info!("Received Ctrl+C signal, shutting down");
+            log::info!("Received Ctrl+C signal, shutting down main HTTP server");
+            cancellation_token.cancel();
+            info!("Shutting down WebSocket service");
         },
-        _ = terminate => {},
+        _ = terminate => {
+            log::info!("Received SIGTERM, shutting down");
+            cancellation_token.cancel();
+            info!("Shutting down WebSocket service");
+        },
+        _ = cancellation_token.cancelled() => {
+            info!("WebSocket service triggered shutdown, shutting down main HTTP server");
+        },
     }
 }

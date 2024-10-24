@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::mpsc::Receiver;
 use tokio_tungstenite::WebSocketStream;
+use tokio_util::sync::CancellationToken;
 
 #[derive(Debug)]
 pub enum WebSocketMessage {
@@ -19,7 +20,7 @@ async fn authenticate(mut ws: SplitStream<WebSocketStream<TcpStream>>) -> anyhow
     Ok(msg)
 }
 
-async fn accept_connection(
+async fn accept_websocket_connection(
     (stream, socket_addr): (TcpStream, std::net::SocketAddr),
     peers: &mut HashMap<
         String,
@@ -65,7 +66,11 @@ async fn handle_system_message(msg: WebSocketMessage) {
     }
 }
 
-pub async fn start_service(port: u16, mut rx: Receiver<WebSocketMessage>) -> anyhow::Result<()> {
+pub async fn start_service(
+    port: u16,
+    mut rx: Receiver<WebSocketMessage>,
+    cancellation_token: CancellationToken,
+) -> anyhow::Result<()> {
     let addr = format!("127.0.0.1:{}", port);
     let listener = TcpListener::bind(&addr).await?;
     let mut peers: HashMap<
@@ -75,18 +80,24 @@ pub async fn start_service(port: u16, mut rx: Receiver<WebSocketMessage>) -> any
 
     info!("WebSocket service listening on: {}", addr);
 
-    // Some frontend client connects to this WebSocket service here
-    while let Ok((stream, socket_addr)) = listener.accept().await {
+    loop {
         tokio::select! {
-            _ = accept_connection((stream, socket_addr), &mut peers) => {
-                info!("Connection accepted");
-            },
-            msg = rx.recv() => {
-                info!("Received message: {:?}", msg);
-                if let Some(msg) = msg {
-                    handle_system_message(msg).await;
-                }
-            }
+           res = listener.accept() => {
+               info!("Connection accepted");
+               if let Ok((stream, socket_addr)) = res {
+                   info!("Connection from: {}", socket_addr.to_string());
+                   accept_websocket_connection((stream, socket_addr), &mut peers).await;
+               }
+           },
+           msg = rx.recv() => {
+               info!("Received message: {:?}", msg);
+               if let Some(msg) = msg {
+                   handle_system_message(msg).await;
+               }
+           }
+           _ = cancellation_token.cancelled() => {
+               break;
+           },
         }
     }
 
