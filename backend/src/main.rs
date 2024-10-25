@@ -1,7 +1,7 @@
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::startup::{shutdown_signal, verify_environment};
-use crate::websocket::WebSocketMessage;
+use crate::websocket::SystemMessage;
 use api::auth;
 use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
@@ -29,7 +29,7 @@ pub struct AppState {
     pub fetcher: RMoodsFetcher,
     pub pool: Pool<Postgres>,
     pub http: Client,
-    pub websocket_service_tx: tokio::sync::mpsc::Sender<WebSocketMessage>,
+    pub websocket_service_tx: tokio::sync::mpsc::Sender<SystemMessage>,
 }
 
 /// Run the server, assuming the environment has been already validated.
@@ -48,7 +48,7 @@ async fn run() -> anyhow::Result<()> {
     info!("Starting the WebSocket service");
     let cancellation_token = tokio_util::sync::CancellationToken::new();
     // Drop the receiver, we don't need it
-    let (tx, rx) = tokio::sync::mpsc::channel::<WebSocketMessage>(100);
+    let (tx, rx) = tokio::sync::mpsc::channel::<SystemMessage>(100);
     let port = std::env::var("WEBSOCKET_PORT").expect("WEBSOCKET_PORT is set");
     let port = port.parse::<u16>().expect("WEBSOCKET_PORT is a valid u16");
     tokio::spawn(websocket::start_service(
