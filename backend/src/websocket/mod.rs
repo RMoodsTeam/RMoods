@@ -1,154 +1,136 @@
-use futures_util::stream::FusedStream;
+use crate::api::auth::google::GoogleUserInfo;
+use crate::AppState;
+use axum::extract::ws::WebSocket;
+use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
+use axum::response::IntoResponse;
+use axum::routing::any;
 use futures_util::StreamExt;
 use log::{info, warn};
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use thiserror::Error;
-use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::mpsc::Receiver;
-use tokio_tungstenite::WebSocketStream;
+use peers::PeersMap;
+use std::net::SocketAddr;
+use std::sync::atomic::AtomicUsize;
+use tokio::sync::mpsc::{Receiver, Sender};
 use tokio_util::sync::CancellationToken;
+
+mod peers;
+
+/// Generates a unique user ID, thread safe.
+fn generate_user_id() -> String {
+    static USER_ID_GEN: AtomicUsize = AtomicUsize::new(0);
+    USER_ID_GEN
+        .fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+        .to_string()
+}
+
+#[derive(Debug)]
+pub struct ServiceToClientMessage;
+
+type ConnectionId = String;
+type GoogleId = String;
+/// A tuple of the user's Google ID and the WebSocket connection ID.
+/// The Google ID is used to identify the user, while the WebSocket ID is used to identify the
+/// connection.
+///
+/// Thanks to the Google ID, the server can send messages to a specific user, even if they have
+/// multiple connections.
+type WsUserId = (GoogleId, ConnectionId);
 
 #[derive(Debug)]
 pub enum SystemMessage {
     RemainingRequestsUpdate(u16),
     ReportDone(()),
+    AddPeer((WsUserId, Sender<ServiceToClientMessage>)),
+    RemovePeer(ConnectionId),
 }
 
-#[derive(Debug, Error)]
-pub enum WebSocketServiceError {
-    #[error("Authentication timeout")]
-    AuthTimeout,
-
-    #[error("Failed to authenticate: {0}")]
-    AuthError(String),
-
-    #[error("WebSocket error: {0}")]
-    WebSocketError(#[from] tokio_tungstenite::tungstenite::Error),
+pub fn router() -> axum::Router<crate::AppState> {
+    axum::Router::new().route("/connect", any(websocket_handler))
 }
 
-type PeersMap = Arc<Mutex<HashMap<String, WebSocketStream<TcpStream>>>>;
-const AUTH_TIMEOUT_SECS: u64 = 10;
+async fn websocket_handler(
+    ws: WebSocketUpgrade,
+    State(state): State<AppState>,
+    ConnectInfo(socket_info): ConnectInfo<SocketAddr>,
+    google_user_info: GoogleUserInfo,
+) -> impl IntoResponse {
+    ws.on_upgrade(move |ws| handle_socket(ws, state.system_tx, socket_info, google_user_info))
+}
 
-async fn authenticate_new_connection(
-    ws: &mut WebSocketStream<TcpStream>,
-) -> Result<String, WebSocketServiceError> {
-    let msg = ws
-        .next()
+async fn handle_socket(
+    mut socket: WebSocket,
+    system_tx: Sender<SystemMessage>,
+    socket_addr: SocketAddr,
+    user_info: GoogleUserInfo,
+) {
+    info!("New WebSocket connection: {:?}", socket_addr);
+
+    dbg!(&user_info);
+
+    let user_ws_id_pair = (user_info.sub().to_string(), generate_user_id());
+
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<ServiceToClientMessage>(100);
+
+    system_tx
+        .send(SystemMessage::AddPeer((user_ws_id_pair, tx)))
         .await
-        .ok_or_else(|| WebSocketServiceError::AuthError("No message in sink".to_string()))??
-        .to_string();
-    warn!("Authenticating: {}", msg);
-    // TODO: Verify JWT
-    Ok(msg)
-}
+        .unwrap();
 
-async fn accept_websocket_connection(
-    (stream, socket_addr): (TcpStream, std::net::SocketAddr),
-    peers: PeersMap,
-) -> Result<(), WebSocketServiceError> {
-    info!("New connection from: {}", socket_addr.to_string());
-    let mut ws_stream = tokio_tungstenite::accept_async(stream).await?;
-
-    // Authenticate the new connection within a timeout of AUTH_TIMEOUT_SECS seconds
     tokio::select! {
-        _ = tokio::time::sleep(std::time::Duration::from_secs(AUTH_TIMEOUT_SECS)) => {
-            warn!("Authentication timeout");
-            Err(WebSocketServiceError::AuthTimeout)
-        },
-        auth_res = authenticate_new_connection(&mut ws_stream) => {
-            if let Ok(email) = auth_res {
-                info!("Authenticated email {email}");
-                let mut peers = peers.lock().unwrap();
-                peers.insert(email, ws_stream);
-                info!("Peers: {}", peers.len());
-            } else {
-                warn!("Failed to authenticate: {}", auth_res.unwrap_err());
+        ws_msg_res = socket.next() => {
+            if let Some(msg) = ws_msg_res {
+                let msg = msg.unwrap();
+                type Message = axum::extract::ws::Message;
+                match msg {
+                    Message::Close(_) => {
+                        warn!("Closing connection");
+                        system_tx
+                            .send(SystemMessage::RemovePeer(user_info.sub().to_string()))
+                            .await
+                            .unwrap();
+                        return;
+                    }
+                    _ => {
+                        warn!("Received message: {:?}", msg);
+                        socket.send(msg).await.unwrap();
+                    }
+                };
             }
-            Ok(())
-        }
-    }
-}
-
-async fn handle_system_message(msg: SystemMessage) {
-    match msg {
-        SystemMessage::RemainingRequestsUpdate(limit) => {
-            info!("New request limit: {}", limit);
-        }
-        SystemMessage::ReportDone(()) => {
-            info!("Report done");
-        }
-    }
-}
-
-async fn peer_cleanup_task(peers: PeersMap, cancellation_token: CancellationToken) {
-    info!("Starting peer cleanup task");
-
-    loop {
-        tokio::select! {
-            _ = tokio::time::sleep(std::time::Duration::from_secs(10)) => {
-                info!("Peer cleanup started");
-                let mut removed = 0;
-                let mut peers_lock = peers.lock().expect("Failed to lock peers map");
-
-                let to_remove: Vec<String> = peers_lock
-                    .iter()
-                    .filter_map(|(email, ws)| match ws.is_terminated() {
-                        true => Some(email.clone()),
-                        _ => None,
-                    })
-                    .collect();
-
-                for email in to_remove {
-                    peers_lock.remove(&email);
-                    removed += 1;
-                }
-
-                info!("Removed {} peers", removed);
-            },
-            _ = cancellation_token.cancelled() => {
-                info!("Peer cleanup task shutting down");
-                return;
+        },
+        service_msg_res = rx.recv() => {
+            if let Some(msg) = service_msg_res {
+                warn!("Received message from the main service: {:?}", msg);
             }
         }
     }
 }
 
 pub async fn start_service(
-    port: u16,
-    mut rx: Receiver<SystemMessage>,
+    mut system_rx: Receiver<SystemMessage>,
     cancellation_token: CancellationToken,
 ) -> anyhow::Result<()> {
-    let addr = format!("127.0.0.1:{}", port);
-    let listener = TcpListener::bind(&addr).await?;
-    let peers: PeersMap = Arc::new(Mutex::new(HashMap::new()));
+    let mut peers = PeersMap::new();
 
-    info!("WebSocket service running on: {}", addr);
-
-    // spawn a task for peer cleanup
-    tokio::spawn(peer_cleanup_task(peers.clone(), cancellation_token.clone()));
-
-    // Until cancellation, accept new WS connections and handle system messages
     loop {
         tokio::select! {
-           res = listener.accept() => {
-               info!("Connection accepted");
-               if let Ok((stream, socket_addr)) = res {
-                   info!("Connection from: {}", socket_addr.to_string());
-                   let _ = accept_websocket_connection((stream, socket_addr), peers.clone()).await;
-               }
-           },
-           msg = rx.recv() => {
-               info!("Received message: {:?}", msg);
-               if let Some(msg) = msg {
-                   handle_system_message(msg).await;
-               }
-           }
-           _ = cancellation_token.cancelled() => {
-               break;
-           },
+            msg = system_rx.recv() => {
+                if let Some(msg) = msg {
+                    info!("Received system message: {:?}", msg);
+                    match msg {
+                        SystemMessage::AddPeer(ws_user_id) => {
+                            peers.add_peer(ws_user_id);
+                        }
+                        SystemMessage::RemovePeer(connection_id) => {
+                            peers.remove_peer(connection_id);
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            _ = cancellation_token.cancelled() => {
+                info!("WebSocket service shut down");
+                break;
+            }
         }
     }
-
     Ok(())
 }

@@ -3,11 +3,13 @@ use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::startup::{shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
 use api::auth;
-use axum::Router;
+use axum::handler::HandlerWithoutStateExt;
+use axum::{Router, ServiceExt};
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use std::net::SocketAddr;
 use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
@@ -29,7 +31,7 @@ pub struct AppState {
     pub fetcher: RMoodsFetcher,
     pub pool: Pool<Postgres>,
     pub http: Client,
-    pub websocket_service_tx: tokio::sync::mpsc::Sender<SystemMessage>,
+    pub system_tx: tokio::sync::mpsc::Sender<SystemMessage>,
 }
 
 /// Run the server, assuming the environment has been already validated.
@@ -47,13 +49,12 @@ async fn run() -> anyhow::Result<()> {
 
     info!("Starting the WebSocket service");
     let cancellation_token = tokio_util::sync::CancellationToken::new();
-    // Drop the receiver, we don't need it
-    let (tx, rx) = tokio::sync::mpsc::channel::<SystemMessage>(100);
+
+    let (system_tx, mut system_rx) = tokio::sync::mpsc::channel::<SystemMessage>(100);
     let port = std::env::var("WEBSOCKET_PORT").expect("WEBSOCKET_PORT is set");
     let port = port.parse::<u16>().expect("WEBSOCKET_PORT is a valid u16");
     tokio::spawn(websocket::start_service(
-        port,
-        rx,
+        system_rx,
         cancellation_token.clone(),
     ));
 
@@ -61,7 +62,7 @@ async fn run() -> anyhow::Result<()> {
         fetcher,
         pool,
         http,
-        websocket_service_tx: tx,
+        system_tx,
     };
 
     // Allow browsers to use GET and PUT from any origin
@@ -79,12 +80,14 @@ async fn run() -> anyhow::Result<()> {
     // Example: /auth routes won't have the authorization layer, but /api will
     let app = Router::<AppState>::new()
         .nest("/api", api::router())
+        .nest("/ws", websocket::router())
         .layer(authorization)
         .nest("/auth", auth::router())
         .with_state(state)
         .layer(tracing)
         .layer(cors)
-        .merge(SwaggerUi::new("/doc/ui").url("/doc/api.json", ApiDoc::openapi()));
+        .merge(SwaggerUi::new("/doc/ui").url("/doc/api.json", ApiDoc::openapi()))
+        .into_make_service_with_connect_info::<SocketAddr>();
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "8001".to_string());
     // Listen on all addresses

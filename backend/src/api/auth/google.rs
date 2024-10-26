@@ -1,9 +1,13 @@
+use super::error::AuthError;
+use crate::api::auth::jwt::decode_jwt;
+use axum::async_trait;
+use axum::extract::FromRequestParts;
 use derive_getters::Getters;
+use http::request::Parts;
+use http::StatusCode;
 use log_derive::logfn;
 use reqwest::{multipart::Form, Client};
 use serde::{Deserialize, Serialize};
-
-use super::error::AuthError;
 
 #[derive(Deserialize, Debug, Getters)]
 #[allow(unused)]
@@ -27,6 +31,40 @@ pub struct GoogleUserInfo {
     picture: String,
     email: String,
     email_verified: bool,
+}
+
+/// Implement `FromRequestParts` for `GoogleUserInfo` to extract the user info from the request.
+///
+/// With this trait implemented, the user info can be extracted by any Axum HTTP handler without
+/// jumping through extra hoops like obtaining an `Authorization` header and decoding the JWT.
+#[async_trait]
+impl<T> FromRequestParts<T> for GoogleUserInfo {
+    type Rejection = (StatusCode, String);
+
+    async fn from_request_parts(parts: &mut Parts, _: &T) -> Result<Self, Self::Rejection> {
+        let auth_header = parts
+            .headers
+            .get("Authorization")
+            .ok_or((
+                StatusCode::UNAUTHORIZED,
+                "No Authorization header".to_string(),
+            ))?
+            .to_str()
+            .map_err(|_| {
+                (
+                    StatusCode::UNAUTHORIZED,
+                    "Invalid Authorization header".to_string(),
+                )
+            })?;
+
+        let token = auth_header.split_whitespace().nth(1).ok_or((
+            StatusCode::UNAUTHORIZED,
+            "No token in Authorization header".to_string(),
+        ))?;
+
+        let claims = decode_jwt(token).map_err(|e| (StatusCode::UNAUTHORIZED, e.to_string()))?;
+        Ok(claims.claims.user_info)
+    }
 }
 
 #[logfn(err = "ERROR", fmt = "Failed to fetch access token: {:?}")]

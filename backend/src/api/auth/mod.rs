@@ -2,7 +2,7 @@ use crate::AppState;
 use axum::{routing::post, Router};
 
 pub mod error;
-mod google;
+pub mod google;
 pub mod jwt;
 pub(crate) mod login;
 pub mod middleware;
