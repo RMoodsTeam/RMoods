@@ -1,7 +1,7 @@
 import {
   Image,
   Heading,
-  Card, useDisclosure, Box, Collapse, Icon, Flex, Divider,
+  Card, useDisclosure, Box, Collapse, Icon, Flex, Divider, Link,
 } from "@chakra-ui/react";
 import {FaChevronDown, FaChevronRight} from "react-icons/fa";
 import React from "react";
@@ -15,7 +15,8 @@ const sidebarStyles = {
   overflow: "hidden",
   borderRadius: 0,
   position: "sticky",
-  top: 0
+  top: 0,
+  paddingTop: 0,
 }
 
 const contentStyles = {
@@ -25,7 +26,9 @@ const contentStyles = {
 }
 
 const logoStyles = {
-  height: "10vh"
+  maxHeight: "10vh",
+  padding: "16px",
+  marginTop: 0
 }
 
 const SidebarSection = ({sectionTitle, children}: {sectionTitle: string, children: React.ReactNode}) => {
@@ -57,13 +60,19 @@ const Sidebar = () => {
       <Box
         sx={logoStyles}
       >
+        <Link href="/">
         <Image
           borderRadius='full'
-          boxSize='60px'
+          boxSize='3.5rem'
           src='https://bit.ly/naruto-sage'
           alt='Naruto Uzumaki'
+          display='inline-block'
         />
+          {/*There will be our name further down the road, it's a placeholder for now*/}
+          RMoods
+        </Link>
       </Box>
+      <Divider />
       <Box
         sx={contentStyles}
       >
