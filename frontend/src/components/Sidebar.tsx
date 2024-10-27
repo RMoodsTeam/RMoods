@@ -1,11 +1,35 @@
 import {
-  VStack,
+  Image,
   Heading,
-  Card, useDisclosure, Box, Collapse, Icon, Flex,
+  Card, useDisclosure, Box, Collapse, Icon, Flex, Divider, Link,
 } from "@chakra-ui/react";
 import {FaChevronDown, FaChevronRight} from "react-icons/fa";
 import React from "react";
 
+const sidebarStyles = {
+  margin: 0,
+  minWidth: "200px",
+  maxWidth: "200px",
+  height: "100vh",
+  zIndex: 1,
+  overflow: "hidden",
+  borderRadius: 0,
+  position: "sticky",
+  top: 0,
+  paddingTop: 0,
+}
+
+const contentStyles = {
+  height: "100vh",
+  overflowY: "auto",
+  padding: "16px"
+}
+
+const logoStyles = {
+  maxHeight: "10vh",
+  padding: "16px",
+  marginTop: 0
+}
 
 const SidebarSection = ({sectionTitle, children}: {sectionTitle: string, children: React.ReactNode}) => {
   const {isOpen, onToggle} = useDisclosure()
@@ -31,20 +55,26 @@ const SidebarSection = ({sectionTitle, children}: {sectionTitle: string, childre
 const Sidebar = () => {
   return (
     <Card
-      margin={0}
-      minWidth="200px"
-      maxWidth="200px"
-      height="100vh"
-      zIndex={1}
-      overflow="hidden"
-      borderRadius={0}
-      position="sticky" // Make the sidebar stick to the top
-      top={0}
+      sx={sidebarStyles}
     >
       <Box
-        height="100vh"
-        overflowY="auto"
-        padding="16px"
+        sx={logoStyles}
+      >
+        <Link href="/">
+        <Image
+          borderRadius='full'
+          boxSize='3.5rem'
+          src='https://bit.ly/naruto-sage'
+          alt='Naruto Uzumaki'
+          display='inline-block'
+        />
+          {/*There will be our name further down the road, it's a placeholder for now*/}
+          RMoods
+        </Link>
+      </Box>
+      <Divider />
+      <Box
+        sx={contentStyles}
       >
         <Heading size="md">Sidebar</Heading>
         <SidebarSection sectionTitle="Lorem">
