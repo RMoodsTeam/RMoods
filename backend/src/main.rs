@@ -24,6 +24,7 @@ mod startup;
 mod websocket;
 
 /// State to be shared between all routes.
+///
 /// Contains common resources that shouldn't be created over and over again.
 #[derive(Clone)]
 pub struct AppState {
