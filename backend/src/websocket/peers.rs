@@ -25,6 +25,9 @@ impl PeersMap {
         self.peers.insert(user_id, sender);
     }
 
+    /// Remove a particular WS connection from the map.
+    /// This does not remove all connections for a user, only the one with the given connection ID.
+    /// Called when a connection is closed.
     pub fn remove_peer(&mut self, connection_id: ConnectionId) {
         let len_before = self.peers.len();
         self.peers

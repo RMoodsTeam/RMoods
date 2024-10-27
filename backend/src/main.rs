@@ -3,8 +3,7 @@ use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::startup::{shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
 use api::auth;
-use axum::handler::HandlerWithoutStateExt;
-use axum::{Router, ServiceExt};
+use axum::Router;
 use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reqwest::Client;
@@ -50,9 +49,7 @@ async fn run() -> anyhow::Result<()> {
     info!("Starting the WebSocket service");
     let cancellation_token = tokio_util::sync::CancellationToken::new();
 
-    let (system_tx, mut system_rx) = tokio::sync::mpsc::channel::<SystemMessage>(100);
-    let port = std::env::var("WEBSOCKET_PORT").expect("WEBSOCKET_PORT is set");
-    let port = port.parse::<u16>().expect("WEBSOCKET_PORT is a valid u16");
+    let (system_tx, system_rx) = tokio::sync::mpsc::channel::<SystemMessage>(100);
     tokio::spawn(websocket::start_service(
         system_rx,
         cancellation_token.clone(),

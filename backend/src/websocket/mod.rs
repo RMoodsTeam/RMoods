@@ -84,20 +84,26 @@ async fn handle_socket(
         tokio::sync::mpsc::channel::<ServiceToClientMessage>(100);
 
     // Register the connection. We give the Service our tx, so it can call the handler when needed.
-    system_tx
+    let res = system_tx
         .send(SystemMessage::AddPeer((
             user_ws_id_pair.clone(),
             service_to_client_tx,
         )))
-        .await
-        .unwrap();
+        .await;
+
+    if let Err(e) = res {
+        error!("Failed to register the new peer: {:?}", e);
+        return;
+    }
 
     // Cleanup function to remove the peer from the system
-    let peer_cleanup = || async {
-        system_tx
+    let ask_to_remove_this_peer = || async {
+        let res = system_tx
             .send(SystemMessage::RemovePeer(user_ws_id_pair.1))
-            .await
-            .unwrap();
+            .await;
+        if let Err(e) = res {
+            error!("Failed to remove the peer: {:?}", e);
+        }
     };
 
     loop {
@@ -106,23 +112,23 @@ async fn handle_socket(
                 Some(Ok(msg)) => match msg {
                     axum::extract::ws::Message::Close(_) => {
                         info!("Closing connection");
-                        peer_cleanup().await;
-                        break;
+                        ask_to_remove_this_peer().await;
+                        return;
                     }
                     _ => {
                         info!("Received message: {:?}. Echoing", msg);
-                        socket.send(msg).await.unwrap();
+                        let _ = socket.send(msg).await;
                     }
                 },
                 Some(Err(e)) => {
                     warn!("Error receiving message: {:?}", e);
-                    peer_cleanup().await;
-                    break;
+                    ask_to_remove_this_peer().await;
+                    return;
                 }
                 None => {
                     warn!("Connection closed - WS stream ended");
-                    peer_cleanup().await;
-                    break;
+                    ask_to_remove_this_peer().await;
+                    return;
                 }
             },
             service_msg_res = service_to_client_rx.recv() => {
@@ -131,7 +137,7 @@ async fn handle_socket(
                     todo!("Handle service message");
                 } else {
                     error!("WS Service task has exited or closed the mpsc channel");
-                    break;
+                    return;
                 }
             }
         }
@@ -150,7 +156,7 @@ async fn handle_socket(
 pub async fn start_service(
     mut system_rx: Receiver<SystemMessage>,
     cancellation_token: CancellationToken,
-) -> anyhow::Result<()> {
+) {
     let mut peers = PeersMap::new();
 
     loop {
@@ -171,14 +177,13 @@ pub async fn start_service(
                     }
                 } else {
                     error!("The main HTTP process has exited or closed the mpsc channel");
-                    break;
+                    return;
                 }
             }
             _ = cancellation_token.cancelled() => {
                 info!("WebSocket service shut down");
-                break;
+                return;
             }
         }
     }
-    Ok(())
 }
