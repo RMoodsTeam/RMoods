@@ -19,8 +19,16 @@ impl PeersMap {
     }
 
     pub fn remove_peer(&mut self, connection_id: ConnectionId) {
+        let len_before = self.peers.len();
         self.peers
             .retain(|(_, conn_id), _| conn_id != &connection_id);
+        let len_after = self.peers.len();
+        if len_before == len_after {
+            log::error!(
+                "No peer with connection ID {}. No peers removed. Each connection_id that is to be removed must come from the peer-specific handler task.",
+                connection_id
+            );
+        }
     }
 }
 

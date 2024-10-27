@@ -71,34 +71,36 @@ async fn handle_socket(
     let (tx, mut rx) = tokio::sync::mpsc::channel::<ServiceToClientMessage>(100);
 
     system_tx
-        .send(SystemMessage::AddPeer((user_ws_id_pair, tx)))
+        .send(SystemMessage::AddPeer((user_ws_id_pair.clone(), tx)))
         .await
         .unwrap();
 
-    tokio::select! {
-        ws_msg_res = socket.next() => {
-            if let Some(msg) = ws_msg_res {
-                let msg = msg.unwrap();
-                type Message = axum::extract::ws::Message;
-                match msg {
-                    Message::Close(_) => {
-                        warn!("Closing connection");
-                        system_tx
-                            .send(SystemMessage::RemovePeer(user_info.sub().to_string()))
-                            .await
-                            .unwrap();
-                        return;
-                    }
-                    _ => {
-                        warn!("Received message: {:?}", msg);
-                        socket.send(msg).await.unwrap();
-                    }
-                };
-            }
-        },
-        service_msg_res = rx.recv() => {
-            if let Some(msg) = service_msg_res {
-                warn!("Received message from the main service: {:?}", msg);
+    loop {
+        tokio::select! {
+            ws_msg_res = socket.next() => {
+                if let Some(msg) = ws_msg_res {
+                    let msg = msg.unwrap();
+                    type Message = axum::extract::ws::Message;
+                    match msg {
+                        Message::Close(_) => {
+                            warn!("Closing connection");
+                            system_tx
+                                .send(SystemMessage::RemovePeer(user_ws_id_pair.1))
+                                .await
+                                .unwrap();
+                            return;
+                        }
+                        _ => {
+                            warn!("Received message: {:?}", msg);
+                            socket.send(msg).await.unwrap();
+                        }
+                    };
+                }
+            },
+            service_msg_res = rx.recv() => {
+                if let Some(msg) = service_msg_res {
+                    warn!("Received message from the main service: {:?}", msg);
+                }
             }
         }
     }
