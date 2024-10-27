@@ -2,6 +2,13 @@ use crate::websocket::{ConnectionId, ServiceToClientMessage, WsUserId};
 use std::collections::HashMap;
 use tokio::sync::mpsc::Sender;
 
+/// A map of all connected peers.
+///
+/// Key: A tuple of the user's Google ID and the WebSocket connection ID.
+/// Value: The sender half of a channel that is used to send messages to that particular connection.
+///
+/// Thanks to the key being a pair, the server can send messages to a specific user, even if they have
+/// multiple connections. We can identify a user and all their connections.
 #[derive(Debug)]
 pub struct PeersMap {
     peers: HashMap<WsUserId, Sender<ServiceToClientMessage>>,
@@ -29,6 +36,10 @@ impl PeersMap {
                 connection_id
             );
         }
+    }
+
+    pub fn len(&self) -> usize {
+        self.peers.len()
     }
 }
 
