@@ -2,12 +2,15 @@ import Cookies from "js-cookie";
 
 class WebSocketConnection {
   constructor() {
-    const wsClient = new WebSocket(`ws://localhost:8001/ws/connect?${Cookies.get("RMOODS_JWT")}`);
+    console.log("Hello!")
+    //const wsClient = new WebSocket(`ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get("RMOODS_JWT")}`);
+    const wsClient = new WebSocket(`ws://localhost:8001/ws/connect`);
+
     wsClient.onmessage = (event) => {
       console.log(JSON.stringify(event.data));
     }
     wsClient.onopen = () => {
-      console.log("Hello!");
+      console.log("Hello on open!");
     }
     wsClient.onerror = (event) => {
       console.error(event);

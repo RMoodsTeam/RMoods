@@ -59,6 +59,7 @@ async fn websocket_handler(
     ConnectInfo(socket_info): ConnectInfo<SocketAddr>,
     google_user_info: GoogleUserInfo,
 ) -> impl IntoResponse {
+    dbg!("Hello from the other side!");
     ws.on_upgrade(move |ws| handle_socket(ws, state.system_tx, socket_info, google_user_info))
 }
 

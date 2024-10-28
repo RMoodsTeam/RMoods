@@ -1,4 +1,5 @@
 use axum::{extract::Request, middleware::Next, response::Response};
+use futures_util::AsyncReadExt;
 use http::StatusCode;
 use log::info;
 use log_derive::logfn;
@@ -18,6 +19,7 @@ pub async fn authorization(request: Request, next: Next) -> Result<Response, Sta
         .get("Authorization")
         .and_then(|h| h.to_str().ok())
         .and_then(|s| s.strip_prefix("Bearer "))
+        .or_else(|| request.uri().query().and_then(|q| q.split('=').nth(1)))
         .ok_or(StatusCode::UNAUTHORIZED)?;
 
     info!("Authorization header: {}", user_jwt);
