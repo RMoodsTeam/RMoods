@@ -3,8 +3,7 @@ import Cookies from "js-cookie";
 class WebSocketConnection {
   constructor() {
     console.log("Hello!")
-    //const wsClient = new WebSocket(`ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get("RMOODS_JWT")}`);
-    const wsClient = new WebSocket(`ws://localhost:8001/ws/connect`);
+    const wsClient = new WebSocket(`ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get("RMOODS_JWT")}`);
 
     wsClient.onmessage = (event) => {
       console.log(JSON.stringify(event.data));

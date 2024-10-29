@@ -3,7 +3,7 @@ use crate::AppState;
 use axum::extract::ws::WebSocket;
 use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
 use axum::response::IntoResponse;
-use axum::routing::any;
+use axum::routing::get;
 use futures_util::StreamExt;
 use log::{error, info, warn};
 use peers::PeersMap;
@@ -47,7 +47,7 @@ pub enum SystemMessage {
 
 /// Defines the WebSocket routes.
 pub fn router() -> axum::Router<crate::AppState> {
-    axum::Router::new().route("/connect", any(websocket_handler))
+    axum::Router::new().route("/connect", get(websocket_handler))
 }
 
 /// Handles the WebSocket upgrade request.
@@ -60,7 +60,8 @@ async fn websocket_handler(
     google_user_info: GoogleUserInfo,
 ) -> impl IntoResponse {
     dbg!("Hello from the other side!");
-    ws.on_upgrade(move |ws| handle_socket(ws, state.system_tx, socket_info, google_user_info))
+    ws.on_failed_upgrade(|e| error!("Failed WebSocket upgrade: {}", e))
+        .on_upgrade(move |ws| handle_socket(ws, state.system_tx, socket_info, google_user_info))
 }
 
 /// Handles a new WebSocket connection.
