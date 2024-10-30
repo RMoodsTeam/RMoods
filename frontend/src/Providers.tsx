@@ -8,13 +8,13 @@ import WebsocketProvider from "./WebsocketProvider.tsx";
 const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
     <StrictMode>
+      <ChakraProvider theme={rmoodsTheme} resetCSS>
       <WebsocketProvider>
       <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">
-        <ChakraProvider theme={rmoodsTheme} resetCSS>
           <JotaiProvider>{children}</JotaiProvider>
-        </ChakraProvider>
       </GoogleOAuthProvider>
       </WebsocketProvider>
+      </ChakraProvider>
     </StrictMode>
   );
 };

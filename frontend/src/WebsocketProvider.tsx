@@ -1,8 +1,10 @@
 import WebSocketConnection from "./rmoods/websockets/wsClient.ts";
 import {useEffect} from "react";
+import {useToast} from "@chakra-ui/react";
 
 const WebsocketProvider = ({children}: { children: React.ReactNode }) => {
-  let webSocketConnection = null;
+  let webSocketConnection : WebSocketConnection | null = null;
+  const toast = useToast()
 
   // SN: in case of problems with connection maybe use useEffect for this one
   //
@@ -12,9 +14,9 @@ const WebsocketProvider = ({children}: { children: React.ReactNode }) => {
   // I'll leave it as it is for now, seems to be working somehow.
   useEffect(() => {
     if (webSocketConnection == null) {
-      webSocketConnection = new WebSocketConnection();
+      webSocketConnection = new WebSocketConnection(toast);
     }
-  }, [])
+  }, [toast])
   return (
     <>
       {children}
