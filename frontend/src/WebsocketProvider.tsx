@@ -1,10 +1,12 @@
-import WebSocketConnection from "./rmoods/websockets/wsClient.ts";
+import WebSocketConnection, {wsConnectionStatusAtom} from "./rmoods/websockets/wsClient.ts";
 import {useEffect} from "react";
 import {useToast} from "@chakra-ui/react";
+import {useSetAtom} from "jotai";
 
 const WebsocketProvider = ({children}: { children: React.ReactNode }) => {
-  let webSocketConnection : WebSocketConnection | null = null;
+  let webSocketConnection: WebSocketConnection | null = null;
   const toast = useToast()
+  const setWsConnectionStatus = useSetAtom(wsConnectionStatusAtom);
 
   // SN: in case of problems with connection maybe use useEffect for this one
   //
@@ -14,9 +16,9 @@ const WebsocketProvider = ({children}: { children: React.ReactNode }) => {
   // I'll leave it as it is for now, seems to be working somehow.
   useEffect(() => {
     if (webSocketConnection == null) {
-      webSocketConnection = new WebSocketConnection(toast);
+      webSocketConnection = new WebSocketConnection(toast, setWsConnectionStatus);
     }
-  }, [toast])
+  }, [toast, setWsConnectionStatus])
   return (
     <>
       {children}

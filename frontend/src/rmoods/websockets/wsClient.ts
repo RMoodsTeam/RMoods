@@ -1,16 +1,24 @@
 import Cookies from "js-cookie";
-import {CreateToastFnReturn, useToast} from "@chakra-ui/react";
+import {CreateToastFnReturn} from "@chakra-ui/react";
+import {atom} from "jotai";
+
+// Define an atom to store the WebSocket connection status
+export const wsConnectionStatusAtom = atom<boolean>(false);
 
 class WebSocketConnection {
-  constructor(toast: CreateToastFnReturn) {
+  constructor(toast: CreateToastFnReturn, setWsConnectionStatus: (status: boolean) => void) {
     const wsClient = new WebSocket(`ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get("RMOODS_JWT")}`);
 
     wsClient.onmessage = (event) => {
       console.log(JSON.stringify(event.data));
-    }
+    };
+
     wsClient.onopen = () => {
       console.log("Hello on open!");
-    }
+      setWsConnectionStatus(true); // Set the atom to true
+      console.log("WebSocket connection status:", true);
+    };
+
     wsClient.onerror = (event) => {
       console.error(event);
 
@@ -21,10 +29,14 @@ class WebSocketConnection {
         duration: 5000,
         isClosable: true,
       });
-    }
+
+      setWsConnectionStatus(false); // Set the atom to false
+      console.log("WebSocket connection status:", false);
+    };
+
     wsClient.onclose = () => {
       console.log("Bye!");
-    }
+    };
   }
 }
 
