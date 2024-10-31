@@ -1,5 +1,6 @@
 use super::error::AuthError;
 use crate::api::auth::jwt::decode_jwt;
+use crate::api::auth::middleware::jwt_from_header_or_uri;
 use axum::async_trait;
 use axum::extract::FromRequestParts;
 use derive_getters::Getters;
@@ -39,31 +40,25 @@ pub struct GoogleUserInfo {
 /// jumping through extra hoops like obtaining an `Authorization` header and decoding the JWT.
 #[async_trait]
 impl<T> FromRequestParts<T> for GoogleUserInfo {
-    type Rejection = (StatusCode, String);
+    type Rejection = StatusCode;
 
     async fn from_request_parts(parts: &mut Parts, _: &T) -> Result<Self, Self::Rejection> {
-        let auth_header = parts
-            .headers
-            .get("Authorization")
-            .ok_or((
-                StatusCode::UNAUTHORIZED,
-                "No Authorization header".to_string(),
-            ))?
-            .to_str()
-            .map_err(|_| {
-                (
-                    StatusCode::UNAUTHORIZED,
-                    "Invalid Authorization header".to_string(),
-                )
-            })?;
+        log::warn!("Extracting GoogleUserInfo");
+        let token = jwt_from_header_or_uri(&parts.headers, &parts.uri);
+        let result = token
+            .and_then(|token| decode_jwt(token).ok())
+            .map(|claims| claims.claims.user_info);
 
-        let token = auth_header.split_whitespace().nth(1).ok_or((
-            StatusCode::UNAUTHORIZED,
-            "No token in Authorization header".to_string(),
-        ))?;
-
-        let claims = decode_jwt(token).map_err(|e| (StatusCode::UNAUTHORIZED, e.to_string()))?;
-        Ok(claims.claims.user_info)
+        match result {
+            Some(info) => {
+                log::debug!("Extracted GoogleUserInfo successfully");
+                Ok(info)
+            }
+            None => {
+                log::error!("Failed to extract GoogleUserInfo");
+                Err(StatusCode::UNAUTHORIZED)
+            }
+        }
     }
 }
 
