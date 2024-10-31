@@ -16,7 +16,7 @@ pub fn jwt_from_header_or_uri<'a>(headers: &'a HeaderMap, uri: &'a Uri) -> Optio
 /// All requests to protected routes should pass through this middleware.
 #[logfn(
     err = "ERROR",
-    fmt = "Authorization failed: {:?}. Invali/missing 'Authorization' header, missing fallback auth query param or invalid JWT"
+    fmt = "Authorization failed: {:?}. Invalid/missing 'Authorization' header, missing fallback auth query param or invalid JWT"
 )]
 pub async fn authorization(request: Request, next: Next) -> Result<Response, StatusCode> {
     jwt_from_header_or_uri(request.headers(), request.uri())
