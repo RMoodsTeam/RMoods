@@ -3,6 +3,9 @@ import {CreateToastFnReturn} from "@chakra-ui/react";
 import {atom} from "jotai";
 
 // Define an atom to store the WebSocket connection status
+// for now the atom manipulation is in the onerror function as it was the easiest to test on
+// later we can think about mocking the websocket connection but right now I'd focus on changing chakra version
+// because more and more components will demand bigger refactor as we develop frontend
 export const wsConnectionStatusAtom = atom<boolean>(false);
 
 class WebSocketConnection {
