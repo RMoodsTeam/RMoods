@@ -1,3 +1,15 @@
+use super::AnyParams;
+use crate::reddit_fetcher::feed_request::{
+    DataSource, FetcherFeedRequest, RMoodsReportType, RedditFeedKind, RequestSize,
+};
+use crate::reddit_fetcher::model::post_comments::PostComments;
+use crate::reddit_fetcher::model::posts::Posts;
+use crate::reddit_fetcher::model::subreddit_info::SubredditAbout;
+use crate::reddit_fetcher::model::user_info::UserAbout;
+use crate::reddit_fetcher::model::user_posts::UserPosts;
+use crate::reddit_fetcher::reddit::request::params::FeedSorting;
+use crate::reddit_fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
+use crate::{app_error::AppError, AppState};
 use axum::{
     extract::{Query, State},
     Json,
@@ -7,16 +19,6 @@ use log::{debug, info};
 use log_derive::logfn;
 use reqwest::StatusCode;
 use serde_json::{json, Value};
-
-use super::AnyParams;
-use crate::reddit_fetcher::model::post_comments::PostComments;
-use crate::reddit_fetcher::model::posts::Posts;
-use crate::reddit_fetcher::model::user_posts::UserPosts;
-use crate::reddit_fetcher::nlp_request::{
-    DataSource, RMoodsNlpRequest, RMoodsReportType, RedditFeedKind, RequestSize,
-};
-use crate::reddit_fetcher::reddit::request::params::FeedSorting;
-use crate::{app_error::AppError, AppState};
 
 /// Returns after a specified delay.
 #[utoipa::path(
@@ -79,30 +81,31 @@ pub async fn lorem(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppEr
     .into())
 }
 
-// #[utoipa::path(get, path = "/api/debug/subreddit_info", responses(), params())]
-// pub async fn subreddit_info(
-//     State(mut state): State<AppState>,
-//     Query(params): Query<AnyParams>,
-// ) -> Result<Json<SubredditInfo>, AppError> {
-//     // let subreddit = params
-//     //     .get("r")
-//     //     .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
-//     // let req = SubredditInfoRequest {
-//     //     subreddit: subreddit.to_string(),
-//     // };
-//     // let json = state.reddit.fetch_raw(req).await?;
+#[utoipa::path(get, path = "/api/debug/subreddit_about", responses(), params())]
+pub async fn subreddit_about(
+    State(mut state): State<AppState>,
+    Query(params): Query<AnyParams>,
+) -> Result<Json<SubredditAbout>, AppError> {
+    let subreddit = params
+        .get("r")
+        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
+    let req = SubredditAboutRequest {
+        subreddit: subreddit.to_string(),
+    };
+    let about = state
+        .fetcher
+        .fetch_about::<SubredditAbout>(req)
+        .await
+        .unwrap();
 
-//     // let parsed = SubredditInfo::from_reddit_container(json).unwrap();
-
-//     // Ok(Json(parsed))
-//     todo!();
-// }
+    Ok(Json(about))
+}
 
 #[utoipa::path(get, path = "/api/debug/post_comments", responses(), params())]
 pub async fn post_comments(
     State(mut state): State<AppState>,
 ) -> Result<Json<PostComments>, AppError> {
-    let request = RMoodsNlpRequest {
+    let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {
@@ -138,28 +141,24 @@ pub async fn post_comments(
     Ok(Json(data))
 }
 
-// #[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
-// pub async fn user_info(
-//     State(mut state): State<AppState>,
-//     Query(params): Query<AnyParams>,
-// ) -> Result<Json<UserInfo>, AppError> {
-//     // let user = params
-//     //     .get("u")
-//     //     .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
-//     // let req = UserInfoRequest {
-//     //     username: user.to_string(),
-//     // };
-
-//     // let json = state.reddit.fetch_raw(req).await?;
-
-//     // let parsed = UserInfo::from_reddit_container(json).unwrap();
-//     // Ok(Json(parsed))
-//     todo!();
-// }
+#[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
+pub async fn user_about(
+    State(mut state): State<AppState>,
+    Query(params): Query<AnyParams>,
+) -> Result<Json<UserAbout>, AppError> {
+    let user = params
+        .get("u")
+        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
+    let req = UserAboutRequest {
+        username: user.to_string(),
+    };
+    let about = state.fetcher.fetch_about::<UserAbout>(req).await.unwrap();
+    Ok(Json(about))
+}
 
 #[utoipa::path(get, path = "/api/debug/subreddit_posts", responses(), params())]
 pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<Json<Posts>, AppError> {
-    let request = RMoodsNlpRequest {
+    let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {
@@ -180,7 +179,7 @@ pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<Json<P
 
 #[utoipa::path(get, path = "/api/debug/user_posts", responses(), params())]
 pub async fn user_posts(State(mut state): State<AppState>) -> Result<Json<UserPosts>, AppError> {
-    let request = RMoodsNlpRequest {
+    let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::UserPosts,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {

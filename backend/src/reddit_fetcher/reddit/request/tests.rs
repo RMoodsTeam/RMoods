@@ -2,8 +2,8 @@
 mod tests {
     use crate::reddit_fetcher::reddit::request::{
         params::{FeedSorting, FeedSortingTime},
-        PostCommentsRequest, RedditResource, SubredditInfoRequest, SubredditPostsRequest,
-        UserInfoRequest, UserPostsRequest,
+        PostCommentsRequest, RedditRequest, SubredditAboutRequest, SubredditPostsRequest,
+        UserAboutRequest, UserPostsRequest,
     };
 
     fn init() {
@@ -24,7 +24,7 @@ mod tests {
 
     #[test]
     fn test_create_url_subreddit_info() {
-        let req = SubredditInfoRequest {
+        let req = SubredditAboutRequest {
             subreddit: "Polska".to_string(),
         };
         let (url, query) = req.to_request_parts();
@@ -53,7 +53,7 @@ mod tests {
 
     #[test]
     fn test_create_url_user_info() {
-        let req = UserInfoRequest {
+        let req = UserAboutRequest {
             username: "spez".to_string(),
         };
         let (url, query) = req.to_request_parts();
