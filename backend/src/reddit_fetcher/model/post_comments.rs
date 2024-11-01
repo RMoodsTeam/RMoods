@@ -8,6 +8,8 @@ use log::debug;
 use log_derive::logfn;
 use serde::{Deserialize, Serialize};
 
+/// Contains the comments of a Reddit post.
+/// Comments are to be fetches by using the `Fetcher::fetch_more_comments` method.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PostComments {
     pub list: Vec<RawComment>,

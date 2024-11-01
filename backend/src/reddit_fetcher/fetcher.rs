@@ -9,18 +9,30 @@ use crate::reddit_fetcher::reddit::{
 use log::{debug, info};
 use log_derive::logfn;
 
+/// Layer responsible for fetching data from Reddit.
+/// * It uses a `RedditConnection` to make requests to the Reddit API.
+/// * It's responsible for handling pagination and fetching more comments.
+/// * It's also responsible for parsing the raw data into the desired format.
+/// * It's a thin layer over the `RedditConnection` and the data models of the low-level Reddit module.
 #[derive(Clone)]
 pub struct RMoodsFetcher {
     reddit_connection: RedditConnection,
 }
 
 impl RMoodsFetcher {
+    /// Create a new instance of RMoodsFetcher with the provided `http` client.
+    /// There should exist only one instance of this struct in the application.
     #[logfn(err = "ERROR", fmt = "Failed to create Reddit fetcher: {0}")]
     pub async fn new(http: reqwest::Client) -> Result<Self, RedditError> {
         let reddit_connection = RedditConnection::new(http).await?;
         Ok(Self { reddit_connection })
     }
 
+    /// Fetches a feed of Reddit data.
+    /// * It fetches the data from the Reddit API using the provided `FetcherFeedRequest`.
+    /// * It fetches the data in multiple requests if needed.
+    /// * It returns the parsed data and the number of requests made.
+    /// * The parsed data is of type `T` which should implement the `RedditFeedData` trait.
     #[logfn(err = "ERROR", fmt = "Failed to fetch feed: {0}")]
     pub async fn fetch_feed<T: RedditFeedData>(
         &mut self,
@@ -52,6 +64,12 @@ impl RMoodsFetcher {
         Ok((parsed, requests_made))
     }
 
+    /// Uses the MoreComments stubs to fetch more comments.
+    /// * It fetches the comments from the Reddit API using the provided `MoreComments` stubs.
+    /// * It fetches the comments in multiple requests if needed.
+    /// * It returns the parsed comments.
+    /// The resulting list of comments is to be appended to the original PostComments struct.
+    /// To obtain the MoreComments stubs, first fetch a feed of comments and extract the `more` field.
     #[logfn(err = "ERROR", fmt = "Fetcher - Failed to fetch more comments: {0}")]
     pub async fn fetch_more_comments(
         &mut self,
@@ -83,6 +101,9 @@ impl RMoodsFetcher {
         Ok(comments)
     }
 
+    /// Fetches simple data from the Reddit API.
+    /// "About" data is data about a subreddit or a user, obtained through the user/about.json and subreddit/about.json paths.
+    /// This is a very simple operation, as the data is not paginated or parsed in any special way.
     #[logfn(err = "ERROR", fmt = "Failed to fetch about: {0}")]
     pub async fn fetch_about<T: RedditAboutData>(
         &mut self,

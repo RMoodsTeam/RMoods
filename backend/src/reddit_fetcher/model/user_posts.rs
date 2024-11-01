@@ -7,6 +7,9 @@ use crate::reddit_fetcher::reddit::request::UserPostsRequest;
 use log_derive::logfn;
 use serde::{Deserialize, Serialize};
 
+/// Contains the posts and comments of a Reddit user.
+/// Posts and comments are to be fetches by using the `Fetcher::fetch_feed` method with appropriate parameters.
+/// The user's feed contains both posts and comments, so this struct contains both.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserPosts {
     pub posts: Vec<RawPost>,

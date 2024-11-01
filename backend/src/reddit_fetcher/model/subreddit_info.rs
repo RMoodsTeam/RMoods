@@ -5,6 +5,8 @@ use crate::reddit_fetcher::reddit::model::{RawContainer, RawSubredditAbout};
 use crate::reddit_fetcher::reddit::request::SubredditAboutRequest;
 use serde::{Deserialize, Serialize};
 
+/// Contains information about a subreddit.
+/// It's a wrapper around the raw data returned by the Reddit API, just for consistency
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SubredditAbout {
     info: RawSubredditAbout,

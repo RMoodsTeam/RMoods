@@ -7,6 +7,8 @@ use crate::reddit_fetcher::reddit::request::SubredditPostsRequest;
 use log_derive::logfn;
 use serde::{Deserialize, Serialize};
 
+/// Contains the posts of a subreddit.
+/// Posts are to be fetches by using the `Fetcher::fetch_feed` method with appropriate parameters.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Posts {
     pub list: Vec<RawPost>,
