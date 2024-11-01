@@ -1,6 +1,6 @@
+use crate::reddit_fetcher::feed_request::FetcherFeedRequest;
 use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::model::reddit_data::RedditData;
-use crate::reddit_fetcher::nlp_request::RMoodsNlpRequest;
+use crate::reddit_fetcher::model::reddit_data::{RedditAboutData, RedditFeedData};
 use crate::reddit_fetcher::reddit::{
     connection::RedditConnection,
     error::RedditError,
@@ -22,13 +22,14 @@ impl RMoodsFetcher {
     }
 
     #[logfn(err = "ERROR", fmt = "Failed to fetch feed: {0}")]
-    pub async fn fetch_feed<T: RedditData>(
+    pub async fn fetch_feed<T: RedditFeedData>(
         &mut self,
-        request: RMoodsNlpRequest,
+        request: FetcherFeedRequest,
     ) -> Result<(T, u16), FetcherError> {
         info!("Fetching feed: {:?}", request);
 
         let requests_to_make = request.size.clone().into();
+        // TODO: allow for multiple data sources
         let source = request.data_sources.first().unwrap().clone();
 
         let initial_request = T::create_reddit_request(&request, source.clone(), None);
@@ -80,5 +81,16 @@ impl RMoodsFetcher {
         }
 
         Ok(comments)
+    }
+
+    #[logfn(err = "ERROR", fmt = "Failed to fetch about: {0}")]
+    pub async fn fetch_about<T: RedditAboutData>(
+        &mut self,
+        request: T::RequestType,
+    ) -> Result<T, FetcherError> {
+        let raw = self.reddit_connection.fetch_raw(request).await?;
+        log::info!("Parsing...");
+        let data = T::from_reddit_container(raw.0)?;
+        Ok(data)
     }
 }

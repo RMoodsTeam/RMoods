@@ -1,19 +1,27 @@
+use crate::reddit_fetcher::feed_request::{DataSource, FetcherFeedRequest};
 use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::nlp_request::{DataSource, RMoodsNlpRequest};
 use crate::reddit_fetcher::reddit::model::RawContainer;
-use crate::reddit_fetcher::reddit::request::RedditResource;
+use crate::reddit_fetcher::reddit::request::RedditRequest;
 
-pub trait RedditData {
-    type RequestType: RedditResource;
+pub trait RedditFeedData {
+    type RequestType: RedditRequest;
+
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
         Self: Sized;
     fn create_reddit_request(
-        request: &RMoodsNlpRequest,
+        request: &FetcherFeedRequest,
         source: DataSource,
         after: Option<String>,
     ) -> Self::RequestType;
     fn concat(&mut self, other: Self) -> Self
+    where
+        Self: Sized;
+}
+
+pub trait RedditAboutData {
+    type RequestType: RedditRequest;
+    fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
         Self: Sized;
 }
@@ -31,29 +39,3 @@ macro_rules! cast {
         }
     }};
 }
-
-// #[derive(Debug, Serialize, Deserialize)]
-// pub struct UserInfo {
-//     info: RawUserInfo,
-// }
-
-// impl RedditData for UserInfo {
-//     fn from_reddit_container(container: RawContainer) -> Result<UserInfo, FetcherError> {
-//         let info = cast!(container, RawContainer::UserInfo)?;
-
-//         Ok(UserInfo { info: *info })
-//     }
-// }
-
-// #[derive(Debug, Serialize, Deserialize)]
-// pub struct SubredditInfo {
-//     info: RawSubredditInfo,
-// }
-
-// impl RedditData for SubredditInfo {
-//     fn from_reddit_container(container: RawContainer) -> Result<SubredditInfo, FetcherError> {
-//         let info = cast!(container, RawContainer::SubredditInfo)?;
-
-//         Ok(SubredditInfo { info: *info })
-//     }
-// }

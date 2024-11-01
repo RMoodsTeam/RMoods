@@ -26,6 +26,7 @@ mod tests;
 /// assert_eq!(url, "https://oauth.reddit.com/r/Polska/new.json");
 /// assert_eq!(query, vec![("limit", "100".to_string()), ("sort", "new".to_string())]);
 /// ```
+#[derive(Debug)]
 pub struct SubredditPostsRequest {
     /// The subreddit name.
     pub subreddit: String,
@@ -34,11 +35,13 @@ pub struct SubredditPostsRequest {
 }
 
 /// Fetch information about a subreddit.
-pub struct SubredditInfoRequest {
+#[derive(Debug)]
+pub struct SubredditAboutRequest {
     pub subreddit: String,
 }
 
 /// Fetch posts from a user's profile.
+#[derive(Debug)]
 pub struct UserPostsRequest {
     /// The user's username.
     pub username: String,
@@ -47,12 +50,14 @@ pub struct UserPostsRequest {
 }
 
 /// Fetch information about a user.
-pub struct UserInfoRequest {
+#[derive(Debug)]
+pub struct UserAboutRequest {
     /// The user's username.
     pub username: String,
 }
 
 /// Fetch comments from a post.
+#[derive(Debug)]
 pub struct PostCommentsRequest {
     /// The subreddit name.
     pub subreddit: String,
@@ -65,12 +70,12 @@ pub struct PostCommentsRequest {
 /// The parts of an HTTP request: URL and query parameters.
 pub type RequestParts = (String, Vec<(&'static str, String)>);
 
-pub trait RedditResource {
+pub trait RedditRequest {
     fn to_request_parts(&self) -> RequestParts;
     fn resource_name(&self) -> String;
 }
 
-impl RedditResource for SubredditPostsRequest {
+impl RedditRequest for SubredditPostsRequest {
     fn to_request_parts(&self) -> RequestParts {
         let url = format!(
             "https://oauth.reddit.com/r/{}/{}.json",
@@ -95,7 +100,7 @@ impl RedditResource for SubredditPostsRequest {
     }
 }
 
-impl RedditResource for SubredditInfoRequest {
+impl RedditRequest for SubredditAboutRequest {
     fn to_request_parts(&self) -> RequestParts {
         let url = format!("https://oauth.reddit.com/r/{}/about.json", self.subreddit);
         (url, vec![])
@@ -105,7 +110,7 @@ impl RedditResource for SubredditInfoRequest {
     }
 }
 
-impl RedditResource for UserPostsRequest {
+impl RedditRequest for UserPostsRequest {
     fn to_request_parts(&self) -> RequestParts {
         let url = format!("https://oauth.reddit.com/user/{}.json", self.username);
 
@@ -126,7 +131,7 @@ impl RedditResource for UserPostsRequest {
     }
 }
 
-impl RedditResource for UserInfoRequest {
+impl RedditRequest for UserAboutRequest {
     fn to_request_parts(&self) -> RequestParts {
         let url = format!("https://oauth.reddit.com/user/{}/about.json", self.username);
         (url, vec![])
@@ -136,7 +141,7 @@ impl RedditResource for UserInfoRequest {
     }
 }
 
-impl RedditResource for PostCommentsRequest {
+impl RedditRequest for PostCommentsRequest {
     fn to_request_parts(&self) -> RequestParts {
         let url = format!(
             "https://oauth.reddit.com/r/{}/comments/{}.json",

@@ -1,7 +1,7 @@
 use crate::cast;
+use crate::reddit_fetcher::feed_request::{DataSource, FetcherFeedRequest};
 use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::model::reddit_data::RedditData;
-use crate::reddit_fetcher::nlp_request::{DataSource, RMoodsNlpRequest};
+use crate::reddit_fetcher::model::reddit_data::RedditFeedData;
 use crate::reddit_fetcher::reddit::model::{MoreComments, RawComment, RawContainer};
 use crate::reddit_fetcher::reddit::request::PostCommentsRequest;
 use log::debug;
@@ -14,11 +14,11 @@ pub struct PostComments {
     pub more: Vec<MoreComments>,
 }
 
-impl RedditData for PostComments {
+impl RedditFeedData for PostComments {
     type RequestType = PostCommentsRequest;
 
     #[logfn(err = "ERROR", fmt = "Failed to parse from RedditContainer: {0}")]
-    fn from_reddit_container(container: RawContainer) -> Result<PostComments, FetcherError> {
+    fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError> {
         let mut comments: Vec<RawComment> = Vec::new();
 
         let listing = cast!(container, RawContainer::Listing)?;
@@ -46,20 +46,22 @@ impl RedditData for PostComments {
 
         debug!("Returning {} post replies", { comments.len() });
 
-        Ok(PostComments {
+        Ok(Self {
             list: comments,
             more: mores,
         })
     }
 
     fn create_reddit_request(
-        request: &RMoodsNlpRequest,
+        request: &FetcherFeedRequest,
         source: DataSource,
         after: Option<String>,
     ) -> Self::RequestType {
-        PostCommentsRequest {
+        Self::RequestType {
             subreddit: source.name,
-            post_id: source.post_id.expect("Must be here"),
+            post_id: source
+                .post_id
+                .expect("post_id must be passed for PostCommentsRequest"),
             sorting: request.sorting,
             after,
         }
@@ -84,7 +86,6 @@ fn flatten_replies_internal(
 
         let mut replies = vec![];
         for raw_reply in listing.children.clone() {
-            // replies.push(cast!(raw_reply, RawContainer::Comment)?);
             match raw_reply {
                 RawContainer::Comment(reply) => replies.push(*reply),
                 RawContainer::More(more) => mores.push(*more),

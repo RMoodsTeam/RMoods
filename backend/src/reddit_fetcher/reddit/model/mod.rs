@@ -58,7 +58,7 @@ pub enum RawContainer {
     Comment(Box<RawComment>),
 
     #[serde(rename = "t2")]
-    UserInfo(Box<RawUserInfo>),
+    UserAbout(Box<RawUserAbout>),
 
     #[serde(rename = "t3")]
     Post(Box<RawPost>), // Link/Post
@@ -67,7 +67,7 @@ pub enum RawContainer {
     Message(Box<Value>), // Message TODO
 
     #[serde(rename = "t5")]
-    SubredditInfo(Box<RawSubredditInfo>),
+    SubredditAbout(Box<RawSubredditAbout>),
 
     #[serde(rename = "t6")]
     Award(Box<Value>), // Award TODO
@@ -159,7 +159,7 @@ pub struct RawPost {
 /// Reddit subreddit data
 /// https://www.reddit.com/r/Polska/about.json
 #[derive(Getters, Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct RawSubredditInfo {
+pub struct RawSubredditAbout {
     /// eg. Polska
     display_name: String,
     /// tagline, eg. "Polski Subreddit"
@@ -195,7 +195,7 @@ pub struct RawSubredditInfo {
 /// [this u/spez profile request.](https://www.reddit.com/user/spez/about.json)
 #[serde_as]
 #[derive(Getters, Debug, Hash, Eq, PartialEq, Clone, Serialize, Deserialize)]
-pub struct RawUserInfo {
+pub struct RawUserAbout {
     /// Is the user a Reddit employee?
     is_employee: bool,
     /// Karma received by getting awards

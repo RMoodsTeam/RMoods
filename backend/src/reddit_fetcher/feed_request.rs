@@ -46,7 +46,7 @@ impl From<RequestSize> for u16 {
 }
 
 #[derive(Debug)]
-pub struct RMoodsNlpRequest {
+pub struct FetcherFeedRequest {
     pub resource_kind: RedditFeedKind,
     pub report_types: Vec<RMoodsReportType>,
     pub data_sources: Vec<DataSource>,

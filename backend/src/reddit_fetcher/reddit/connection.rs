@@ -8,7 +8,7 @@ use super::{
     auth::{RedditAccessToken, RedditApp},
     error::RedditError,
     model::{MoreComments, RawComment, RawContainer},
-    request::RedditResource,
+    request::RedditRequest,
 };
 
 /// Manages a collection of RedditApp clients and their access tokens.
@@ -96,7 +96,7 @@ impl RedditConnection {
     #[logfn(err = "ERROR", fmt = "Failed to execute request: {:?}")]
     pub async fn fetch_raw(
         &mut self,
-        request: impl RedditResource,
+        request: impl RedditRequest,
     ) -> Result<(RawContainer, Option<String>), RedditError> {
         self.refresh_access_token().await?;
         let (url, query) = request.to_request_parts();
