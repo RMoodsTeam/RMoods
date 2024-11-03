@@ -1,54 +1,62 @@
-from flask import Flask, request, jsonify
-from version_checker import update_model_versions
+import time
 
-app = Flask(__name__)
+from fastapi import FastAPI
+from src.version_checker import update_model_versions
+from pydantic import BaseModel
+from typing import List
+app = FastAPI()
 
-
-@app.route('/json', methods=['GET'])
-def get_json_data():
-    """
-    This function is called when a GET request is made to the /json URL.
-    It reads the JSON data from the request and write it to the file.
-
-    :return: The data processed by certain function.
-    """
-    data = request.get_json()
-    data = process_data(data)
-    return jsonify(data)
+class TextRequest(BaseModel):
+    text: List[str]
 
 
-@app.errorhandler(415)
-def unsupported_media_type(error):
-    """
-    This function is called when a 415 error occurs.
+@app.post("/report/sentiment")
+async def get_sentiment(request: TextRequest):
+    text = request.text[0]
+    return {"sentiment": text}
 
-    :return: The error message.
-    """
-    return jsonify({'error': 'Unsupported media type'}), 415
+@app.post("/report/language")
+async def get_language(request: TextRequest):
+    text = request.text[0]
+    return {"language": text}
+
+@app.post("/report/sarcasm")
+async def get_sarcasm(request: TextRequest):
+    text = request.text[0]
+    return {"sarcasm": text}
+
+@app.post("/report/keywords")
+async def get_keywords(request: TextRequest):
+    text = request.text[0]
+    return {"keywords": text}
+
+@app.post("/report/spam")
+async def get_spam(request: TextRequest):
+    text = request.text[0]
+    return {"spam": text}
 
 
-@app.errorhandler(404)
-def page_not_found():
-    """
-    This function is called when a 404 error occurs.
+@app.post("/report/politics")
+async def get_politics(request: TextRequest):
+    text = request.text[0]
+    return {"politics": text}
 
-    :return: The error message.
-    """
-    return jsonify({'error': 'Page not found'}), 404
+@app.post("/report/hate-speach")
+async def get_hate_speech(request: TextRequest):
+    text = request.text[0]
+    return {"hate-speech": text}
 
+@app.post("/report/clickbait")
+async def get_clickbait(request: TextRequest):
+    text = request.text[0]
+    return {"clickbait": text}
 
-def process_data(data):
-    """
-    This function processes the data and returns the result.
-
-    :param data: The json data to be processed by function.
-
-    :return: The processed data.
-    """
-    data['Modified'] = "Yes"
-    return data
-
+@app.post("/report/troll")
+async def get_troll(request: TextRequest):
+    text = request.text[0]
+    return {"troll": text}
 
 if __name__ == '__main__':
     if update_model_versions():
-        app.run(host='0.0.0.0', port=8002)
+        import uvicorn
+        uvicorn.run(app)

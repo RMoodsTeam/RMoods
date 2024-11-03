@@ -4,7 +4,7 @@ import datetime
 import pytz
 
 from httplib2 import ServerNotFoundError
-from google_service import create_service
+from src.google_service import create_service
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from googleapiclient.errors import HttpError
 from tqdm import tqdm
