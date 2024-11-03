@@ -9,6 +9,7 @@ use crate::reddit_fetcher::model::user_info::UserAbout;
 use crate::reddit_fetcher::model::user_posts::UserPosts;
 use crate::reddit_fetcher::reddit::request::params::FeedSorting;
 use crate::reddit_fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
+use crate::websocket::SystemMessage;
 use crate::{app_error::AppError, AppState};
 use axum::{
     extract::{Query, State},
@@ -157,7 +158,7 @@ pub async fn user_about(
 }
 
 #[utoipa::path(get, path = "/api/debug/subreddit_posts", responses(), params())]
-pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<Json<Posts>, AppError> {
+pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<StatusCode, AppError> {
     let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
@@ -170,11 +171,17 @@ pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<Json<P
         sorting: FeedSorting::New,
     };
 
-    let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await.unwrap();
+    tokio::spawn(async move {
+        log::info!("Spawning a new task to fetch subreddit posts");
+        let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await.unwrap();
+        state
+            .system_tx
+            .send(SystemMessage::ReportDone(data))
+            .unwrap();
+        log::debug!("Returning {} subreddit posts", data.list.len());
+    });
 
-    debug!("Returning {} subreddit posts", data.list.len());
-
-    Ok(Json(data))
+    Ok(StatusCode::OK)
 }
 
 #[utoipa::path(get, path = "/api/debug/user_posts", responses(), params())]

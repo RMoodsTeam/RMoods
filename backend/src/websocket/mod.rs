@@ -1,4 +1,11 @@
 use crate::api::auth::google::GoogleUserInfo;
+use crate::reddit_fetcher::model::post_comments::PostComments;
+use crate::reddit_fetcher::model::posts::Posts;
+use crate::reddit_fetcher::model::reddit_data::RedditFeedData;
+use crate::reddit_fetcher::model::subreddit_info::SubredditAbout;
+use crate::reddit_fetcher::model::user_info::UserAbout;
+use crate::reddit_fetcher::model::user_posts::UserPosts;
+use crate::rmoods::report::RMoodsReport;
 use crate::AppState;
 use axum::extract::ws::WebSocket;
 use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
@@ -40,7 +47,7 @@ type WsUserId = (GoogleId, ConnectionId);
 #[derive(Debug)]
 pub enum SystemMessage {
     RemainingRequestsUpdate(u16),
-    ReportDone(()),
+    ReportDone(Box<dyn RMoodsReport + Send>),
     AddPeer((WsUserId, Sender<ServiceToClientMessage>)),
     RemovePeer(ConnectionId),
 }
@@ -164,7 +171,7 @@ pub async fn start_service(
         tokio::select! {
             msg = system_rx.recv() => {
                 if let Some(msg) = msg {
-                    info!("Received system message: {:?}", msg);
+                    //info!("Received system message: {:?}", msg);
                     match msg {
                         SystemMessage::AddPeer(ws_user_id) => {
                             peers.add_peer(ws_user_id);

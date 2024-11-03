@@ -20,6 +20,7 @@ mod api;
 mod app_error;
 mod open_api;
 mod reddit_fetcher;
+mod rmoods;
 mod startup;
 mod websocket;
 
