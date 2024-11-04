@@ -157,6 +157,7 @@ pub async fn user_about(
     Ok(Json(about))
 }
 
+// TODO: Add proper response type for acknowledged requests
 #[utoipa::path(get, path = "/api/debug/subreddit_posts", responses(), params())]
 pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<StatusCode, AppError> {
     let request = FetcherFeedRequest {
@@ -174,18 +175,20 @@ pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<Status
     tokio::spawn(async move {
         log::info!("Spawning a new task to fetch subreddit posts");
         let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await.unwrap();
+        log::debug!("Returning {} subreddit posts", data.list.len());
         state
             .system_tx
-            .send(SystemMessage::ReportDone(data))
+            .send(SystemMessage::ReportDone(Box::new(data)))
+            .await
             .unwrap();
-        log::debug!("Returning {} subreddit posts", data.list.len());
+        log::debug!("Sent the subreddit posts to the WebSocket service");
     });
 
     Ok(StatusCode::OK)
 }
 
 #[utoipa::path(get, path = "/api/debug/user_posts", responses(), params())]
-pub async fn user_posts(State(mut state): State<AppState>) -> Result<Json<UserPosts>, AppError> {
+pub async fn user_posts(State(mut state): State<AppState>) -> Result<StatusCode, AppError> {
     let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::UserPosts,
         report_types: vec![RMoodsReportType::Sarcasm],
@@ -198,14 +201,22 @@ pub async fn user_posts(State(mut state): State<AppState>) -> Result<Json<UserPo
         sorting: Default::default(),
     };
 
-    let (data, _) = state
-        .fetcher
-        .fetch_feed::<UserPosts>(request)
-        .await
-        .unwrap();
+    tokio::spawn(async move {
+        log::info!("Spawning a new task to fetch user posts");
+        let (data, _) = state
+            .fetcher
+            .fetch_feed::<UserPosts>(request)
+            .await
+            .unwrap();
+        debug!("Returning {} user posts", data.posts.len());
+        debug!("Returning {} user comments", data.comments.len());
+        state
+            .system_tx
+            .send(SystemMessage::ReportDone(Box::new(data)))
+            .await
+            .unwrap();
+        log::debug!("Sent the subreddit posts to the WebSocket service");
+    });
 
-    debug!("Returning {} user posts", data.posts.len());
-    debug!("Returning {} user comments", data.comments.len());
-
-    Ok(Json(data))
+    Ok(StatusCode::OK)
 }

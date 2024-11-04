@@ -176,7 +176,14 @@ pub async fn start_service(
                             peers.remove_peer(connection_id);
                             info!("Peers number: {}", peers.len());
                         }
-                        _ => {}
+                        SystemMessage::ReportDone(report) => {
+                            let str = format!("{:?}", report);
+                            log::info!("Received a report from the main thread of len: {:?}", str.len());
+                        },
+                        SystemMessage::RemainingRequestsUpdate(remaining) => {
+                            log::info!("Remaining requests: {remaining}");
+                            // TODO: Broadcast remaining requests to all clients
+                        }
                     }
                 } else {
                     error!("The main HTTP process has exited or closed the mpsc channel");
