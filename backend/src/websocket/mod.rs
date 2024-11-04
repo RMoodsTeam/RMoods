@@ -1,10 +1,4 @@
 use crate::api::auth::google::GoogleUserInfo;
-use crate::reddit_fetcher::model::post_comments::PostComments;
-use crate::reddit_fetcher::model::posts::Posts;
-use crate::reddit_fetcher::model::reddit_data::RedditFeedData;
-use crate::reddit_fetcher::model::subreddit_info::SubredditAbout;
-use crate::reddit_fetcher::model::user_info::UserAbout;
-use crate::reddit_fetcher::model::user_posts::UserPosts;
 use crate::rmoods::report::RMoodsReport;
 use crate::AppState;
 use axum::extract::ws::WebSocket;
@@ -14,6 +8,7 @@ use axum::routing::get;
 use futures_util::StreamExt;
 use log::{error, info, warn};
 use peers::PeersMap;
+use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::atomic::AtomicUsize;
 use tokio::sync::mpsc::{Receiver, Sender};
@@ -47,7 +42,7 @@ type WsUserId = (GoogleId, ConnectionId);
 #[derive(Debug)]
 pub enum SystemMessage {
     RemainingRequestsUpdate(u16),
-    ReportDone(Box<dyn RMoodsReport + Send>),
+    ReportDone(Box<dyn RMoodsReport>),
     AddPeer((WsUserId, Sender<ServiceToClientMessage>)),
     RemovePeer(ConnectionId),
 }
