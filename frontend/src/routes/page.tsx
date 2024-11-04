@@ -1,13 +1,13 @@
-import { Center, Container, Heading } from "@chakra-ui/react";
 import Demo from "../components/Demo";
+import {Center, Container, Title} from "@mantine/core";
 
 const Root = () => {
   return (
     <Container>
       <Center>
-        <Heading as={"h1"}>RMoods Demo Content</Heading>
+        <Title order={1}>RMoods Demo Content</Title>
       </Center>
-      <Demo />
+      <Demo/>
     </Container>
   );
 };

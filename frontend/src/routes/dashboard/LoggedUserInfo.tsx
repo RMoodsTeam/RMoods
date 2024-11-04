@@ -1,5 +1,6 @@
-import { Avatar, Box, Card, Heading } from "@chakra-ui/react";
 //import { userInfoFromJWT } from "../../utility/serverActions";
+
+import {Avatar, Box, Card, Title} from "@mantine/core";
 
 const LoggedUserInfo = async () => {
   // const userInfo = await userInfoFromJWT();
@@ -12,10 +13,10 @@ const LoggedUserInfo = async () => {
   return (
     <Card>
       <Box>
-        <Heading as="h3">User Info</Heading>
+        <Title order={3}>User Info</Title>
       </Box>
       <Box>
-        <Avatar src={userInfo.picture} size="2xl" />
+        <Avatar src={userInfo.picture} size="2xl"/>
       </Box>
       <Box>
         <Box>

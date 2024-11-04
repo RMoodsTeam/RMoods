@@ -1,21 +1,21 @@
-import { Card, Flex, Grid, Link } from "@chakra-ui/react";
 import UserMenu from "./UserMenu";
 import ThemeSwitch from "./ThemeSwitch";
+import {Anchor, Card, Flex, Grid} from "@mantine/core";
 
 const LeftNavItems = () => {
   return (
     <Flex gap={10}>
-      <Link href="/">Main</Link>
-      <Link href="/about">About</Link>
+      <Anchor href="/">Main</Anchor>
+      <Anchor href="/about">About</Anchor>
     </Flex>
   );
 };
 
 const RightNavItems = () => {
   return (
-    <Flex gap={10} justifyContent={"right"}>
-      <ThemeSwitch />
-      <UserMenu />
+    <Flex gap={10} justify={"right"}>
+      <ThemeSwitch/>
+      <UserMenu/>
     </Flex>
   );
 };
@@ -25,12 +25,18 @@ const RightNavItems = () => {
  */
 const Navbar = () => {
   return (
-    <Card sx={{ margin: 0, borderRadius: 0, marginBottom: 0, height: "10vh" }}>
+    <Card style={{margin: 0, borderRadius: 0, marginBottom: 0, height: "10vh"}}>
       <nav>
-        <Grid templateColumns="repeat(3, 1fr)">
-          <LeftNavItems />
-          <div />
-          <RightNavItems />
+        <Grid>
+          <Grid.Col span={4}>
+            <LeftNavItems/>
+          </Grid.Col>
+          <Grid.Col span={4}>
+            <div/>
+          </Grid.Col>
+          <Grid.Col span={4}>
+            <RightNavItems/>
+          </Grid.Col>
         </Grid>
       </nav>
     </Card>
