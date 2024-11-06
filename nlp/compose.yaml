@@ -2,5 +2,8 @@ services:
   server:
     build:
       context: .
+    container_name: nlp_server
     ports:
       - 8002:8002
+    volumes:
+      - ./models:/models

@@ -1,54 +1,117 @@
-from flask import Flask, request, jsonify
-from version_checker import update_model_versions
+from fastapi import FastAPI
+from src.version_checker import update_model_versions
+from pydantic import BaseModel
+from typing import List
+from contextlib import asynccontextmanager
 
-app = Flask(__name__)
 
-
-@app.route('/json', methods=['GET'])
-def get_json_data():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """
-    This function is called when a GET request is made to the /json URL.
-    It reads the JSON data from the request and write it to the file.
-
-    :return: The data processed by certain function.
+    Context manager for the lifespan of the application.
+    :param app: FastAPI application.
     """
-    data = request.get_json()
-    data = process_data(data)
-    return jsonify(data)
+    print("Application is starting.")
+    update_model_versions()
+    yield
+    print("Application is shutting down.")
 
 
-@app.errorhandler(415)
-def unsupported_media_type(error):
+app = FastAPI(lifespan=lifespan)
+
+class TextRequest(BaseModel):
     """
-    This function is called when a 415 error occurs.
-
-    :return: The error message.
+    Request model for text
     """
-    return jsonify({'error': 'Unsupported media type'}), 415
+    text: List[str]
 
-
-@app.errorhandler(404)
-def page_not_found():
+@app.post("/report/sentiment")
+async def get_sentiment(request: TextRequest):
     """
-    This function is called when a 404 error occurs.
-
-    :return: The error message.
+    Get sentiment of the text.
+    :param request: Request from server in json format
+    :return: Dictionary with model output
     """
-    return jsonify({'error': 'Page not found'}), 404
+    text = request.text[0]
+    return {"sentiment": text}
 
-
-def process_data(data):
+@app.post("/report/language")
+async def get_language(request: TextRequest):
     """
-    This function processes the data and returns the result.
-
-    :param data: The json data to be processed by function.
-
-    :return: The processed data.
+    Get language of the text.
+    :param request: Request from server in json format
+    :return: Dictionary with model output
     """
-    data['Modified'] = "Yes"
-    return data
+    text = request.text[0]
+    return {"language": text}
+
+@app.post("/report/sarcasm")
+async def get_sarcasm(request: TextRequest):
+    """
+    Get sarcasm of the text.
+    :param request: Request from server in json format
+    :return: Dictionary with model output
+    """
+    text = request.text[0]
+    return {"sarcasm": text}
+
+@app.post("/report/keywords")
+async def get_keywords(request: TextRequest):
+    """
+    Get keywords of the text.
+    :param request: Request from server in json format
+    :return: Dictionary with model output
+    """
+    text = request.text[0]
+    return {"keywords": text}
+
+@app.post("/report/spam")
+async def get_spam(request: TextRequest):
+    """
+    Get spam of the text.
+    :param request: Request from server in json format
+    :return: Dictionary with model output
+    """
+    text = request.text[0]
+    return {"spam": text}
 
 
-if __name__ == '__main__':
-    if update_model_versions():
-        app.run(host='0.0.0.0', port=8002)
+@app.post("/report/politics")
+async def get_politics(request: TextRequest):
+    """
+    Get politics of the text.
+    :param request: Request from server in json format
+    :return: Dictionary with model output
+    """
+    text = request.text[0]
+    return {"politics": text}
+
+@app.post("/report/hate-speach")
+async def get_hate_speech(request: TextRequest):
+    """
+    Get hate speech of the text.
+    :param request: Request from server in json format
+    :return: Dictionary with model output
+    """
+    text = request.text[0]
+    return {"hate-speech": text}
+
+@app.post("/report/clickbait")
+async def get_clickbait(request: TextRequest):
+    """
+    Get clickbait of the text.
+    :param request: Request from server in json format
+    :return: Dictionary with model output
+    """
+    text = request.text[0]
+    return {"clickbait": text}
+
+@app.post("/report/troll")
+async def get_troll(request: TextRequest):
+    """
+    Get troll of the text.
+    :param request: Request from server in json format
+    :return: Dictionary with model output
+    """
+    text = request.text[0]
+    return {"troll": text}
