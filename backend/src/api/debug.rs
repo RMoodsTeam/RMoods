@@ -103,9 +103,7 @@ pub async fn subreddit_about(
 }
 
 #[utoipa::path(get, path = "/api/debug/post_comments", responses(), params())]
-pub async fn post_comments(
-    State(mut state): State<AppState>,
-) -> Result<Json<PostComments>, AppError> {
+pub async fn post_comments(State(mut state): State<AppState>) -> Result<Json<()>, AppError> {
     let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
@@ -119,27 +117,35 @@ pub async fn post_comments(
     };
     let requests_to_make = u16::from(request.size.clone());
 
-    let (mut data, requests_made) = state
-        .fetcher
-        .fetch_feed::<PostComments>(request)
-        .await
-        .unwrap();
+    tokio::spawn(async move {
+        let (mut data, requests_made) = state
+            .fetcher
+            .fetch_feed::<PostComments>(request)
+            .await
+            .unwrap();
 
-    debug!("Returning {} post comments", data.list.len());
+        debug!("Returning {} post comments", data.list.len());
 
-    let more_comments = state
-        .fetcher
-        .fetch_more_comments(&data.more, requests_to_make - requests_made)
-        .await
-        .unwrap();
+        let more_comments = state
+            .fetcher
+            .fetch_more_comments(&data.more, requests_to_make - requests_made)
+            .await
+            .unwrap();
 
-    data.list.extend(more_comments);
-    // Remove more comments, as they are already fetched and useless to consumers
-    data.more.clear();
+        data.list.extend(more_comments);
+        // Remove more comments, as they are already fetched and useless to consumers
+        data.more.clear();
 
-    info!("Returning {} post comments", data.list.len());
+        info!("Returning {} post comments", data.list.len());
 
-    Ok(Json(data))
+        state
+            .system_tx
+            .send(SystemMessage::ReportDone(Box::new(data)))
+            .await
+            .unwrap();
+    });
+
+    Ok(Json(()))
 }
 
 #[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
