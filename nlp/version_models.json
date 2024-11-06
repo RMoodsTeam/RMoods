@@ -1,5 +1,3 @@
 {
-    "emotions": "v1",
-    "sentiment": "v1",
-    "spam": "v2"
+    "emotions": "v1"
 }
