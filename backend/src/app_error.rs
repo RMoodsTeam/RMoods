@@ -74,7 +74,7 @@ impl From<AuthError> for AppError {
 /// Convert a FetcherError into an AppError.
 /// It's a very internal thing, so we just return a generic 500 error.
 impl From<FetcherError> for AppError {
-    fn from(value: FetcherError) -> Self {
+    fn from(_value: FetcherError) -> Self {
         AppError::internal_server_error()
     }
 }

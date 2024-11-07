@@ -15,6 +15,7 @@ use tower_http::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use websocket::ws_service;
 
 mod api;
 mod app_error;
@@ -52,7 +53,7 @@ async fn run() -> anyhow::Result<()> {
     let cancellation_token = tokio_util::sync::CancellationToken::new();
 
     let (system_tx, system_rx) = tokio::sync::mpsc::channel::<SystemMessage>(100);
-    tokio::spawn(websocket::start_service(
+    tokio::spawn(ws_service::start_service(
         system_rx,
         cancellation_token.clone(),
     ));

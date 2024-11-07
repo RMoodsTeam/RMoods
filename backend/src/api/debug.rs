@@ -18,7 +18,6 @@ use axum::{
     Json,
 };
 use log::{debug, info};
-use log_derive::logfn;
 use reqwest::StatusCode;
 
 #[utoipa::path(get, path = "/api/debug/subreddit_about", responses(), params())]
