@@ -1,4 +1,5 @@
 use super::AnyParams;
+use crate::api::auth::google::GoogleUserInfo;
 use crate::reddit_fetcher::feed_request::{
     DataSource, FetcherFeedRequest, RMoodsReportType, RedditFeedKind, RequestSize,
 };
@@ -9,40 +10,38 @@ use crate::reddit_fetcher::model::user_info::UserAbout;
 use crate::reddit_fetcher::model::user_posts::UserPosts;
 use crate::reddit_fetcher::reddit::request::params::FeedSorting;
 use crate::reddit_fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
+use crate::rmoods::report_ack::ReportAck;
 use crate::websocket::SystemMessage;
 use crate::{app_error::AppError, AppState};
 use axum::{
     extract::{Query, State},
     Json,
 };
-use lipsum::lipsum;
 use log::{debug, info};
 use log_derive::logfn;
 use reqwest::StatusCode;
-use serde_json::{json, Value};
 
 #[utoipa::path(get, path = "/api/debug/subreddit_about", responses(), params())]
 pub async fn subreddit_about(
     State(mut state): State<AppState>,
     Query(params): Query<AnyParams>,
-) -> Result<StatusCode, AppError> {
+) -> Result<Json<SubredditAbout>, AppError> {
     let subreddit = params
         .get("r")
         .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
     let req = SubredditAboutRequest {
         subreddit: subreddit.to_string(),
     };
-    let about = state
-        .fetcher
-        .fetch_about::<SubredditAbout>(req)
-        .await
-        .unwrap();
+    let about = state.fetcher.fetch_about::<SubredditAbout>(req).await?;
 
-    Ok(StatusCode::OK)
+    Ok(Json(about))
 }
 
 #[utoipa::path(get, path = "/api/debug/post_comments", responses(), params())]
-pub async fn post_comments(State(mut state): State<AppState>) -> Result<StatusCode, AppError> {
+pub async fn post_comments(
+    State(mut state): State<AppState>,
+    user_info: GoogleUserInfo,
+) -> Result<ReportAck, AppError> {
     let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
@@ -79,12 +78,12 @@ pub async fn post_comments(State(mut state): State<AppState>) -> Result<StatusCo
 
         state
             .system_tx
-            .send(SystemMessage::ReportDone(Box::new(data)))
+            .send(SystemMessage::ReportDone((Box::new(data), user_info)))
             .await
             .unwrap();
     });
 
-    Ok(StatusCode::OK)
+    Ok(ReportAck::new())
 }
 
 #[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
@@ -98,13 +97,16 @@ pub async fn user_about(
     let req = UserAboutRequest {
         username: user.to_string(),
     };
-    let about = state.fetcher.fetch_about::<UserAbout>(req).await.unwrap();
+    let about = state.fetcher.fetch_about::<UserAbout>(req).await?;
     Ok(Json(about))
 }
 
 // TODO: Add proper response type for acknowledged requests
 #[utoipa::path(get, path = "/api/debug/subreddit_posts", responses(), params())]
-pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<StatusCode, AppError> {
+pub async fn subreddit_posts(
+    State(mut state): State<AppState>,
+    user_info: GoogleUserInfo,
+) -> Result<ReportAck, AppError> {
     let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
@@ -123,17 +125,20 @@ pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<Status
         log::debug!("Returning {} subreddit posts", data.list.len());
         state
             .system_tx
-            .send(SystemMessage::ReportDone(Box::new(data)))
+            .send(SystemMessage::ReportDone((Box::new(data), user_info)))
             .await
             .unwrap();
         log::debug!("Sent the subreddit posts to the WebSocket service");
     });
 
-    Ok(StatusCode::OK)
+    Ok(ReportAck::new())
 }
 
 #[utoipa::path(get, path = "/api/debug/user_posts", responses(), params())]
-pub async fn user_posts(State(mut state): State<AppState>) -> Result<StatusCode, AppError> {
+pub async fn user_posts(
+    State(mut state): State<AppState>,
+    user_info: GoogleUserInfo,
+) -> Result<ReportAck, AppError> {
     let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::UserPosts,
         report_types: vec![RMoodsReportType::Sarcasm],
@@ -159,11 +164,11 @@ pub async fn user_posts(State(mut state): State<AppState>) -> Result<StatusCode,
         debug!("Returning {} user comments", data.comments.len());
         state
             .system_tx
-            .send(SystemMessage::ReportDone(Box::new(data)))
+            .send(SystemMessage::ReportDone((Box::new(data), user_info)))
             .await
             .unwrap();
         log::debug!("Sent the subreddit posts to the WebSocket service");
     });
 
-    Ok(StatusCode::OK)
+    Ok(ReportAck::new())
 }

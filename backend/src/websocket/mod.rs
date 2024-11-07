@@ -42,7 +42,7 @@ type WsUserId = (GoogleId, ConnectionId);
 #[derive(Debug)]
 pub enum SystemMessage {
     RemainingRequestsUpdate(u16),
-    ReportDone(Box<dyn RMoodsReport>),
+    ReportDone((Box<dyn RMoodsReport>, GoogleUserInfo)),
     AddPeer((WsUserId, Sender<ServiceToClientMessage>)),
     RemovePeer(ConnectionId),
 }

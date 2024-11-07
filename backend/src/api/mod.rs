@@ -12,13 +12,12 @@ type AnyParams = HashMap<String, String>;
 /// Defines routes for the /api path.
 pub fn router() -> Router<AppState> {
     Router::<AppState>::new()
-        .route("/debug/timeout", get(debug::timeout))
-        .route("/debug/lorem", get(debug::lorem))
         .route("/debug/subreddit-about", get(debug::subreddit_about))
         .route("/debug/post-comments", get(debug::post_comments))
         .route("/debug/user-about", get(debug::user_about))
         .route("/debug/subreddit-posts", get(debug::subreddit_posts))
         .route("/debug/user-posts", get(debug::user_posts))
+        //
         .route("/report/sentiment", get(report::sentiment))
         .route("/report/language", get(report::language))
         .route("/report/sarcasm", get(report::sarcasm))

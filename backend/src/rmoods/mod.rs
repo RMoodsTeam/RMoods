@@ -1,2 +1,2 @@
 pub mod report;
-mod report_ack;
+pub mod report_ack;

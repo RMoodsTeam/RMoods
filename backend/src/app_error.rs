@@ -4,6 +4,7 @@ use reqwest::StatusCode;
 use serde_json::json;
 
 use crate::api::auth::error::AuthError;
+use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::reddit::error::RedditError;
 
 /// Public-facing error kind. Contains an HTTP status code and a message describing the error.
@@ -40,6 +41,9 @@ impl IntoResponse for AppError {
     }
 }
 
+/// Convert a RedditError into an AppError.
+/// If a resource is not found, that's a public-facing error, so we return a 404.
+/// All other errors are converted into a generic 500 Internal Server Error.
 impl From<RedditError> for AppError {
     fn from(value: RedditError) -> Self {
         match &value {
@@ -51,6 +55,8 @@ impl From<RedditError> for AppError {
     }
 }
 
+/// Convert an AuthError into an AppError.
+/// This is a public-facing error, so we return a 401 Unauthorized error and a short message.
 impl From<AuthError> for AppError {
     fn from(value: AuthError) -> Self {
         type E = jsonwebtoken::errors::ErrorKind;
@@ -62,6 +68,14 @@ impl From<AuthError> for AppError {
             },
             _ => AppError::internal_server_error(),
         }
+    }
+}
+
+/// Convert a FetcherError into an AppError.
+/// It's a very internal thing, so we just return a generic 500 error.
+impl From<FetcherError> for AppError {
+    fn from(value: FetcherError) -> Self {
+        AppError::internal_server_error()
     }
 }
 
