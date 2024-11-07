@@ -3,8 +3,7 @@
 Main module for the project.
 
 ```{eval-rst}
-.. code-include :: :func:`main.get_json_data`
-.. automodule:: main
+.. automodule:: src.main
    :members:
    :undoc-members:
    :show-inheritance:

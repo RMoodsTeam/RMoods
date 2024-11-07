@@ -4,6 +4,7 @@ services:
       context: .
     container_name: nlp_server
     ports:
-      - 8002:8002
+      - "8002:8002"
     volumes:
       - ./models:/models
+      - /etc/localtime:/etc/localtime
