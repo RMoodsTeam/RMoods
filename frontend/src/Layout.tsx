@@ -9,6 +9,7 @@ const Layout = () => {
       style={{
         minHeight: "100vh",
         flexDirection: "column",
+        transition: "background-color 0.5s ease",
       }}
     >
       <Navbar/>
