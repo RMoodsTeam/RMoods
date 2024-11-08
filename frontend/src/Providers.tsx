@@ -6,11 +6,15 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import {MantineProvider} from '@mantine/core';
 import {Notifications} from "@mantine/notifications";
+import {useAtomValue} from "jotai/ts3.8/react/useAtomValue";
+import {colorModeAtom} from "./atoms.ts";
 
 const Providers = ({children}: { children: React.ReactNode }) => {
+  const colorScheme = useAtomValue(colorModeAtom);
+  
   return (
     <StrictMode>
-      <MantineProvider>
+      <MantineProvider defaultColorScheme={colorScheme}>
         <Notifications/>
         <WebsocketProvider>
           <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">

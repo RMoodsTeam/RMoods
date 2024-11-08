@@ -1,10 +1,10 @@
-import { atom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
-import { RMoodsColorMode } from "./theme";
+import {atom} from "jotai";
+import {atomWithStorage} from "jotai/utils";
+import {MantineColorScheme} from "@mantine/core";
 
 export const userInfoAtom = atom<any>({});
 
-export const colorModeAtom = atomWithStorage<RMoodsColorMode>(
+export const colorModeAtom = atomWithStorage<MantineColorScheme>(
   "COLOR_MODE",
-  (localStorage.getItem("COLOR_MODE") as RMoodsColorMode) || "light",
+  (localStorage.getItem("COLOR_MODE") as MantineColorScheme) || "light",
 );
