@@ -1,8 +1,4 @@
-import DebugRedditUserInfo from "./DebugUserInfo";
-import LoggedUserInfo from "./LoggedUserInfo";
-import DebugSubredditInfo from "./DebugSubredditInfo";
-import {Heading} from "@chakra-ui/react";
-import {Await} from "react-router-dom";
+import {Title} from "@mantine/core";
 
 /**
  * Dashboard page, gets user info asynchonously
@@ -11,8 +7,8 @@ import {Await} from "react-router-dom";
 const Dashboard = () => {
   return (
     <>
-      <Heading as="h1">Dashboard</Heading>
-      {/*/!* Lorem impsum added for testing purposes*!/purposes**/}
+      <Title order={1}>Dashboard</Title>
+      {/*/!* Lorem ipsum added for testing purposes*!/purposes**/}
       {/*Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas a ligula nec augue consequat venenatis. Fusce tellus sapien, dignissim non hendrerit at, auctor sed diam. Maecenas et lacus consequat, gravida orci vitae, accumsan ipsum. Duis imperdiet tellus sit amet imperdiet placerat. Phasellus tempor at odio at fermentum. Nunc non hendrerit dui. Nunc dapibus sed purus ut euismod. Phasellus mattis viverra velit et lacinia. Donec nec congue massa, finibus pretium turpis.*/}
 
       {/*Quisque nec dolor eget risus varius pharetra. Ut tempor aliquet nisi sed pellentesque. Morbi faucibus dui at condimentum rhoncus. Quisque vehicula pharetra magna lacinia vestibulum. Aenean non purus tincidunt, cursus quam vitae, eleifend nibh. Aliquam tristique sem ut felis sagittis dignissim. Vestibulum bibendum auctor eros, ut viverra leo aliquam vel. Proin iaculis porta sollicitudin. Praesent quis sem posuere, suscipit nisi non, efficitur neque. Aenean imperdiet sollicitudin elementum. Etiam placerat dignissim elit nec sollicitudin. Suspendisse potenti. Donec luctus condimentum neque vitae molestie. Sed vehicula laoreet lectus, id aliquam dolor euismod in. Aliquam accumsan bibendum odio. Vivamus ac est quis turpis fringilla pharetra posuere id est.*/}

@@ -1,100 +1,47 @@
-import {
-  Button,
-  Icon,
-  useColorMode,
-  HStack,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-} from "@chakra-ui/react";
-import { FaSun, FaMoon, FaDesktop } from "react-icons/fa";
-import { getSystemMode, RMoodsColorMode } from "../../theme";
-import { useAtom } from "jotai";
-import { useEffect } from "react";
-import { colorModeAtom } from "../../atoms";
+import {ActionIcon, MantineColorScheme, Menu, useMantineColorScheme} from "@mantine/core";
+import {FaDesktop, FaMoon, FaSun} from "react-icons/fa";
+import {useAtom} from "jotai";
+import {colorModeAtom} from "../../atoms.ts";
 
 const ThemeSwitch = () => {
-  const { colorMode, toggleColorMode } = useColorMode();
-  const [trueColorMode, setTrueColorMode] = useAtom(colorModeAtom);
+  const {colorScheme, setColorScheme} = useMantineColorScheme();
+  const [, setColorModeAtom] = useAtom(colorModeAtom);
 
-  // Determine the current icon based on the mode
+  const iconMap = {
+    light: <FaSun size={18}/>,
+    dark: <FaMoon size={18}/>,
+    auto: <FaDesktop size={18}/>,
+  }
+
   const getIcon = () => {
-    switch (trueColorMode) {
-      case "light":
-        return FaSun;
-      case "dark":
-        return FaMoon;
-      case "system":
-        return FaDesktop;
-      default:
-        return FaSun;
-    }
-  };
+    return iconMap[colorScheme];
+  }
 
-  // Handle system color scheme preference changes
-  const handleSystemSchemeChange = () => {
-    const systemMode = getSystemMode();
-    if (trueColorMode === "system" && colorMode !== systemMode) {
-      toggleColorMode();
-    }
-  };
-
-  // Handle theme change logic
-  const onThemeChange = (newMode: RMoodsColorMode) => {
-    const systemMode = getSystemMode();
-
-    setTrueColorMode(newMode);
-
-    if (newMode === "system") {
-      if (colorMode !== systemMode) {
-        toggleColorMode();
-      }
-    } else {
-      if (colorMode !== newMode) {
-        toggleColorMode();
-      }
-    }
-  };
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    mediaQuery.addEventListener("change", handleSystemSchemeChange);
-    return () =>
-      mediaQuery.removeEventListener("change", handleSystemSchemeChange);
-  }, [colorMode, trueColorMode]);
+  const setStoredColorScheme = (newScheme: MantineColorScheme) => {
+    setColorScheme(newScheme);
+    setColorModeAtom(newScheme);
+  }
 
   return (
-    <header>
+    <>
       <Menu>
-        <MenuButton as={Button} aria-label="theme menu">
-          <HStack spacing={2}>
-            <Icon as={getIcon()} boxSize={5} />
-          </HStack>
-        </MenuButton>
-        <MenuList>
-          <MenuItem
-            onClick={() => onThemeChange("light")}
-            icon={<FaSun size={16} />}
-          >
+        <Menu.Target>
+          <ActionIcon size={36}>{getIcon()}</ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item leftSection={iconMap['light']} onClick={() => setStoredColorScheme('light')}>
             Light
-          </MenuItem>
-          <MenuItem
-            onClick={() => onThemeChange("dark")}
-            icon={<FaMoon size={16} />}
-          >
+          </Menu.Item>
+          <Menu.Item leftSection={iconMap['dark']} onClick={() => setStoredColorScheme('dark')}>
             Dark
-          </MenuItem>
-          <MenuItem
-            onClick={() => onThemeChange("system")}
-            icon={<FaDesktop size={16} />}
-          >
+          </Menu.Item>
+          <Menu.Item leftSection={iconMap['auto']} onClick={() => setStoredColorScheme('auto')}>
             System
-          </MenuItem>
-        </MenuList>
+          </Menu.Item>
+        </Menu.Dropdown>
       </Menu>
-    </header>
-  );
+    </>
+  )
 };
 
 export default ThemeSwitch;

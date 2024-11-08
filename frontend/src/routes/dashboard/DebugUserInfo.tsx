@@ -1,16 +1,17 @@
-import { Box, Card, Heading } from "@chakra-ui/react";
 //import { fetchUserInfo } from "../../rmoods/api";
 
+import {Box, Card, Title} from "@mantine/core";
+
 /**
- * Astnc debug function to display user info
+ * Async debug function to display user info
  * @returns Promise<Element>
  */
 export default async function DebugUserInfo() {
   //const debugUserInfo = await fetchUserInfo("spez");
-  const debugUserInfo = { user: "spez" };
+  const debugUserInfo = {user: "spez"};
   return (
     <Card>
-      <Heading as="h3">Debug user info</Heading>
+      <Title order={3}>Debug user info</Title>
       <Box>{JSON.stringify(debugUserInfo, null, 2)}</Box>
     </Card>
   );

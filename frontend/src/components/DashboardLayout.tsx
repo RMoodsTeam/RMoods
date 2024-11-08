@@ -1,8 +1,8 @@
-import {Box, Flex} from "@chakra-ui/react";
 import Sidebar from "./Sidebar";
 import {Outlet} from "react-router-dom";
 import Navbar from "./navbar/Navbar.tsx";
 import Footer from "./Footer.tsx";
+import {Box, Flex} from "@mantine/core";
 
 const dashboardFlex = {
   flex: "auto",
@@ -19,10 +19,12 @@ const DashboardLayout = () => {
     <Flex>
       <Sidebar/>
       <Flex
-        sx={dashboardFlex}
+        // TODO: Cleanup
+        style={{flex: "auto", flexDirection: "column"}}
+        // style={dashboardFlex}
       >
         <Navbar/>
-        <Box sx={dashboardContainer}>
+        <Box style={dashboardContainer}>
           <Outlet/>
         </Box>
         <Footer/>

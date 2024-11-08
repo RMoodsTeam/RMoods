@@ -1,4 +1,4 @@
-import { Card } from "@chakra-ui/react";
+import {Card} from "@mantine/core";
 
 const flexFooter = {
   borderRadius: 0,
@@ -16,7 +16,7 @@ const flexFooter = {
  */
 const Footer = () => {
   return (
-    <Card sx={{ ...flexFooter }}>
+    <Card style={{...flexFooter}}>
       <footer>RMoods</footer>
     </Card>
   );

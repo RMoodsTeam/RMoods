@@ -1,5 +1,6 @@
-import { Card, Heading } from "@chakra-ui/react";
 //import { fetchSubredditInfo } from "../../rmoods/api";
+
+import {Card, Title} from "@mantine/core";
 
 /**
  * Async debug function to display subreddit info
@@ -7,10 +8,10 @@ import { Card, Heading } from "@chakra-ui/react";
  */
 export default async function DebugSubredditInfo() {
   //const subredditData = await fetchSubredditInfo("Polska");
-  const subredditData = { test: "test" };
+  const subredditData = {test: "test"};
   return (
     <Card>
-      <Heading as="h3">Debug subreddit info</Heading>
+      <Title order={3}>Debug subreddit info</Title>
       <div>{JSON.stringify(subredditData, null, 2)}</div>
     </Card>
   );

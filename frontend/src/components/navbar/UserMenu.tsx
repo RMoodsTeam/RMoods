@@ -1,6 +1,6 @@
-import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
 import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
+import {Button, Menu} from "@mantine/core";
 
 const UserMenu = () => {
   const navigate = useNavigate();
@@ -12,11 +12,11 @@ const UserMenu = () => {
 
   return (
     <Menu id="user-dropdown">
-      <MenuButton>User Menu</MenuButton>
-      <MenuList>
-        <MenuItem onClick={() => navigate("/dashboard")}>Dashboard</MenuItem>
-        <MenuItem onClick={() => handleLogout()}>Log out</MenuItem>
-      </MenuList>
+      <Menu.Target><Button>User Menu</Button></Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Item onClick={() => navigate("/dashboard")}>Dashboard</Menu.Item>
+        <Menu.Item onClick={() => handleLogout()}>Log out</Menu.Item>
+      </Menu.Dropdown>
     </Menu>
   );
 };

@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
-import {CreateToastFnReturn} from "@chakra-ui/react";
 import {atom} from "jotai";
+import {notifications} from "@mantine/notifications";
 
 // Define an atom to store the WebSocket connection status
 // for now the atom manipulation is in the onerror function as it was the easiest to test on
@@ -9,7 +9,7 @@ import {atom} from "jotai";
 export const wsConnectionStatusAtom = atom<boolean>(false);
 
 class WebSocketConnection {
-  constructor(toast: CreateToastFnReturn, setWsConnectionStatus: (status: boolean) => void) {
+  constructor(setWsConnectionStatus: (status: boolean) => void) {
     const wsClient = new WebSocket(`ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get("RMOODS_JWT")}`);
 
     wsClient.onmessage = (event) => {
@@ -25,14 +25,13 @@ class WebSocketConnection {
     wsClient.onerror = (event) => {
       console.error(event);
 
-      toast({
+      notifications.show({
         title: 'WebSocket Error',
-        description: "An error occurred with the WebSocket connection.",
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-
+        message: "An error occurred with the WebSocket connection.",
+        color: 'red',
+        icon: 'bell',
+      })
+      
       setWsConnectionStatus(false); // Set the atom to false
       console.log("WebSocket connection status:", false);
     };

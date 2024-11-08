@@ -1,5 +1,5 @@
-import { Card, Heading } from "@chakra-ui/react";
 import React from "react";
+import {Card, Title} from "@mantine/core";
 
 /**
  * Section component, used to display a section with a title and content.
@@ -12,10 +12,10 @@ interface SectionProps {
   content: string;
 }
 
-const Section: React.FC<SectionProps> = ({ title, content }) => {
+const Section: React.FC<SectionProps> = ({title, content}) => {
   return (
     <Card>
-      <Heading as="h3">{title}</Heading>
+      <Title order={3}>{title}</Title>
       <p>{content}</p>
     </Card>
   );
