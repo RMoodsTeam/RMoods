@@ -1,4 +1,5 @@
 use crate::api::auth::google::GoogleUserInfo;
+use crate::app_error::AppError;
 use crate::rmoods::report::RMoodsReport;
 use crate::AppState;
 use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
@@ -40,6 +41,7 @@ type WsUserId = (GoogleId, ConnectionId);
 pub enum SystemMessage {
     RemainingRequestsUpdate(u16),
     ReportDone((Box<dyn RMoodsReport>, GoogleUserInfo)),
+    ReportError((AppError, GoogleUserInfo)),
     AddPeer((WsUserId, Sender<ServiceToClientMessage>)),
     RemovePeer(ConnectionId),
 }

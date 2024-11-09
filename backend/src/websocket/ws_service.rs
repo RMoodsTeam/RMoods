@@ -31,11 +31,15 @@ pub async fn start_service(
                             peers.remove_peer(connection_id);
                             log::info!("Peers number: {}", peers.len());
                         }
-                        SystemMessage::ReportDone(report) => {
+                        SystemMessage::ReportDone((report, user_info)) => {
                             let str = format!("{:?}", report);
                             log::info!("Received a report from the main thread of len: {:?}", str.len());
                             // TODO: Send the report to the client
                         },
+                        SystemMessage::ReportError((err, user_info)) => {
+                            log::error!("Report error: {:?}", err);
+                            // TODO: Notify the user about the error
+                        }
                         SystemMessage::RemainingRequestsUpdate(remaining) => {
                             log::info!("Remaining requests: {remaining}");
                             // TODO: Broadcast remaining requests to all clients

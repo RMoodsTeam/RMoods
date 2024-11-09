@@ -1,5 +1,6 @@
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
+use crate::reddit_fetcher::reddit::connection::RedditConnection;
 use crate::startup::{shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
 use api::auth;
@@ -45,7 +46,11 @@ async fn run() -> anyhow::Result<()> {
         .await?;
     info!("Connected to the database");
 
-    let http = reqwest::ClientBuilder::new().user_agent("RMoods").build()?;
+    let http = reqwest::ClientBuilder::new()
+        .user_agent("RMoods")
+        .redirect(RedditConnection::redirect_policy()) // to prevent redirects in case of subreddit not found
+        // TODO: Abstract this away, put HTTP inside the RedditConnection
+        .build()?;
     let fetcher = RMoodsFetcher::new(http.clone()).await?;
     info!("Connected to Reddit");
 

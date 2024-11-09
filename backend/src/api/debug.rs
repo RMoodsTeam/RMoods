@@ -3,6 +3,7 @@ use crate::api::auth::google::GoogleUserInfo;
 use crate::reddit_fetcher::feed_request::{
     DataSource, FetcherFeedRequest, RMoodsReportType, RedditFeedKind, RequestSize,
 };
+use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::model::post_comments::PostComments;
 use crate::reddit_fetcher::model::posts::Posts;
 use crate::reddit_fetcher::model::subreddit_info::SubredditAbout;
@@ -12,12 +13,13 @@ use crate::reddit_fetcher::reddit::request::params::FeedSorting;
 use crate::reddit_fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
 use crate::rmoods::report_ack::ReportAck;
 use crate::websocket::SystemMessage;
+use crate::websocket::SystemMessage::ReportError;
 use crate::{app_error::AppError, AppState};
 use axum::{
     extract::{Query, State},
     Json,
 };
-use log::{debug, info};
+use log::debug;
 use reqwest::StatusCode;
 
 #[utoipa::path(get, path = "/api/debug/subreddit_about", responses(), params())]
@@ -45,7 +47,7 @@ pub async fn post_comments(
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {
-            name: "interesting".to_string(),
+            name: "interestg".to_string(),
             post_id: Some("1g7e1g6".to_string()),
             share: 1.0,
         }],
@@ -54,32 +56,38 @@ pub async fn post_comments(
     };
     let requests_to_make = u16::from(request.size.clone());
 
-    tokio::spawn(async move {
-        let (mut data, requests_made) = state
-            .fetcher
-            .fetch_feed::<PostComments>(request)
-            .await
-            .unwrap();
-
-        debug!("Returning {} post comments", data.list.len());
+    let make_report = async move {
+        let (mut data, _) = state.fetcher.fetch_feed::<PostComments>(request).await?;
 
         let more_comments = state
             .fetcher
-            .fetch_more_comments(&data.more, requests_to_make - requests_made)
-            .await
-            .unwrap();
+            .fetch_more_comments(&data.more, requests_to_make)
+            .await?;
 
         data.list.extend(more_comments);
-        // Remove more comments, as they are already fetched and useless to consumers
         data.more.clear();
+        Ok::<PostComments, FetcherError>(data)
+    };
 
-        info!("Returning {} post comments", data.list.len());
-
-        state
-            .system_tx
-            .send(SystemMessage::ReportDone((Box::new(data), user_info)))
-            .await
-            .unwrap();
+    tokio::spawn(async move {
+        match make_report.await {
+            Ok(report) => {
+                log::info!("Returning {} post comments", report.list.len());
+                state
+                    .system_tx
+                    .send(SystemMessage::ReportDone((Box::new(report), user_info)))
+                    .await
+                    .unwrap();
+            }
+            Err(e) => {
+                log::error!("Failed to make report: {:?}", e);
+                state
+                    .system_tx
+                    .send(ReportError((AppError::from(e), user_info)))
+                    .await
+                    .unwrap();
+            }
+        }
     });
 
     Ok(ReportAck::new())
@@ -110,7 +118,7 @@ pub async fn subreddit_posts(
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {
-            name: "nosleep".to_string(),
+            name: "nosleeping1213".to_string(),
             post_id: None,
             share: 1.0,
         }],
@@ -118,16 +126,32 @@ pub async fn subreddit_posts(
         sorting: FeedSorting::New,
     };
 
+    let make_report = async move {
+        let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await?;
+        Ok::<Posts, FetcherError>(data)
+    };
+
     tokio::spawn(async move {
         log::info!("Spawning a new task to fetch subreddit posts");
-        let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await.unwrap();
-        log::debug!("Returning {} subreddit posts", data.list.len());
-        state
-            .system_tx
-            .send(SystemMessage::ReportDone((Box::new(data), user_info)))
-            .await
-            .unwrap();
-        log::debug!("Sent the subreddit posts to the WebSocket service");
+        match make_report.await {
+            Ok(data) => {
+                log::debug!("Returning {} subreddit posts", data.list.len());
+                state
+                    .system_tx
+                    .send(SystemMessage::ReportDone((Box::new(data), user_info)))
+                    .await
+                    .unwrap();
+                log::debug!("Sent the subreddit posts to the WebSocket service");
+            }
+            Err(e) => {
+                log::error!("Failed to make report: {:?}", e);
+                state
+                    .system_tx
+                    .send(ReportError((AppError::from(e), user_info)))
+                    .await
+                    .unwrap();
+            }
+        }
     });
 
     Ok(ReportAck::new())
@@ -142,7 +166,7 @@ pub async fn user_posts(
         resource_kind: RedditFeedKind::UserPosts,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {
-            name: "spez".to_string(),
+            name: "spezusususdsad".to_string(),
             post_id: None,
             share: 1.0,
         }],
@@ -152,21 +176,33 @@ pub async fn user_posts(
 
     // TODO: If there are no requests, return appropriate message to the user
 
+    let make_report = async move {
+        let (data, _) = state.fetcher.fetch_feed::<UserPosts>(request).await?;
+        Ok::<UserPosts, FetcherError>(data)
+    };
+
     tokio::spawn(async move {
         log::info!("Spawning a new task to fetch user posts");
-        let (data, _) = state
-            .fetcher
-            .fetch_feed::<UserPosts>(request)
-            .await
-            .unwrap();
-        debug!("Returning {} user posts", data.posts.len());
-        debug!("Returning {} user comments", data.comments.len());
-        state
-            .system_tx
-            .send(SystemMessage::ReportDone((Box::new(data), user_info)))
-            .await
-            .unwrap();
-        log::debug!("Sent the subreddit posts to the WebSocket service");
+        match make_report.await {
+            Ok(data) => {
+                log::debug!("Returning {} user posts", data.posts.len());
+                log::debug!("Returning {} user comments", data.comments.len());
+                state
+                    .system_tx
+                    .send(SystemMessage::ReportDone((Box::new(data), user_info)))
+                    .await
+                    .unwrap();
+                log::debug!("Sent the subreddit posts to the WebSocket service");
+            }
+            Err(e) => {
+                log::error!("Failed to make report: {:?}", e);
+                state
+                    .system_tx
+                    .send(ReportError((AppError::from(e), user_info)))
+                    .await
+                    .unwrap();
+            }
+        }
     });
 
     Ok(ReportAck::new())

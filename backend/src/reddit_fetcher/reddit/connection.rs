@@ -1,15 +1,24 @@
-use http::StatusCode;
-use log::{debug, info, warn};
-use log_derive::logfn;
-use serde_json::Value;
-use std::time::SystemTime;
-
 use super::{
     auth::{RedditAccessToken, RedditApp},
     error::RedditError,
     model::{MoreComments, RawComment, RawContainer},
     request::RedditRequest,
 };
+use http::StatusCode;
+use log::{debug, info, warn};
+use log_derive::logfn;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::time::SystemTime;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum InnerFetchError {
+    #[error("HTTP Error: {0:?}")]
+    HttpError(#[from] reqwest::Error),
+    #[error("Reddit Error: {0:?}")]
+    RedditError(#[from] RedditError),
+}
 
 /// Manages a collection of RedditApp clients and their access tokens.
 ///
@@ -53,7 +62,7 @@ impl RedditConnection {
         })
     }
 
-    #[logfn(err = "ERROR", fmt = "Failed to refresh access token: {0}")]
+    #[logfn(err = "ERROR", fmt = "Failed to refresh access token: {0:?}")]
     async fn refresh_access_token(&mut self) -> Result<(), RedditError> {
         if self.access_token.is_expired() {
             warn!("Access token expired, fetching new one");
@@ -63,12 +72,24 @@ impl RedditConnection {
         Ok(())
     }
 
-    #[logfn(err = "ERROR", fmt = "Failed inner_fetch: {0}")]
+    pub fn redirect_policy() -> reqwest::redirect::Policy {
+        reqwest::redirect::Policy::custom(|attempt| {
+            if attempt.url().path().contains("subreddits/search.json") {
+                attempt.error(
+                    "Redirecting to subreddits/search.json because subreddit does not exist.",
+                )
+            } else {
+                attempt.follow()
+            }
+        })
+    }
+
+    #[logfn(err = "ERROR", fmt = "Failed inner_fetch: {0:?}")]
     async fn inner_fetch(
         &mut self,
-        url: String,
+        url: &str,
         query: Vec<(&str, String)>,
-    ) -> Result<Value, reqwest::Error> {
+    ) -> Result<Value, InnerFetchError> {
         info!("Fetching data from: {url:?}\nWith query params: {query:?}");
 
         let req = self
@@ -79,13 +100,40 @@ impl RedditConnection {
             .build()?;
 
         let start = SystemTime::now();
-        let res = self.http.execute(req).await?;
+        let res = self.http.execute(req).await;
         let elapsed = SystemTime::now().duration_since(start).unwrap();
+
+        let res = if let Err(e) = &res {
+            // we get a redirection error only if the subreddit does not exist, see [RedditConnection::redirect_policy]
+            if e.is_redirect() {
+                warn!("Redirected to subreddits/search.json because subreddit does not exist.");
+                return Err(InnerFetchError::RedditError(RedditError::ResourceNotFound(
+                    url.to_string(),
+                )));
+            }
+            res?
+        } else {
+            res?
+        };
 
         let header_log = create_ratelimit_log(&res);
         info!("Headers: {}", header_log.trim_end());
 
         info!("Data fetched successfully. Took {:?}", elapsed);
+
+        if !res.status().is_success() {
+            warn!("Failed to fetch data: {:?}", res);
+            match res.status() {
+                StatusCode::NOT_FOUND => {
+                    return Err(InnerFetchError::RedditError(RedditError::ResourceNotFound(
+                        url.to_string(),
+                    )));
+                }
+                _ => {
+                    log::warn!("Received error status code: {:?}", res);
+                }
+            }
+        }
 
         Ok(res.json().await?)
     }
@@ -101,15 +149,7 @@ impl RedditConnection {
         self.refresh_access_token().await?;
         let (url, query) = request.to_request_parts();
 
-        let json = self.inner_fetch(url, query).await;
-
-        let json = json.map_err(|err| match err.status() {
-            Some(status) => match status {
-                StatusCode::NOT_FOUND => RedditError::ResourceNotFound(request.resource_name()),
-                _ => RedditError::HttpError(err),
-            },
-            None => RedditError::HttpError(err),
-        })?;
+        let json = self.inner_fetch(&url, query).await?;
 
         // Special case for comments, as they are wrapped in an array
         // First element of said array is the post, second is the comments
@@ -121,7 +161,16 @@ impl RedditConnection {
                 .get("after")
                 .and_then(|a| a.as_str())
                 .map(|s| s.to_string());
-            Ok((serde_json::from_value(comments_container)?, after))
+            let parsed = serde_json::from_value(comments_container);
+            match parsed {
+                Ok(parsed) => Ok((parsed, after)),
+                Err(err) => {
+                    warn!("Failed to parse comments: {:?}", err);
+                    Err(RedditError::OtherJsonError(
+                        "Failed to parse comments".to_string(),
+                    ))
+                }
+            }
         } else {
             let after = json
                 .get("data")
@@ -132,7 +181,7 @@ impl RedditConnection {
         }
     }
 
-    #[logfn(err = "ERROR", fmt = "Failed to fetch more comments: {0}")]
+    #[logfn(err = "ERROR", fmt = "Failed to fetch more comments: {0:?}")]
     pub async fn fetch_more_comments(
         &mut self,
         more: &MoreComments,
@@ -145,17 +194,7 @@ impl RedditConnection {
         let mut requests_made = 0;
 
         for (url, query) in request_parts_vec {
-            let json = self.inner_fetch(url, query).await;
-
-            let json = json.map_err(|err| match err.status() {
-                Some(status) => match status {
-                    StatusCode::NOT_FOUND => {
-                        RedditError::ResourceNotFound(format!("{}/children", more.parent_id))
-                    }
-                    _ => RedditError::HttpError(err),
-                },
-                None => RedditError::HttpError(err),
-            })?;
+            let json = self.inner_fetch(&url, query).await?;
 
             requests_made += 1;
             debug!("Comment requests made: {}/{}", requests_made, requests_left);
