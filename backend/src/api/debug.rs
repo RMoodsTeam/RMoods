@@ -1,6 +1,6 @@
 use super::AnyParams;
 use crate::api::auth::google::GoogleUserInfo;
-use crate::nlp::report_ack::ReportAck;
+use crate::api::report_ack::ReportAck;
 use crate::reddit_fetcher::feed_request::{
     DataSource, FetcherFeedRequest, RMoodsReportType, RedditFeedKind, RequestSize,
 };
