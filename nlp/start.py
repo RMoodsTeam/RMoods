@@ -19,7 +19,8 @@ def run_uvicorn():
         "uvicorn",
         "src.main:app",
         "--host", "0.0.0.0",
-        "--port", str(port)
+        "--port", str(port),
+        "--reload"
     ]
 
     try:

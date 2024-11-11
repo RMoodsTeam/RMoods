@@ -1,3 +1,4 @@
+use crate::nlp::nlp_client::NlpClient;
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::reddit_fetcher::reddit::connection::RedditConnection;
@@ -20,6 +21,7 @@ use websocket::ws_service;
 
 mod api;
 mod app_error;
+mod env;
 mod nlp;
 mod open_api;
 mod reddit_fetcher;
@@ -34,6 +36,7 @@ pub struct AppState {
     pub fetcher: RMoodsFetcher,
     pub pool: Pool<Postgres>,
     pub http: Client,
+    pub nlp_client: NlpClient,
     pub system_tx: tokio::sync::mpsc::Sender<SystemMessage>,
 }
 
@@ -54,6 +57,8 @@ async fn run() -> anyhow::Result<()> {
     let fetcher = RMoodsFetcher::new(http.clone()).await?;
     info!("Connected to Reddit");
 
+    let nlp_client = NlpClient::new();
+
     info!("Starting the WebSocket service");
     let cancellation_token = tokio_util::sync::CancellationToken::new();
 
@@ -67,6 +72,7 @@ async fn run() -> anyhow::Result<()> {
         fetcher,
         pool,
         http,
+        nlp_client,
         system_tx,
     };
 

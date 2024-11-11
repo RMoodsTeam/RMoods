@@ -1,12 +1,14 @@
-from fastapi import FastAPI, HTTPException
-from src.version_checker import update_model_versions
-from pydantic import BaseModel
-from typing import List
-from contextlib import asynccontextmanager
 import os
+from contextlib import asynccontextmanager
+from typing import List
+
 import fasttext
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from src.version_checker import update_model_versions
 
 language_model = None
+
 
 def load_language_model():
     """
@@ -79,7 +81,7 @@ async def get_language(request: TextRequest):
     for text in request.text:
         prediction = language_model.predict(text, k=2)
         languages = [x.replace("__label__", "").replace("_Latn", "")
-                          for x in prediction[0]]
+                     for x in prediction[0]]
         predictions = ["{:.8f}".format(y) for y in prediction[1]]
         text_values = {
             "language": languages,
@@ -87,7 +89,7 @@ async def get_language(request: TextRequest):
         }
         results.append(text_values)
 
-    return { "results": results }
+    return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
 @app.post("/report/sarcasm")
