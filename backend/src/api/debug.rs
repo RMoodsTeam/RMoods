@@ -19,7 +19,6 @@ use axum::{
     extract::{Query, State},
     Json,
 };
-use log::debug;
 use reqwest::StatusCode;
 
 #[utoipa::path(get, path = "/api/debug/subreddit_about", responses(), params())]
@@ -47,7 +46,7 @@ pub async fn post_comments(
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {
-            name: "interestg".to_string(),
+            name: "interesting23".to_string(),
             post_id: Some("1g7e1g6".to_string()),
             share: 1.0,
         }],
@@ -118,7 +117,7 @@ pub async fn subreddit_posts(
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {
-            name: "nosleeping1213".to_string(),
+            name: "nosleep".to_string(),
             post_id: None,
             share: 1.0,
         }],
@@ -166,7 +165,7 @@ pub async fn user_posts(
         resource_kind: RedditFeedKind::UserPosts,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {
-            name: "spezusususdsad".to_string(),
+            name: "spez".to_string(),
             post_id: None,
             share: 1.0,
         }],

@@ -5,6 +5,7 @@ use crate::AppState;
 use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
 use axum::response::IntoResponse;
 use axum::routing::get;
+use serde::Serialize;
 use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::atomic::AtomicUsize;
@@ -22,8 +23,12 @@ fn generate_user_id() -> String {
         .to_string()
 }
 
-#[derive(Debug)]
-pub struct ServiceToClientMessage;
+#[derive(Debug, Serialize, Clone)]
+pub enum ServiceToClientMessage {
+    RemainingRequestsUpdate(u16),
+    ReportDone(Box<dyn RMoodsReport>),
+    ReportError(AppError),
+}
 
 type ConnectionId = String;
 type GoogleId = String;

@@ -1,3 +1,4 @@
+use crate::api::auth::google::GoogleUserInfo;
 use crate::websocket::{ConnectionId, ServiceToClientMessage, WsUserId};
 use std::collections::HashMap;
 use tokio::sync::mpsc::Sender;
@@ -39,6 +40,17 @@ impl PeersMap {
                 connection_id
             );
         }
+    }
+
+    pub fn user_connections(
+        &self,
+        google_user_info: &GoogleUserInfo,
+    ) -> Vec<&Sender<ServiceToClientMessage>> {
+        self.peers
+            .iter()
+            .filter(|((key_google_sub, _), _)| key_google_sub == google_user_info.sub())
+            .map(|(_, sender)| sender)
+            .collect()
     }
 
     pub fn len(&self) -> usize {

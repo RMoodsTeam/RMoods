@@ -5,11 +5,13 @@ use crate::reddit_fetcher::model::reddit_data::RedditFeedData;
 use crate::reddit_fetcher::reddit::model::{RawContainer, RawPost};
 use crate::reddit_fetcher::reddit::request::SubredditPostsRequest;
 use log_derive::logfn;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 /// Contains the posts of a subreddit.
 /// Posts are to be fetches by using the `Fetcher::fetch_feed` method with appropriate parameters.
-#[derive(Debug, Serialize, Deserialize)]
+///
+// TODO: Make all similar structs private, unobtainable for the user
+#[derive(Debug, Serialize, Clone)]
 pub struct Posts {
     pub list: Vec<RawPost>,
 }

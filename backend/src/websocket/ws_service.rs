@@ -1,5 +1,5 @@
 use crate::websocket::peers::PeersMap;
-use crate::websocket::SystemMessage;
+use crate::websocket::{ServiceToClientMessage, SystemMessage};
 use tokio::sync::mpsc::Receiver;
 use tokio_util::sync::CancellationToken;
 
@@ -34,11 +34,23 @@ pub async fn start_service(
                         SystemMessage::ReportDone((report, user_info)) => {
                             let str = format!("{:?}", report);
                             log::info!("Received a report from the main thread of len: {:?}", str.len());
-                            // TODO: Send the report to the client
+                            let sockets = peers.user_connections(&user_info);
+                            log::debug!("Found {} sockets for the user", sockets.len());
+                            let client_msg = ServiceToClientMessage::ReportDone(report);
+                            for socket in sockets {
+                                log::debug!("Sending the report to the client at {:?}", socket);
+                                socket.send(client_msg.clone()).await.expect("Send report");
+                            }
                         },
                         SystemMessage::ReportError((err, user_info)) => {
                             log::error!("Report error: {:?}", err);
-                            // TODO: Notify the user about the error
+                            let sockets = peers.user_connections(&user_info);
+                            log::debug!("Found {} sockets for the user", sockets.len());
+                            let client_msg = ServiceToClientMessage::ReportError(err);
+                            for socket in sockets {
+                                log::debug!("Sending error report to the client at {:?}", socket);
+                                socket.send(client_msg.clone()).await.expect("Send error report");
+                            }
                         }
                         SystemMessage::RemainingRequestsUpdate(remaining) => {
                             log::info!("Remaining requests: {remaining}");

@@ -1,6 +1,7 @@
 use axum::{response::IntoResponse, Json};
 use derive_getters::Getters;
 use reqwest::StatusCode;
+use serde::Serialize;
 use serde_json::json;
 
 use crate::api::auth::error::AuthError;
@@ -8,8 +9,9 @@ use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::reddit::error::RedditError;
 
 /// Public-facing error kind. Contains an HTTP status code and a message describing the error.
-#[derive(Debug, Getters)]
+#[derive(Debug, Getters, Clone, Serialize)]
 pub struct AppError {
+    #[serde(with = "http_serde::status_code")]
     code: StatusCode,
     message: String,
 }
