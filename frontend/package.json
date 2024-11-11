@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@mantine/charts": "^7.13.4",
-    "@mantine/core": "^7.13.4",
+    "@mantine/core": "^7.13.5",
     "@mantine/dates": "^7.13.4",
     "@mantine/form": "^7.13.4",
     "@mantine/hooks": "^7.13.4",
@@ -25,6 +25,7 @@
     "@mantine/notifications": "^7.13.4",
     "@mantine/spotlight": "^7.13.4",
     "@react-oauth/google": "^0.12.1",
+    "@tabler/icons": "^3.21.0",
     "@tabler/icons-react": "^3.17.0",
     "dayjs": "^1.11.13",
     "framer-motion": "^11.9.0",
