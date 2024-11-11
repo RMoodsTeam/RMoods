@@ -4,11 +4,8 @@ import TemporaryLogo from './TemporaryLogo';
 import classes from './FooterCentered.module.css';
 
 const links = [
-  { link: '#', label: 'Contact' },
-  { link: '#', label: 'Privacy' },
-  { link: '#', label: 'Blog' },
-  { link: '#', label: 'Store' },
-  { link: '#', label: 'Careers' },
+  { link: '#', label: 'About' },
+  { link: '#', label: 'Dashboard' }
 ];
 
 export default function FooterCentered() {

@@ -25,7 +25,6 @@
     "@mantine/notifications": "^7.13.4",
     "@mantine/spotlight": "^7.13.4",
     "@react-oauth/google": "^0.12.1",
-    "@tabler/icons": "^3.21.0",
     "@tabler/icons-react": "^3.17.0",
     "dayjs": "^1.11.13",
     "framer-motion": "^11.9.0",
