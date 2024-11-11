@@ -55,23 +55,23 @@ export default function Sidebar() {
   return (
     <nav className={classes.navbar} style={{
       margin: 0,
-      minWidth: "200px",
-      maxWidth: "200px",
+      minWidth: "300px",
+      maxWidth: "300px",
       height: "100vh",
       zIndex: 1,
       overflow: "hidden",
       borderRadius: 0,
       position: "sticky",
       top: 0,
-      paddingTop: 0,
+      padding: 0,
     }}>
       <div className={classes.header}>
         <Group justify="space-between">
-          <Code fw={700}>v3.1.2</Code>
+          <Code fw={700}>RMoods</Code>
         </Group>
       </div>
 
-      <ScrollArea className={classes.links}>
+      <ScrollArea>
         <div className={classes.linksInner}>{links}</div>
       </ScrollArea>
 
