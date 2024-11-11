@@ -1,7 +1,7 @@
 import Sidebar from "./sidebar/Sidebar.tsx";
 import {Outlet} from "react-router-dom";
 import Navbar from "./navbar/Navbar.tsx";
-import Footer from "./Footer.tsx";
+import Footer from "./footer/Footer.tsx";
 import {Box, Flex} from "@mantine/core";
 
 const dashboardFlex = {
