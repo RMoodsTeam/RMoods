@@ -1,5 +1,6 @@
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
+use crate::reddit_fetcher::reddit::connection::RedditConnection;
 use crate::startup::{shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
 use api::auth;
@@ -15,11 +16,13 @@ use tower_http::{
 };
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use websocket::ws_service;
 
 mod api;
 mod app_error;
 mod open_api;
 mod reddit_fetcher;
+mod rmoods;
 mod startup;
 mod websocket;
 
@@ -43,7 +46,11 @@ async fn run() -> anyhow::Result<()> {
         .await?;
     info!("Connected to the database");
 
-    let http = reqwest::ClientBuilder::new().user_agent("RMoods").build()?;
+    let http = reqwest::ClientBuilder::new()
+        .user_agent("RMoods")
+        .redirect(RedditConnection::redirect_policy()) // to prevent redirects in case of subreddit not found
+        // TODO: Abstract this away, put HTTP inside the RedditConnection
+        .build()?;
     let fetcher = RMoodsFetcher::new(http.clone()).await?;
     info!("Connected to Reddit");
 
@@ -51,7 +58,7 @@ async fn run() -> anyhow::Result<()> {
     let cancellation_token = tokio_util::sync::CancellationToken::new();
 
     let (system_tx, system_rx) = tokio::sync::mpsc::channel::<SystemMessage>(100);
-    tokio::spawn(websocket::start_service(
+    tokio::spawn(ws_service::start_service(
         system_rx,
         cancellation_token.clone(),
     ));

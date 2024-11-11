@@ -1,7 +1,9 @@
 use super::AnyParams;
+use crate::api::auth::google::GoogleUserInfo;
 use crate::reddit_fetcher::feed_request::{
     DataSource, FetcherFeedRequest, RMoodsReportType, RedditFeedKind, RequestSize,
 };
+use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::model::post_comments::PostComments;
 use crate::reddit_fetcher::model::posts::Posts;
 use crate::reddit_fetcher::model::subreddit_info::SubredditAbout;
@@ -9,77 +11,15 @@ use crate::reddit_fetcher::model::user_info::UserAbout;
 use crate::reddit_fetcher::model::user_posts::UserPosts;
 use crate::reddit_fetcher::reddit::request::params::FeedSorting;
 use crate::reddit_fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
+use crate::rmoods::report_ack::ReportAck;
+use crate::websocket::SystemMessage;
+use crate::websocket::SystemMessage::ReportError;
 use crate::{app_error::AppError, AppState};
 use axum::{
     extract::{Query, State},
     Json,
 };
-use lipsum::lipsum;
-use log::{debug, info};
-use log_derive::logfn;
 use reqwest::StatusCode;
-use serde_json::{json, Value};
-
-/// Returns after a specified delay.
-#[utoipa::path(
-    get,
-    path = "/api/debug/timeout",
-    responses(
-        (status = 200, description = "Timed out successfully"),
-        (status = 400, description = "No parameter provided")
-    ),
-    params(
-        ("t" = u64, description = "Time to wait in seconds", nullable = false)
-    )
-)]
-#[logfn(err = "ERROR", fmt = "'timeout' failed: {:?}")]
-pub async fn timeout(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppError> {
-    let t = params
-        .get("t")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `t` parameter"))?
-        .parse::<u64>()
-        .unwrap();
-    tokio::time::sleep(tokio::time::Duration::from_secs(t)).await;
-    Ok(json!({
-        "t" : t
-    })
-    .into())
-}
-
-/// Generates a random lorem ipsum text with a specified number of words.
-/// Optionally waits for a specified time before responding.
-#[utoipa::path(
-    get,
-    path = "/api/debug/lorem",
-    responses(
-        (status = 200, description = "Timed out successfully, returned lorem ipsum text"),
-        (status = 400, description = "Invalid request")
-    ),
-    params(
-        ("words" = usize, description = "Number of words to generate", nullable = true),
-        ("t" = u64, description = "Time to wait in seconds", nullable = true)
-    )
-)]
-#[logfn(err = "ERROR", fmt = "'lorem' failed: {:?}")]
-pub async fn lorem(Query(params): Query<AnyParams>) -> Result<Json<Value>, AppError> {
-    let words = params
-        .get("words")
-        .unwrap_or(&"50".to_string())
-        .parse::<usize>()
-        .unwrap();
-    let t = params
-        .get("t")
-        .unwrap_or(&"0".to_string())
-        .parse::<u64>()
-        .unwrap();
-    tokio::time::sleep(tokio::time::Duration::from_secs(t)).await;
-
-    Ok(json!({
-        "message": lipsum(words),
-        "t": t
-    })
-    .into())
-}
 
 #[utoipa::path(get, path = "/api/debug/subreddit_about", responses(), params())]
 pub async fn subreddit_about(
@@ -92,11 +32,7 @@ pub async fn subreddit_about(
     let req = SubredditAboutRequest {
         subreddit: subreddit.to_string(),
     };
-    let about = state
-        .fetcher
-        .fetch_about::<SubredditAbout>(req)
-        .await
-        .unwrap();
+    let about = state.fetcher.fetch_about::<SubredditAbout>(req).await?;
 
     Ok(Json(about))
 }
@@ -104,12 +40,13 @@ pub async fn subreddit_about(
 #[utoipa::path(get, path = "/api/debug/post_comments", responses(), params())]
 pub async fn post_comments(
     State(mut state): State<AppState>,
-) -> Result<Json<PostComments>, AppError> {
+    user_info: GoogleUserInfo,
+) -> Result<ReportAck, AppError> {
     let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
         data_sources: vec![DataSource {
-            name: "interesting".to_string(),
+            name: "interesting23".to_string(),
             post_id: Some("1g7e1g6".to_string()),
             share: 1.0,
         }],
@@ -118,27 +55,41 @@ pub async fn post_comments(
     };
     let requests_to_make = u16::from(request.size.clone());
 
-    let (mut data, requests_made) = state
-        .fetcher
-        .fetch_feed::<PostComments>(request)
-        .await
-        .unwrap();
+    let make_report = async move {
+        let (mut data, _) = state.fetcher.fetch_feed::<PostComments>(request).await?;
 
-    debug!("Returning {} post comments", data.list.len());
+        let more_comments = state
+            .fetcher
+            .fetch_more_comments(&data.more, requests_to_make)
+            .await?;
 
-    let more_comments = state
-        .fetcher
-        .fetch_more_comments(&data.more, requests_to_make - requests_made)
-        .await
-        .unwrap();
+        data.list.extend(more_comments);
+        data.more.clear();
+        Ok::<PostComments, FetcherError>(data)
+    };
 
-    data.list.extend(more_comments);
-    // Remove more comments, as they are already fetched and useless to consumers
-    data.more.clear();
+    tokio::spawn(async move {
+        match make_report.await {
+            Ok(report) => {
+                log::info!("Returning {} post comments", report.list.len());
+                state
+                    .system_tx
+                    .send(SystemMessage::ReportDone((Box::new(report), user_info)))
+                    .await
+                    .unwrap();
+            }
+            Err(e) => {
+                log::error!("Failed to make report: {:?}", e);
+                state
+                    .system_tx
+                    .send(ReportError((AppError::from(e), user_info)))
+                    .await
+                    .unwrap();
+            }
+        }
+    });
 
-    info!("Returning {} post comments", data.list.len());
-
-    Ok(Json(data))
+    Ok(ReportAck::new())
 }
 
 #[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
@@ -152,12 +103,16 @@ pub async fn user_about(
     let req = UserAboutRequest {
         username: user.to_string(),
     };
-    let about = state.fetcher.fetch_about::<UserAbout>(req).await.unwrap();
+    let about = state.fetcher.fetch_about::<UserAbout>(req).await?;
     Ok(Json(about))
 }
 
+// TODO: Add proper response type for acknowledged requests
 #[utoipa::path(get, path = "/api/debug/subreddit_posts", responses(), params())]
-pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<Json<Posts>, AppError> {
+pub async fn subreddit_posts(
+    State(mut state): State<AppState>,
+    user_info: GoogleUserInfo,
+) -> Result<ReportAck, AppError> {
     let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::PostComments,
         report_types: vec![RMoodsReportType::Sarcasm],
@@ -170,15 +125,42 @@ pub async fn subreddit_posts(State(mut state): State<AppState>) -> Result<Json<P
         sorting: FeedSorting::New,
     };
 
-    let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await.unwrap();
+    let make_report = async move {
+        let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await?;
+        Ok::<Posts, FetcherError>(data)
+    };
 
-    debug!("Returning {} subreddit posts", data.list.len());
+    tokio::spawn(async move {
+        log::info!("Spawning a new task to fetch subreddit posts");
+        match make_report.await {
+            Ok(data) => {
+                log::debug!("Returning {} subreddit posts", data.list.len());
+                state
+                    .system_tx
+                    .send(SystemMessage::ReportDone((Box::new(data), user_info)))
+                    .await
+                    .unwrap();
+                log::debug!("Sent the subreddit posts to the WebSocket service");
+            }
+            Err(e) => {
+                log::error!("Failed to make report: {:?}", e);
+                state
+                    .system_tx
+                    .send(ReportError((AppError::from(e), user_info)))
+                    .await
+                    .unwrap();
+            }
+        }
+    });
 
-    Ok(Json(data))
+    Ok(ReportAck::new())
 }
 
 #[utoipa::path(get, path = "/api/debug/user_posts", responses(), params())]
-pub async fn user_posts(State(mut state): State<AppState>) -> Result<Json<UserPosts>, AppError> {
+pub async fn user_posts(
+    State(mut state): State<AppState>,
+    user_info: GoogleUserInfo,
+) -> Result<ReportAck, AppError> {
     let request = FetcherFeedRequest {
         resource_kind: RedditFeedKind::UserPosts,
         report_types: vec![RMoodsReportType::Sarcasm],
@@ -191,14 +173,36 @@ pub async fn user_posts(State(mut state): State<AppState>) -> Result<Json<UserPo
         sorting: Default::default(),
     };
 
-    let (data, _) = state
-        .fetcher
-        .fetch_feed::<UserPosts>(request)
-        .await
-        .unwrap();
+    // TODO: If there are no requests, return appropriate message to the user
 
-    debug!("Returning {} user posts", data.posts.len());
-    debug!("Returning {} user comments", data.comments.len());
+    let make_report = async move {
+        let (data, _) = state.fetcher.fetch_feed::<UserPosts>(request).await?;
+        Ok::<UserPosts, FetcherError>(data)
+    };
 
-    Ok(Json(data))
+    tokio::spawn(async move {
+        log::info!("Spawning a new task to fetch user posts");
+        match make_report.await {
+            Ok(data) => {
+                log::debug!("Returning {} user posts", data.posts.len());
+                log::debug!("Returning {} user comments", data.comments.len());
+                state
+                    .system_tx
+                    .send(SystemMessage::ReportDone((Box::new(data), user_info)))
+                    .await
+                    .unwrap();
+                log::debug!("Sent the subreddit posts to the WebSocket service");
+            }
+            Err(e) => {
+                log::error!("Failed to make report: {:?}", e);
+                state
+                    .system_tx
+                    .send(ReportError((AppError::from(e), user_info)))
+                    .await
+                    .unwrap();
+            }
+        }
+    });
+
+    Ok(ReportAck::new())
 }

@@ -1,14 +1,17 @@
 use axum::{response::IntoResponse, Json};
 use derive_getters::Getters;
 use reqwest::StatusCode;
+use serde::Serialize;
 use serde_json::json;
 
 use crate::api::auth::error::AuthError;
+use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::reddit::error::RedditError;
 
 /// Public-facing error kind. Contains an HTTP status code and a message describing the error.
-#[derive(Debug, Getters)]
+#[derive(Debug, Getters, Clone, Serialize)]
 pub struct AppError {
+    #[serde(with = "http_serde::status_code")]
     code: StatusCode,
     message: String,
 }
@@ -40,17 +43,8 @@ impl IntoResponse for AppError {
     }
 }
 
-impl From<RedditError> for AppError {
-    fn from(value: RedditError) -> Self {
-        match &value {
-            RedditError::ResourceNotFound(_) => {
-                AppError::new(StatusCode::NOT_FOUND, value.to_string())
-            }
-            _ => AppError::internal_server_error(),
-        }
-    }
-}
-
+/// Convert an AuthError into an AppError.
+/// This is a public-facing error, so we return a 401 Unauthorized error and a short message.
 impl From<AuthError> for AppError {
     fn from(value: AuthError) -> Self {
         type E = jsonwebtoken::errors::ErrorKind;
@@ -58,6 +52,23 @@ impl From<AuthError> for AppError {
             AuthError::JwtError(e) => match e.kind() {
                 E::ExpiredSignature => AppError::new(StatusCode::UNAUTHORIZED, "Expired token"),
                 E::InvalidToken => AppError::new(StatusCode::UNAUTHORIZED, "Invalid token"),
+                _ => AppError::internal_server_error(),
+            },
+            _ => AppError::internal_server_error(),
+        }
+    }
+}
+
+/// Convert a FetcherError into an AppError.
+/// Notify users about a case when a resource is not found.
+/// In other cases, return a generic 500 Internal Server Error.
+impl From<FetcherError> for AppError {
+    fn from(_value: FetcherError) -> Self {
+        match _value {
+            FetcherError::RedditApiError(e) => match e {
+                RedditError::ResourceNotFound(_) => {
+                    AppError::new(StatusCode::NOT_FOUND, e.to_string())
+                }
                 _ => AppError::internal_server_error(),
             },
             _ => AppError::internal_server_error(),

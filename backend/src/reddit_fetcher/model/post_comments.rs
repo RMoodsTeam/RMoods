@@ -6,11 +6,12 @@ use crate::reddit_fetcher::reddit::model::{MoreComments, RawComment, RawContaine
 use crate::reddit_fetcher::reddit::request::PostCommentsRequest;
 use log::debug;
 use log_derive::logfn;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 /// Contains the comments of a Reddit post.
 /// Comments are to be fetches by using the `Fetcher::fetch_more_comments` method.
-#[derive(Debug, Serialize, Deserialize)]
+// TODO: Remove 'Clone' trait from PostComments, UserPosts and Posts structs.
+#[derive(Debug, Serialize, Clone)]
 pub struct PostComments {
     pub list: Vec<RawComment>,
     pub more: Vec<MoreComments>,
