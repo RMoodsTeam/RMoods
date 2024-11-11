@@ -75,18 +75,19 @@ async def get_language(request: TextRequest):
     if language_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    languages = []
-    predictions = []
+    results = []
     for text in request.text:
         prediction = language_model.predict(text, k=2)
-        languages.append([x.replace("__label__", "").replace("_Latn", "")
-                          for x in prediction[0]])
-        predictions.append(["{:.8f}".format(y) for y in prediction[1]])
+        languages = [x.replace("__label__", "").replace("_Latn", "")
+                          for x in prediction[0]]
+        predictions = ["{:.8f}".format(y) for y in prediction[1]]
+        text_values = {
+            "language": languages,
+            "predicted": predictions
+        }
+        results.append(text_values)
 
-    return {
-        "language": languages,
-        "predicted": predictions
-    }
+    return { "results": results }
 
 
 @app.post("/report/sarcasm")
