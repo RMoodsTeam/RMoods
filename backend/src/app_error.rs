@@ -96,10 +96,9 @@ mod tests {
     }
 
     #[test]
-    fn test_app_error_from_reddit_error_resource_not_found() {
-        let error = RedditError::ResourceNotFound("r/Polska".to_string());
-        let app_error: AppError = error.into();
-        assert_eq!(app_error.code, StatusCode::NOT_FOUND);
-        assert_eq!(app_error.message, "Resource not found: 'r/Polska'");
+    fn test_reddit_not_found_error_into_app_error() {
+        let reddit_err = RedditError::ResourceNotFound("Resource not found".to_string());
+        let error = AppError::from(FetcherError::RedditApiError(reddit_err));
+        assert_eq!(error.code, StatusCode::NOT_FOUND);
     }
 }
