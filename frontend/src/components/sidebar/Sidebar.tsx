@@ -8,8 +8,8 @@ import {
   IconAdjustments,
   IconLock,
 } from '@tabler/icons-react';
-import classes from './NavbarNested.module.css';
-import {LinksGroup} from "./NavbarLinksGroup.tsx";
+import classes from './SidebarNested.module.css';
+import {LinksGroup} from "./SidebarLinksGroup.tsx";
 
 const mockdata = [
   { label: 'Dashboard', icon: IconGauge },

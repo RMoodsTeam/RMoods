@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Group, Box, Collapse, ThemeIcon, Text, UnstyledButton, rem } from '@mantine/core';
 import { IconCalendarStats, IconChevronRight } from '@tabler/icons-react';
-import classes from './NavbarLinksGroup.module.css';
+import classes from './SidebarLinksGroup.module.css';
 
 interface LinksGroupProps {
   icon: React.FC<any>;
@@ -65,7 +65,7 @@ const mockdata = {
   ],
 };
 
-export function NavbarLinksGroup() {
+export function SidebarLinksGroup() {
   return (
     <Box mih={220} p="md">
       <LinksGroup {...mockdata} />
