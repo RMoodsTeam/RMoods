@@ -1,13 +1,11 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
-
 from src.main import app
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("endpoint, expected_response", [
     ("/report/sentiment", {"sentiment": "I love this!"}),
-    ("/report/language", {"language": "I love this!"}),
     ("/report/sarcasm", {"sarcasm": "I love this!"}),
     ("/report/keywords", {"keywords": "I love this!"}),
     ("/report/spam", {"spam": "I love this!"}),

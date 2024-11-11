@@ -261,8 +261,9 @@ def get_status_information(data: dict, service: object, parent_id: str = 'root',
     :param level: The current level of recursion (used for indentation).
     :param path: The path to the current folder.
     :param local_status: True if the local status should be checked, False if we want
-    to check online status.
+                        to check online status.
     :param parent_name: The name of the parent folder.
+
     """
     try:
         query = (f"'{parent_id}' in parents and mimeType='application/"
@@ -346,13 +347,14 @@ def create_file(folder_name_id: str, version_folder_id: str, file_path: str,
                 file_name: str) -> dict:
     """
     This function creates a file in the Google Drive folder.
+
     :param folder_name_id: The ID of the folder to create the file.
     :param version_folder_id: The ID of the version folder to create the file.
     :param file_path: The path to the file to upload.
     :param file_name: The name of the file to upload.
 
     :return: The file created. Or False if the folder_name_id or version_folder_id
-    is None.
+            is None.
     """
     if folder_name_id is None or version_folder_id is None:
         return {}
@@ -371,6 +373,7 @@ def create_file(folder_name_id: str, version_folder_id: str, file_path: str,
 def upload_file(folder_name: str, version: str, file_name: str) -> bool:
     """
     This function uploads the file to the Google Drive folder.
+
     :param folder_name: The name of the folder to upload.
     :param version: The version of the model.
     :param file_name: The name of the file to upload.
@@ -454,8 +457,9 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
 def upload_manager(folders: str = None) -> None:
     """
     This function manages uploads to the Google Drive folder.
+
     :param folders: The names of the folders to upload. If None, all folders are
-    uploaded.
+        uploaded.
     """
     if folders is None:
         folders = read_model_file()
