@@ -1,6 +1,6 @@
 use crate::api::auth::google::GoogleUserInfo;
 use crate::app_error::AppError;
-use crate::rmoods::report::RMoodsReport;
+use crate::nlp::report::RMoodsReport;
 use crate::AppState;
 use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
 use axum::response::IntoResponse;

@@ -20,9 +20,9 @@ use websocket::ws_service;
 
 mod api;
 mod app_error;
+mod nlp;
 mod open_api;
 mod reddit_fetcher;
-mod rmoods;
 mod startup;
 mod websocket;
 

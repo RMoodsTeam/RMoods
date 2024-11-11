@@ -1,5 +1,6 @@
 use super::AnyParams;
 use crate::api::auth::google::GoogleUserInfo;
+use crate::nlp::report_ack::ReportAck;
 use crate::reddit_fetcher::feed_request::{
     DataSource, FetcherFeedRequest, RMoodsReportType, RedditFeedKind, RequestSize,
 };
@@ -11,7 +12,6 @@ use crate::reddit_fetcher::model::user_info::UserAbout;
 use crate::reddit_fetcher::model::user_posts::UserPosts;
 use crate::reddit_fetcher::reddit::request::params::FeedSorting;
 use crate::reddit_fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
-use crate::rmoods::report_ack::ReportAck;
 use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::{app_error::AppError, AppState};
