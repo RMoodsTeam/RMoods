@@ -1,4 +1,4 @@
-import Sidebar from "./Sidebar";
+import Sidebar from "./sidebar/Sidebar.tsx";
 import {Outlet} from "react-router-dom";
 import Navbar from "./navbar/Navbar.tsx";
 import Footer from "./Footer.tsx";
