@@ -10,6 +10,7 @@ use serde::Serialize;
 
 /// Contains the comments of a Reddit post.
 /// Comments are to be fetches by using the `Fetcher::fetch_more_comments` method.
+// TODO: Remove 'Clone' trait from PostComments, UserPosts and Posts structs.
 #[derive(Debug, Serialize, Clone)]
 pub struct PostComments {
     pub list: Vec<RawComment>,

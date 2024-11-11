@@ -43,20 +43,6 @@ impl IntoResponse for AppError {
     }
 }
 
-/// Convert a RedditError into an AppError.
-/// If a resource is not found, that's a public-facing error, so we return a 404.
-/// All other errors are converted into a generic 500 Internal Server Error.
-// impl From<RedditError> for AppError {
-//     fn from(value: RedditError) -> Self {
-//         match &value {
-//             RedditError::ResourceNotFound(_) => {
-//                 AppError::new(StatusCode::NOT_FOUND, value.to_string())
-//             }
-//             _ => AppError::internal_server_error(),
-//         }
-//     }
-// }
-
 /// Convert an AuthError into an AppError.
 /// This is a public-facing error, so we return a 401 Unauthorized error and a short message.
 impl From<AuthError> for AppError {
@@ -74,7 +60,8 @@ impl From<AuthError> for AppError {
 }
 
 /// Convert a FetcherError into an AppError.
-/// It's a very internal thing, so we just return a generic 500 error.
+/// Notify users about a case when a resource is not found.
+/// In other cases, return a generic 500 Internal Server Error.
 impl From<FetcherError> for AppError {
     fn from(_value: FetcherError) -> Self {
         match _value {
