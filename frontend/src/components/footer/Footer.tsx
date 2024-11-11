@@ -2,20 +2,21 @@ import { Anchor, Group, ActionIcon, rem } from '@mantine/core';
 import { IconBrandGithub, IconBrandTwitter, IconBrandYoutube} from '@tabler/icons-react';
 import TemporaryLogo from './TemporaryLogo';
 import classes from './FooterCentered.module.css';
+import {useNavigate} from "react-router-dom";
 
 const links = [
-  { link: '#', label: 'About' },
-  { link: '#', label: 'Dashboard' }
+  { link: '/about', label: 'About' },
+  { link: '/dashboard', label: 'Dashboard' }
 ];
 
 export default function FooterCentered() {
+  const navigate = useNavigate();
   const items = links.map((link) => (
     <Anchor
       c="dimmed"
       key={link.label}
-      href={link.link}
       lh={1}
-      onClick={(event) => event.preventDefault()}
+      onClick={(event) => {event.preventDefault();navigate(link.link)}}
       size="sm"
     >
       {link.label}
