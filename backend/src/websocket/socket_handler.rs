@@ -1,4 +1,5 @@
 use crate::api::auth::google::GoogleUserInfo;
+use crate::nlp::report::SendableRMoodsReport;
 use crate::websocket;
 use crate::websocket::{ServiceToClientMessage, SystemMessage};
 use axum::extract::ws::{Message, WebSocket};
@@ -16,7 +17,7 @@ use tokio::sync::mpsc::Sender;
 /// 2. `service_to_client_tx` channel is the chanel where the Service sends messages to the client handlers.
 pub async fn handle_socket(
     mut socket: WebSocket,
-    system_tx: Sender<SystemMessage>,
+    system_tx: Sender<SystemMessage<Box<dyn SendableRMoodsReport>>>,
     socket_addr: SocketAddr,
     user_info: GoogleUserInfo,
 ) {

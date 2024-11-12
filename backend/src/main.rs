@@ -1,4 +1,5 @@
 use crate::nlp::nlp_client::NlpClient;
+use crate::nlp::report::SendableRMoodsReport;
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::reddit_fetcher::reddit::connection::RedditConnection;
@@ -10,6 +11,7 @@ use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use std::fmt::Debug;
 use std::net::SocketAddr;
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -37,7 +39,7 @@ pub struct AppState {
     pub pool: Pool<Postgres>,
     pub http: Client,
     pub nlp_client: NlpClient,
-    pub system_tx: tokio::sync::mpsc::Sender<SystemMessage>,
+    pub system_tx: tokio::sync::mpsc::Sender<SystemMessage<Box<dyn SendableRMoodsReport>>>,
 }
 
 /// Run the server, assuming the environment has been already validated.
@@ -62,7 +64,7 @@ async fn run() -> anyhow::Result<()> {
     info!("Starting the WebSocket service");
     let cancellation_token = tokio_util::sync::CancellationToken::new();
 
-    let (system_tx, system_rx) = tokio::sync::mpsc::channel::<SystemMessage>(100);
+    let (system_tx, system_rx) = tokio::sync::mpsc::channel(100);
     tokio::spawn(ws_service::start_service(
         system_rx,
         cancellation_token.clone(),

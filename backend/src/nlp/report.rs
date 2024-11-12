@@ -1,21 +1,36 @@
-use crate::reddit_fetcher::model::post_comments::PostComments;
-use crate::reddit_fetcher::model::posts::Posts;
-use crate::reddit_fetcher::model::user_posts::UserPosts;
+use crate::api::auth::google::GoogleUserInfo;
+use crate::nlp::nlp_response::{NlpResponse, NlpResponseInner};
 use dyn_clone::DynClone;
+use serde::Serialize;
 use std::fmt::Debug;
 
 #[typetag::serialize(tag = "type")]
-pub trait RMoodsReport: Debug + Send + DynClone {}
+pub trait SendableRMoodsReport: Send + DynClone + Debug {
+    fn metadata(&self) -> &ReportMetadata;
+}
+dyn_clone::clone_trait_object!(SendableRMoodsReport);
 
 /// Temporary solution until we add proper report result structs.
 /// TODO: Add proper report result structs.
-#[typetag::serialize]
-impl RMoodsReport for Posts {}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ReportMetadata {
+    pub created_at: u64, // TODO: Make private
+    pub user_info: GoogleUserInfo,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct RMoodsReport<T: NlpResponseInner> {
+    pub metadata: ReportMetadata,
+    pub nlp_response: NlpResponse<T>,
+}
 
 #[typetag::serialize]
-impl RMoodsReport for PostComments {}
-
-#[typetag::serialize]
-impl RMoodsReport for UserPosts {}
-
-dyn_clone::clone_trait_object!(RMoodsReport);
+impl<T> SendableRMoodsReport for RMoodsReport<T>
+where
+    T: NlpResponseInner + Debug,
+{
+    fn metadata(&self) -> &ReportMetadata {
+        &self.metadata
+    }
+}

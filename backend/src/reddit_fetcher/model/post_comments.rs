@@ -76,6 +76,10 @@ impl RedditFeedData for PostComments {
             more: [self.more.clone(), other.more].concat(),
         }
     }
+
+    fn extract_texts(self) -> Vec<String> {
+        self.list.into_iter().map(|comment| comment.body).collect()
+    }
 }
 
 fn flatten_replies_internal(

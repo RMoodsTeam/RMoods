@@ -48,4 +48,8 @@ impl RedditFeedData for Posts {
             list: [self.list.clone(), other.list].concat(),
         }
     }
+
+    fn extract_texts(self) -> Vec<String> {
+        self.list.into_iter().map(|post| post.title).collect()
+    }
 }

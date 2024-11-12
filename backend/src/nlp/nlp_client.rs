@@ -1,5 +1,5 @@
 use crate::env::NLP_URL;
-use crate::nlp::nlp_response::{LanguageResponse, NlpResponse};
+use crate::nlp::nlp_response::{NlpResponse, RawLanguageResponse};
 use log_derive::logfn;
 use serde_json::json;
 
@@ -7,6 +7,14 @@ use serde_json::json;
 pub struct NlpClient {
     nlp_url: String,
     pub http: reqwest::Client,
+}
+
+fn truncate_string(s: String, max_len: usize) -> String {
+    if s.len() <= max_len {
+        s
+    } else {
+        s.chars().take(max_len).collect()
+    }
 }
 
 impl NlpClient {
@@ -18,15 +26,19 @@ impl NlpClient {
     }
 
     #[logfn(err = "ERROR", fmt = "Failed to analyze language: {0:?}")]
-    pub async fn get_language(
+    pub async fn analyze_language(
         &self,
-        input: &[String],
-    ) -> anyhow::Result<NlpResponse<LanguageResponse>> {
+        input: &Vec<String>,
+    ) -> anyhow::Result<NlpResponse<RawLanguageResponse>> {
         let url = format!("{}/report/language", self.nlp_url);
 
+        log::debug!("Handling only first 10 inputs. Truncating each input to 100 characters.");
+        // TODO: Add parallel processing for large inputs, input sampling
         let request = json!({
-            "text": input
+            "text": input.iter().take(10).map(|s| truncate_string(s.clone(), 100)).collect::<Vec<String>>(),
         });
+
+        log::debug!("Sending request to NLP service: {:?}", request);
 
         let res = self.http.post(&url).json(&request).send().await?;
         Ok(res.json().await?)
@@ -48,7 +60,7 @@ mod tests {
         setup();
         let client = NlpClient::new();
         let input = vec!["Hello, world!".to_string()];
-        let res = client.get_language(&input).await.unwrap();
+        let res = client.analyze_language(&input).await.unwrap();
         dbg!(res);
     }
 }

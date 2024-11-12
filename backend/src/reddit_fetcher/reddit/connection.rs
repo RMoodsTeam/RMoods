@@ -7,7 +7,6 @@ use super::{
 use http::StatusCode;
 use log::{debug, info, warn};
 use log_derive::logfn;
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::time::SystemTime;
 use thiserror::Error;
