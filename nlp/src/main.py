@@ -3,15 +3,15 @@ from src.version_checker import update_model_versions
 from pydantic import BaseModel
 from typing import List
 from contextlib import asynccontextmanager
+from langcodes import tag_is_valid, Language
 import os
 import fasttext
 
 language_model = None
 
+
 def load_language_model():
-    """
-    Load language model.
-    """
+    """Load language model."""
     global language_model
     language_model_path = os.path.join("models", "language", "v1", "model.bin")
     if not os.path.exists(language_model_path):
@@ -77,17 +77,24 @@ async def get_language(request: TextRequest):
 
     results = []
     for text in request.text:
+        languages = []
         prediction = language_model.predict(text, k=2)
-        languages = [x.replace("__label__", "").replace("_Latn", "")
-                          for x in prediction[0]]
-        predictions = ["{:.8f}".format(y) for y in prediction[1]]
+
+        for x in prediction[0]:
+            lang_tag = x.replace("__label__", "").replace("_Latn", "")
+            if tag_is_valid(lang_tag):
+                lang_name = Language.get(lang_tag).display_name("en")
+                languages.append(lang_name)
+            else:
+                languages.append(lang_tag)
+
+        predictions = [f"{y:.8f}" for y in prediction[1]]
         text_values = {
             "language": languages,
             "predicted": predictions
         }
         results.append(text_values)
-
-    return { "results": results }
+    return {"results": results}
 
 
 @app.post("/report/sarcasm")
