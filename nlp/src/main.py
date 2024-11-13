@@ -80,15 +80,15 @@ async def get_language(request: TextRequest):
         languages = []
         prediction = language_model.predict(text, k=2)
 
-        for x in prediction[0]:
-            lang_tag = x.replace("__label__", "").replace("_Latn", "")
+        for predicted_lang in prediction[0]:
+            lang_tag = predicted_lang.rsplit("_")[-2]
             if tag_is_valid(lang_tag):
                 lang_name = Language.get(lang_tag).display_name("en")
                 languages.append(lang_name)
             else:
                 languages.append(lang_tag)
 
-        predictions = [f"{y:.8f}" for y in prediction[1]]
+        predictions = [f"{y:.2f}" for y in prediction[1]]
         text_values = {
             "language": languages,
             "predicted": predictions
