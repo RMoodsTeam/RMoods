@@ -5,6 +5,7 @@ use serde::Serialize;
 use serde_json::json;
 
 use crate::api::auth::error::AuthError;
+use crate::nlp::error::NlpError;
 use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::reddit::error::RedditError;
 
@@ -73,6 +74,12 @@ impl From<FetcherError> for AppError {
             },
             _ => AppError::internal_server_error(),
         }
+    }
+}
+
+impl From<NlpError> for AppError {
+    fn from(_value: NlpError) -> Self {
+        AppError::internal_server_error()
     }
 }
 

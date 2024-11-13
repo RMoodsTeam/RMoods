@@ -11,7 +11,6 @@ use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-use std::fmt::Debug;
 use std::net::SocketAddr;
 use tower_http::{
     cors::{Any, CorsLayer},

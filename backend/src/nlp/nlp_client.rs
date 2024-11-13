@@ -1,4 +1,5 @@
 use crate::env::NLP_URL;
+use crate::nlp::error::NlpError;
 use crate::nlp::nlp_response::{NlpResponse, RawLanguageResponse};
 use log_derive::logfn;
 use serde_json::json;
@@ -9,6 +10,8 @@ pub struct NlpClient {
     pub http: reqwest::Client,
 }
 
+/// Truncate a string to a maximum length.
+/// If the string is shorter than the maximum length, return the original string.
 fn truncate_string(s: String, max_len: usize) -> String {
     if s.len() <= max_len {
         s
@@ -29,7 +32,7 @@ impl NlpClient {
     pub async fn analyze_language(
         &self,
         input: &Vec<String>,
-    ) -> anyhow::Result<NlpResponse<RawLanguageResponse>> {
+    ) -> Result<NlpResponse<RawLanguageResponse>, NlpError> {
         let url = format!("{}/report/language", self.nlp_url);
 
         log::debug!("Handling only first 10 inputs. Truncating each input to 100 characters.");
@@ -59,7 +62,10 @@ mod tests {
     async fn test_get_language() {
         setup();
         let client = NlpClient::new();
-        let input = vec!["Hello, world!".to_string()];
+        let input = vec![
+            "Hello, world!".to_string(),
+            "Bonjour, le monde!".to_string(),
+        ];
         let res = client.analyze_language(&input).await.unwrap();
         dbg!(res);
     }

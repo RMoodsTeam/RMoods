@@ -136,14 +136,15 @@ pub async fn subreddit_posts(
         state: &mut AppState,
         request: FetcherFeedRequest,
         user_info: GoogleUserInfo,
-    ) -> Result<RMoodsReport<RawLanguageResponse>, FetcherError> {
+    ) -> Result<RMoodsReport<RawLanguageResponse>, AppError> {
         let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await?;
         let texts = data.extract_texts();
-        let language_analysis = state.nlp_client.analyze_language(&texts).await.unwrap();
+        let language_analysis = state.nlp_client.analyze_language(&texts).await?;
         let report = RMoodsReport {
             metadata: ReportMetadata {
                 created_at: get_current_timestamp(),
                 user_info: user_info.clone(),
+                is_public: true,
             },
             nlp_response: language_analysis,
         };
