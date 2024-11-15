@@ -1,4 +1,3 @@
-use super::AnyParams;
 use crate::api::auth::google::GoogleUserInfo;
 use crate::api::report_ack::ReportAck;
 use crate::nlp::nlp_response::RawLanguageResponse;
@@ -9,20 +8,13 @@ use crate::reddit_fetcher::feed_request::{
 use crate::reddit_fetcher::model::post_comments::PostComments;
 use crate::reddit_fetcher::model::posts::Posts;
 use crate::reddit_fetcher::model::reddit_data::RedditFeedData;
-use crate::reddit_fetcher::model::subreddit_info::SubredditAbout;
-use crate::reddit_fetcher::model::user_info::UserAbout;
 use crate::reddit_fetcher::model::user_posts::UserPosts;
 use crate::reddit_fetcher::reddit::request::params::FeedSorting;
-use crate::reddit_fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
 use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::{app_error::AppError, AppState};
-use axum::{
-    extract::{Query, State},
-    Json,
-};
+use axum::extract::State;
 use jsonwebtoken::get_current_timestamp;
-use reqwest::StatusCode;
 
 /// Create a report from the given data.
 ///
@@ -43,22 +35,6 @@ async fn make_report<T: RedditFeedData>(
         nlp_response: language_analysis,
     };
     Ok(report)
-}
-
-#[utoipa::path(get, path = "/api/debug/subreddit_about", responses(), params())]
-pub async fn subreddit_about(
-    State(mut state): State<AppState>,
-    Query(params): Query<AnyParams>,
-) -> Result<Json<SubredditAbout>, AppError> {
-    let subreddit = params
-        .get("r")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `subreddit` parameter"))?;
-    let req = SubredditAboutRequest {
-        subreddit: subreddit.to_string(),
-    };
-    let about = state.fetcher.fetch_about::<SubredditAbout>(req).await?;
-
-    Ok(Json(about))
 }
 
 #[utoipa::path(get, path = "/api/debug/post_comments", responses(), params())]
@@ -114,21 +90,6 @@ pub async fn post_comments(
     });
 
     Ok(ReportAck::new())
-}
-
-#[utoipa::path(get, path = "/api/debug/user_info", responses(), params())]
-pub async fn user_about(
-    State(mut state): State<AppState>,
-    Query(params): Query<AnyParams>,
-) -> Result<Json<UserAbout>, AppError> {
-    let user = params
-        .get("u")
-        .ok_or_else(|| AppError::new(StatusCode::BAD_REQUEST, "Missing `u` parameter"))?;
-    let req = UserAboutRequest {
-        username: user.to_string(),
-    };
-    let about = state.fetcher.fetch_about::<UserAbout>(req).await?;
-    Ok(Json(about))
 }
 
 // TODO: Add proper response type for acknowledged requests
