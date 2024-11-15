@@ -5,6 +5,7 @@ use std::fmt::Display;
 ///
 /// Used in [FeedSorting]
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum FeedSortingTime {
     Hour,
     Day,
@@ -35,6 +36,7 @@ impl Display for FeedSortingTime {
 /// * `Hot`, `New`, and `Rising` do not require a time period
 /// *  Used in [FeedRequestParams]
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub enum FeedSorting {
     #[default]
     Hot,
