@@ -1,7 +1,6 @@
 use crate::nlp::report::SendableRMoodsReport;
 use crate::websocket::peers::PeersMap;
 use crate::websocket::{ServiceToClientMessage, SystemMessage};
-use std::fmt::Debug;
 use tokio::sync::mpsc::Receiver;
 use tokio_util::sync::CancellationToken;
 
