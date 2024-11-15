@@ -5,7 +5,13 @@ from typing import List
 from contextlib import asynccontextmanager
 from langcodes import tag_is_valid, Language
 import os
+from contextlib import asynccontextmanager
+from typing import List
+
 import fasttext
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from src.version_checker import update_model_versions
 
 language_model = None
 
@@ -79,7 +85,7 @@ async def get_language(request: TextRequest):
     for text in request.text:
         languages = []
         prediction = language_model.predict(text, k=2)
-
+        
         for predicted_lang in prediction[0]:
             lang_tag = predicted_lang.rsplit("_")[-2]
             if tag_is_valid(lang_tag):
@@ -89,12 +95,13 @@ async def get_language(request: TextRequest):
                 languages.append(lang_tag)
 
         predictions = [f"{y:.2f}" for y in prediction[1]]
+
         text_values = {
             "language": languages,
             "predicted": predictions
         }
         results.append(text_values)
-    return {"results": results}
+    return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
 @app.post("/report/sarcasm")

@@ -99,95 +99,95 @@ pub struct RawListing {
 #[derive(Getters, Debug, Clone, Deserialize, Serialize)]
 pub struct RawComment {
     /// ID of the subreddit, eg. t5_2qh3s
-    subreddit_id: String,
+    pub subreddit_id: String,
     /// Name of the subreddit, eg. Polska
-    subreddit: String,
+    pub subreddit: String,
     /// Replies to the comment, if any
     #[serde(deserialize_with = "deserialize_replies")]
     pub replies: Option<RawContainer>,
     /// Comment author, eg. spez, without `u/`
-    author: String,
+    pub author: String,
     /// Comment text
-    body: String,
+    pub body: String,
     /// Standard url to the comment, without `.json` at the end
-    permalink: String,
+    pub permalink: String,
     /// UNIX timestamp of the comment creation
-    created_utc: f32,
+    pub created_utc: f32,
     /// Depth of the comment in the thread. 0 is the top-level comment, 1 is a reply to the top-level comment, etc.
     ///
     /// When fetching posts/comments from a user, this field is always `None`.
-    depth: Option<u32>,
-    /// Upvotes - downvotes
-    score: i64,
+    pub depth: Option<u32>,
+    /// Display score of the comment, upvotes - downvotes
+    pub score: i64,
 }
 
 /// Contains some properties of a Reddit post. For some real-world examples see
 /// [this r/Polska request.](https://www.reddit.com/r/Polska.json)
 #[derive(Getters, Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct RawPost {
-    /// eg. Polska
-    subreddit: String,
+    /// Name of the subreddit, eg. Polska
+    pub subreddit: String,
     /// Text of the post
-    selftext: String,
+    pub selftext: String,
     /// Number of golds
-    gilded: u32,
+    pub gilded: u32,
     /// Post title
-    title: String,
+    pub title: String,
     /// Fullname, eg. t3_8z1v1z
-    name: String,
-    /// Upvotes - downvotes
-    score: i64,
+    pub name: String,
+    /// Display score of the post: upvotes - downvotes
+    pub score: i64,
     /// UNIX timestamp of the post creation
-    created_utc: f32,
+    pub created_utc: f32,
     /// Is the post NSFW?
-    /// This is inconsistent with the `over18` field in Subreddit. THIS IS INTENTED AND CORRECT.
-    over_18: bool,
+    /// This is inconsistent with the `over18` field in Subreddit. THIS IS INTENDED AND CORRECT.
+    pub over_18: bool,
     /// Fullname without the kind info, eg. 8z1v
-    id: String,
+    pub id: String,
     /// Subreddit fullname, eg. t5_2qh3s
-    subreddit_id: String,
+    pub subreddit_id: String,
     /// username without `u/` eg. spez
-    author: String,
+    pub author: String,
     /// Number of comments
-    num_comments: u32,
+    pub num_comments: u32,
     /// Standard url, without `.json` at the end
-    url: String,
+    pub url: String,
     /// Is the post stickied?
-    stickied: bool,
+    pub stickied: bool,
 }
 
 /// Reddit subreddit data
 /// https://www.reddit.com/r/Polska/about.json
 #[derive(Getters, Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct RawSubredditAbout {
-    /// eg. Polska
-    display_name: String,
+    /// Name of the subreddit, eg. Polska
+    pub display_name: String,
     /// tagline, eg. "Polski Subreddit"
-    title: String,
-    /// Primary color of the subreddit, eg. #0079d3
-    primary_color: String,
-    /// Secondary color of the subreddit, eg. #ff4500
-    key_color: String,
+    pub title: String,
+    /// Primary color of the subreddit, e.g. #0079d3
+    pub primary_color: String,
+    /// Secondary color of the subreddit, e.g. #ff4500
+    pub key_color: String,
     /// Number of active users
-    active_user_count: u32,
+    pub active_user_count: u32,
     /// Number of subscribers
-    subscribers: u32,
+    pub subscribers: u32,
     /// Fullname, eg. t5_2qh3s
-    name: String,
+    pub name: String,
     /// Description of the subreddit
-    public_description: String,
+    pub public_description: String,
     /// Subreddit logo, link needs to be parsed to get the actual image
-    community_icon: String,
+    pub community_icon: String,
     /// Banner background image, link needs to be parsed to get the actual image
-    banner_background_image: String,
+    pub banner_background_image: String,
     /// UNIX timestamp of the subreddit creation
-    created_utc: f32,
+    pub created_utc: f32,
     /// Fullname of the subreddit creator, eg. t2_1w72
-    id: String,
-    /// Language of the subreddit, eg. pl
-    lang: String,
+    pub id: String,
+    /// Language of the subreddit, e.g. pl
+    pub lang: String,
     /// Is the subreddit NSFW?
-    /// This is inconsistent with the `over_18` field in RedditPost. THIS IS INTENTED AND CORRECT.
+    /// This is inconsistent with the `over_18` field in RedditPost. THIS IS INTENDED AND CORRECT.
     over18: bool,
 }
 
@@ -197,29 +197,29 @@ pub struct RawSubredditAbout {
 #[derive(Getters, Debug, Hash, Eq, PartialEq, Clone, Serialize, Deserialize)]
 pub struct RawUserAbout {
     /// Is the user a Reddit employee?
-    is_employee: bool,
+    pub is_employee: bool,
     /// Karma received by getting awards
-    awardee_karma: i64,
+    pub awardee_karma: i64,
     /// User ID, eg. 1w72
-    id: String,
+    pub d: String,
     /// Is the user a verified?
-    verified: bool,
+    pub verified: bool,
     /// Karma given to others by giving awards
-    awarder_karma: i64,
+    pub awarder_karma: i64,
     /// Better described as `post karma`, received for others upvoting your posts
-    link_karma: i64,
+    pub link_karma: i64,
     /// Karma received for others upvoting your comments
-    comment_karma: i64,
+    pub comment_karma: i64,
     /// Total karma, sum of all karma types. Maybe remove this field and calculate it?
-    total_karma: i64,
+    pub total_karma: i64,
     /// Username without `u/`, eg. spez
-    name: String,
+    pub name: String,
     /// Link to the user icon
     #[serde_as(as = "NoneAsEmptyString")]
-    icon_img: Option<String>,
+    pub icon_img: Option<String>,
     /// Link to the user snoovatar, whatever that is
     #[serde_as(as = "NoneAsEmptyString")]
-    snoovatar_img: Option<String>,
+    pub snoovatar_img: Option<String>,
 }
 
 /// Empty string means no replies, otherwise it's a JSON array of RedditComment objects.

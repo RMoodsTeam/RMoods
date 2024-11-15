@@ -21,7 +21,7 @@ pub struct GoogleTokenResponse {
     id_token: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, Getters)]
+#[derive(Deserialize, Serialize, Debug, Getters, Clone)]
 pub struct GoogleUserInfo {
     /// Unique user ID
     sub: String,

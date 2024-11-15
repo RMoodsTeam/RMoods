@@ -1,3 +1,4 @@
+use crate::nlp::report::SendableRMoodsReport;
 use crate::websocket::peers::PeersMap;
 use crate::websocket::{ServiceToClientMessage, SystemMessage};
 use tokio::sync::mpsc::Receiver;
@@ -13,7 +14,7 @@ use tokio_util::sync::CancellationToken;
 /// * When a report request completes, the service sends the report to the client.
 /// * When the number of remaining Reddit API requests changes, the service sends the new number to all clients.
 pub async fn start_service(
-    mut system_rx: Receiver<SystemMessage>,
+    mut system_rx: Receiver<SystemMessage<Box<dyn SendableRMoodsReport>>>,
     cancellation_token: CancellationToken,
 ) {
     let mut peers = PeersMap::new();
@@ -31,25 +32,25 @@ pub async fn start_service(
                             peers.remove_peer(connection_id);
                             log::info!("Peers number: {}", peers.len());
                         }
-                        SystemMessage::ReportDone((report, user_info)) => {
+                        SystemMessage::ReportDone(report) => {
                             let str = format!("{:?}", report);
                             log::info!("Received a report from the main thread of len: {:?}", str.len());
-                            let sockets = peers.user_connections(&user_info);
+                            let sockets = peers.user_connections(&report.metadata().user_info);
                             log::debug!("Found {} sockets for the user", sockets.len());
-                            let client_msg = ServiceToClientMessage::ReportDone(report);
                             for socket in sockets {
                                 log::debug!("Sending the report to the client at {:?}", socket);
-                                socket.send(client_msg.clone()).await.expect("Send report");
+                                let client_msg = ServiceToClientMessage::ReportDone(report.clone());
+                                socket.send(client_msg).await.expect("Send report");
                             }
                         },
                         SystemMessage::ReportError((err, user_info)) => {
                             log::error!("Report error: {:?}", err);
                             let sockets = peers.user_connections(&user_info);
                             log::debug!("Found {} sockets for the user", sockets.len());
-                            let client_msg = ServiceToClientMessage::ReportError(err);
                             for socket in sockets {
                                 log::debug!("Sending error report to the client at {:?}", socket);
-                                socket.send(client_msg.clone()).await.expect("Send error report");
+                                let client_msg = ServiceToClientMessage::ReportError(err.clone());
+                                socket.send(client_msg).await.expect("Send error report");
                             }
                         }
                         SystemMessage::RemainingRequestsUpdate(remaining) => {

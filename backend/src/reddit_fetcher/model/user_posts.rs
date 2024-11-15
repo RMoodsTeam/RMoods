@@ -41,6 +41,7 @@ impl RedditFeedData for UserPosts {
 
         Ok(Self { posts, comments })
     }
+
     fn create_reddit_request(
         request: &FetcherFeedRequest,
         source: DataSource,
@@ -52,10 +53,19 @@ impl RedditFeedData for UserPosts {
             after,
         }
     }
+
     fn concat(&mut self, other: Self) -> Self {
         Self {
             posts: [self.posts.clone(), other.posts].concat(),
             comments: [self.comments.clone(), other.comments].concat(),
         }
+    }
+
+    fn extract_texts(self) -> Vec<String> {
+        self.posts
+            .into_iter()
+            .map(|post| post.title)
+            .chain(self.comments.into_iter().map(|comment| comment.body))
+            .collect()
     }
 }

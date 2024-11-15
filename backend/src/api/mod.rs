@@ -5,6 +5,7 @@ use std::collections::HashMap;
 pub mod auth;
 pub mod debug;
 pub mod report;
+pub mod report_ack;
 
 /// A hashmap of any type of query parameters.
 type AnyParams = HashMap<String, String>;

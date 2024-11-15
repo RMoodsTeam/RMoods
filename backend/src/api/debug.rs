@@ -1,17 +1,19 @@
 use super::AnyParams;
 use crate::api::auth::google::GoogleUserInfo;
+use crate::api::report_ack::ReportAck;
+use crate::nlp::nlp_response::RawLanguageResponse;
+use crate::nlp::report::{RMoodsReport, ReportMetadata};
 use crate::reddit_fetcher::feed_request::{
     DataSource, FetcherFeedRequest, RMoodsReportType, RedditFeedKind, RequestSize,
 };
-use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::model::post_comments::PostComments;
 use crate::reddit_fetcher::model::posts::Posts;
+use crate::reddit_fetcher::model::reddit_data::RedditFeedData;
 use crate::reddit_fetcher::model::subreddit_info::SubredditAbout;
 use crate::reddit_fetcher::model::user_info::UserAbout;
 use crate::reddit_fetcher::model::user_posts::UserPosts;
 use crate::reddit_fetcher::reddit::request::params::FeedSorting;
 use crate::reddit_fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
-use crate::rmoods::report_ack::ReportAck;
 use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::{app_error::AppError, AppState};
@@ -19,7 +21,29 @@ use axum::{
     extract::{Query, State},
     Json,
 };
+use jsonwebtoken::get_current_timestamp;
 use reqwest::StatusCode;
+
+/// Create a report from the given data.
+///
+/// The report is created by applying the NLP analysis to the texts extracted from the data.
+async fn make_report<T: RedditFeedData>(
+    state: &mut AppState,
+    data: T,
+    user_info: GoogleUserInfo,
+) -> Result<RMoodsReport<RawLanguageResponse>, AppError> {
+    let texts = data.extract_texts();
+    let language_analysis = state.nlp_client.analyze_language(&texts).await?;
+    let report = RMoodsReport {
+        metadata: ReportMetadata {
+            created_at: get_current_timestamp(),
+            user_info: user_info.clone(),
+            is_public: true,
+        },
+        nlp_response: language_analysis,
+    };
+    Ok(report)
+}
 
 #[utoipa::path(get, path = "/api/debug/subreddit_about", responses(), params())]
 pub async fn subreddit_about(
@@ -55,26 +79,26 @@ pub async fn post_comments(
     };
     let requests_to_make = u16::from(request.size.clone());
 
-    let make_report = async move {
-        let (mut data, _) = state.fetcher.fetch_feed::<PostComments>(request).await?;
+    let (mut data, _) = state.fetcher.fetch_feed::<PostComments>(request).await?;
+    let more_comments = state
+        .fetcher
+        .fetch_more_comments(&data.more, requests_to_make)
+        .await?;
 
-        let more_comments = state
-            .fetcher
-            .fetch_more_comments(&data.more, requests_to_make)
-            .await?;
+    data.list.extend(more_comments);
+    data.more.clear();
 
-        data.list.extend(more_comments);
-        data.more.clear();
-        Ok::<PostComments, FetcherError>(data)
-    };
+    log::debug!("Fetched {} post comments", data.list.len());
+
+    let report_res = make_report::<PostComments>(&mut state, data, user_info.clone()).await;
 
     tokio::spawn(async move {
-        match make_report.await {
+        match report_res {
             Ok(report) => {
-                log::info!("Returning {} post comments", report.list.len());
+                log::info!("Returning post comments report");
                 state
                     .system_tx
-                    .send(SystemMessage::ReportDone((Box::new(report), user_info)))
+                    .send(SystemMessage::ReportDone(Box::new(report)))
                     .await
                     .unwrap();
             }
@@ -125,22 +149,20 @@ pub async fn subreddit_posts(
         sorting: FeedSorting::New,
     };
 
-    let make_report = async move {
-        let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await?;
-        Ok::<Posts, FetcherError>(data)
-    };
+    let (data, _) = state.fetcher.fetch_feed::<Posts>(request).await?;
+    log::debug!("Fetched {} subreddit posts", data.list.len());
+    let report_res = make_report::<Posts>(&mut state, data, user_info.clone()).await;
 
     tokio::spawn(async move {
         log::info!("Spawning a new task to fetch subreddit posts");
-        match make_report.await {
-            Ok(data) => {
-                log::debug!("Returning {} subreddit posts", data.list.len());
+        match report_res {
+            Ok(analysis) => {
                 state
                     .system_tx
-                    .send(SystemMessage::ReportDone((Box::new(data), user_info)))
+                    .send(SystemMessage::ReportDone(Box::new(analysis)))
                     .await
                     .unwrap();
-                log::debug!("Sent the subreddit posts to the WebSocket service");
+                log::debug!("Sent the report to the WebSocket service");
             }
             Err(e) => {
                 log::error!("Failed to make report: {:?}", e);
@@ -175,20 +197,18 @@ pub async fn user_posts(
 
     // TODO: If there are no requests, return appropriate message to the user
 
-    let make_report = async move {
-        let (data, _) = state.fetcher.fetch_feed::<UserPosts>(request).await?;
-        Ok::<UserPosts, FetcherError>(data)
-    };
+    let data = state.fetcher.fetch_feed::<UserPosts>(request).await?.0;
+    log::debug!("Fetched {} user posts", data.posts.len());
+    log::debug!("Fetched {} user comments", data.comments.len());
+    let report_res = make_report::<UserPosts>(&mut state, data, user_info.clone()).await;
 
     tokio::spawn(async move {
         log::info!("Spawning a new task to fetch user posts");
-        match make_report.await {
+        match report_res {
             Ok(data) => {
-                log::debug!("Returning {} user posts", data.posts.len());
-                log::debug!("Returning {} user comments", data.comments.len());
                 state
                     .system_tx
-                    .send(SystemMessage::ReportDone((Box::new(data), user_info)))
+                    .send(SystemMessage::ReportDone(Box::new(data)))
                     .await
                     .unwrap();
                 log::debug!("Sent the subreddit posts to the WebSocket service");

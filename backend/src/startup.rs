@@ -1,3 +1,4 @@
+use crate::env::*;
 use log::info;
 use tokio::signal;
 use tokio_util::sync::CancellationToken;
@@ -6,12 +7,13 @@ use tokio_util::sync::CancellationToken;
 /// It's important to keep this updated as our .env file grows.
 pub fn verify_environment() -> bool {
     let needed_vars = [
-        "CLIENT_ID",
-        "CLIENT_SECRET",
-        "DATABASE_URL",
-        "JWT_SECRET",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET",
+        CLIENT_ID,
+        CLIENT_SECRET,
+        DATABASE_URL,
+        JWT_SECRET,
+        GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET,
+        NLP_URL,
     ];
     let defined: Vec<String> = std::env::vars().map(|(k, _)| k).collect();
 
