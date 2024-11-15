@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use params::FeedSorting;
+use serde::{Deserialize, Serialize};
 
 use super::model::MoreComments;
 pub mod params;
@@ -35,7 +36,7 @@ pub struct SubredditPostsRequest {
 }
 
 /// Fetch information about a subreddit.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SubredditAboutRequest {
     pub subreddit: String,
 }
@@ -50,7 +51,7 @@ pub struct UserPostsRequest {
 }
 
 /// Fetch information about a user.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UserAboutRequest {
     /// The user's username.
     pub username: String,

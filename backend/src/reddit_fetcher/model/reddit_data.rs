@@ -2,6 +2,7 @@ use crate::reddit_fetcher::feed_request::{DataSource, FetcherFeedRequest};
 use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::reddit::model::RawContainer;
 use crate::reddit_fetcher::reddit::request::RedditRequest;
+use std::fmt::Debug;
 
 /// Describes a common interface for any data that is a feed in Reddit.
 /// 1. Subreddit Posts
@@ -34,7 +35,7 @@ pub trait RedditFeedData {
 /// Simpler trait for data that is fetched from the Reddit API as a single object, not as a feed.
 pub trait RedditAboutData {
     /// The type of the request that is used to fetch this data.
-    type RequestType: RedditRequest;
+    type RequestType: RedditRequest + Debug;
 
     /// Takes raw data form the underlying Reddit API connection and converts it into the high-level representation.
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>

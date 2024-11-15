@@ -1,15 +1,11 @@
 use crate::AppState;
 use axum::{routing::get, Router};
-use std::collections::HashMap;
 
 pub mod about;
 pub mod auth;
 pub mod debug;
 pub mod report;
 pub mod report_ack;
-
-/// A hashmap of any type of query parameters.
-type AnyParams = HashMap<String, String>;
 
 /// Defines routes for the /api path.
 pub fn router() -> Router<AppState> {
