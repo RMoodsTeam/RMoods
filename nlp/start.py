@@ -1,18 +1,9 @@
-import os
 import subprocess
 import sys
 
 
 def run_uvicorn():
-    # Get port from environment variable, default to 8002 if not set
-    port = os.environ.get('PORT', '8002')
-
-    # Ensure port is a valid integer
-    try:
-        port = int(port)
-    except ValueError:
-        print(f"Error: PORT environment variable must be a valid integer. Got: {port}")
-        sys.exit(1)
+    port = '8002'
 
     # Command as a list of arguments
     command = [
