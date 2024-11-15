@@ -1,8 +1,9 @@
+use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::reddit::request::params::FeedSorting;
 use serde::Deserialize;
 
 /// What kind of feed do we fetch and make a report on?
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum RedditFeedKind {
     UserPosts,
@@ -12,7 +13,7 @@ pub enum RedditFeedKind {
 
 // TODO: Add more types
 /// What NLP reports do we want to generate?
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum RMoodsReportType {
     Language,
@@ -28,16 +29,16 @@ pub enum RMoodsReportType {
 /// * The `share` field is used to calculate the share of the report that this data source represents.
 ///   * It should be a number between 0 and 1.
 ///   * The sum of all shares should be 1.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DataSource {
     pub name: String,
     pub post_id: Option<String>, // Only for PostComments
-    pub share: f32,
+    pub share: u8,
 }
 
 /// Represents a request to fetch a feed from Reddit.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct FetcherFeedRequest {
     /// Determines what kind of feed do we fetch and make a report on.
@@ -50,4 +51,126 @@ pub struct FetcherFeedRequest {
     pub size: u16,
     /// Determines the sorting of the feed.
     pub sorting: FeedSorting,
+}
+
+impl FetcherFeedRequest {
+    /// Validate a feed request.
+    ///
+    /// * Data sources cannot be empty.
+    /// * The sum of all shares should be 100.
+    /// * Data sources should have a share greater than 0.
+    /// * Data source names should only contain alphanumeric characters.
+    /// * Post IDs should only contain alphanumeric characters.
+    /// * All data sources for PostComments should have a `post_id`.
+    /// * No data sources for UserPosts and SubredditPosts should have a `post_id`.
+    pub fn validate(&self) -> Result<(), FetcherError> {
+        // Check if there are any data sources
+        if self.data_sources.is_empty() {
+            return Err(FetcherError::InvalidFeedRequest(
+                "Data sources cannot be empty".to_string(),
+            ));
+        }
+
+        // Check if the sum of all shares is 100
+        let sum: u8 = self.data_sources.iter().map(|ds| ds.share).sum();
+        if sum != 100 {
+            return Err(FetcherError::InvalidFeedRequest(
+                "The sum of all shares should be 100".to_string(),
+            ));
+        }
+
+        // Disallow any data sources with share = 0
+        if self.data_sources.iter().any(|ds| ds.share == 0) {
+            return Err(FetcherError::InvalidFeedRequest(
+                "Data sources should have a share greater than 0".to_string(),
+            ));
+        }
+
+        // Check if data source names contain illegal characters
+        let char_is_legal = |c: char| c.is_ascii_alphanumeric() || c == '_' || c == '-';
+        let names_contain_illegal_chars = self
+            .data_sources
+            .iter()
+            .any(|ds| ds.name.chars().any(|c| !char_is_legal(c)));
+        if names_contain_illegal_chars {
+            return Err(FetcherError::InvalidFeedRequest(
+                "Data source names should only contain alphanumeric characters".to_string(),
+            ));
+        }
+
+        // Check if post_id contains illegal characters
+        let post_ids_contain_illegal_chars = self.data_sources.iter().any(|ds| {
+            ds.post_id.is_some()
+                && ds
+                    .post_id
+                    .as_ref()
+                    .unwrap()
+                    .chars()
+                    .any(|c| !char_is_legal(c))
+        });
+        if post_ids_contain_illegal_chars {
+            return Err(FetcherError::InvalidFeedRequest(
+                "Post IDs should only contain alphanumeric characters".to_string(),
+            ));
+        }
+
+        // Check if data sources are declared correctly
+        if self.resource_kind == RedditFeedKind::PostComments {
+            if self.data_sources.iter().any(|ds| ds.post_id.is_none()) {
+                return Err(FetcherError::InvalidFeedRequest(
+                    "All data sources for PostComments should have a post_id".to_string(),
+                ));
+            }
+        } else {
+            if self.data_sources.iter().any(|ds| ds.post_id.is_some()) {
+                return Err(FetcherError::InvalidFeedRequest(
+                    "No data sources for UserPosts and SubredditPosts should have a post_id"
+                        .to_string(),
+                ));
+            }
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_deserialize_feed_request() {
+        let json = r#"
+            {
+                "resourceKind": "userPosts",
+                "reportTypes": ["language", "sentiment"],
+                "dataSources": [
+                    {
+                        "name": "username",
+                        "share": 0.5
+                    },
+                    {
+                        "name": "username2",
+                        "share": 0.5
+                    }
+                ],
+                "size": 10,
+                "sorting": "hot"
+            }
+        "#;
+
+        let feed_request: super::FetcherFeedRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(feed_request.resource_kind, super::RedditFeedKind::UserPosts);
+        assert_eq!(
+            feed_request.report_types,
+            vec![
+                super::RMoodsReportType::Language,
+                super::RMoodsReportType::Sentiment
+            ]
+        );
+        assert_eq!(feed_request.data_sources.len(), 2);
+        assert_eq!(feed_request.size, 10);
+        assert_eq!(
+            feed_request.sorting,
+            crate::reddit_fetcher::reddit::request::params::FeedSorting::Hot
+        );
+    }
 }
