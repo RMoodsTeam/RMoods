@@ -48,9 +48,10 @@ impl RedditConnection {
         let client = RedditApp::new(id, secret);
 
         info!("Fetching initial access token");
-        let access_token = client.fetch_access_token(&http).await.or(Err(
-            RedditError::FailedToFetchAccessToken(client.client_id.to_string()),
-        ))?;
+        let access_token = client
+            .fetch_access_token(&http)
+            .await
+            .or_else(|e| Err(RedditError::FailedToFetchAccessToken(e.to_string())))?;
         debug!("Access token: {:?}", access_token);
         info!("Done fetching access token");
 
@@ -178,7 +179,7 @@ impl RedditConnection {
                 .and_then(|d| d.get("after"))
                 .and_then(|a| a.as_str())
                 .map(|s| s.to_string());
-            dbg!(json.clone());
+
             let parsed = serde_json::from_value::<RawContainer>(json.clone()).unwrap();
             Ok((parsed, after))
         }
