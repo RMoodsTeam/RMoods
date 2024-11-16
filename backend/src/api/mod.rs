@@ -3,7 +3,6 @@ use axum::{routing::get, Router};
 
 pub mod about;
 pub mod auth;
-pub mod debug;
 pub mod report;
 
 /// Defines routes for the /api path.
