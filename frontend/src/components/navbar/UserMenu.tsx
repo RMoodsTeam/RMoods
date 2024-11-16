@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
-import {useNavigate} from "react-router-dom";
-import {Button, Menu} from "@mantine/core";
+import { useNavigate } from "react-router-dom";
+import { Button, Menu } from "@mantine/core";
 
 const UserMenu = () => {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ const UserMenu = () => {
       <Menu.Target><Button>User Menu</Button></Menu.Target>
       <Menu.Dropdown>
         <Menu.Item onClick={() => navigate("/dashboard")}>Dashboard</Menu.Item>
+        <Menu.Item onClick={() => navigate("/user")}>Profile</Menu.Item>
         <Menu.Item onClick={() => handleLogout()}>Log out</Menu.Item>
       </Menu.Dropdown>
     </Menu>

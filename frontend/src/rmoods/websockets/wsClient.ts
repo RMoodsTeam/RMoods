@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
-import {atom} from "jotai";
-import {notifications} from "@mantine/notifications";
+import { atom } from "jotai";
+import { notifications } from "@mantine/notifications";
 
 // Define an atom to store the WebSocket connection status
 // for now the atom manipulation is in the onerror function as it was the easiest to test on
@@ -31,7 +31,7 @@ class WebSocketConnection {
         color: 'red',
         icon: 'bell',
       })
-      
+
       setWsConnectionStatus(false); // Set the atom to false
       console.log("WebSocket connection status:", false);
     };
