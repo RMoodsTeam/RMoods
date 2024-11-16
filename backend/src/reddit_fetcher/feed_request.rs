@@ -106,7 +106,7 @@ impl FetcherFeedRequest {
                     .as_ref()
                     .unwrap()
                     .chars()
-                    .any(|c| !char_is_legal(c))
+                    .any(|c| !c.is_ascii_alphanumeric())
         });
         if post_ids_contain_illegal_chars {
             return Err(FetcherError::InvalidFeedRequest(
@@ -136,28 +136,28 @@ impl FetcherFeedRequest {
 
 #[cfg(test)]
 mod tests {
+    const JSON: &str = r#"
+        {
+            "resourceKind": "userPosts",
+            "reportTypes": ["language", "sentiment"],
+            "dataSources": [
+                {
+                    "name": "username",
+                    "share": 50
+                },
+                {
+                    "name": "username2",
+                    "share": 50
+                }
+            ],
+            "size": 10,
+            "sorting": "hot"
+        }
+    "#;
+
     #[test]
     fn test_deserialize_feed_request() {
-        let json = r#"
-            {
-                "resourceKind": "userPosts",
-                "reportTypes": ["language", "sentiment"],
-                "dataSources": [
-                    {
-                        "name": "username",
-                        "share": 0.5
-                    },
-                    {
-                        "name": "username2",
-                        "share": 0.5
-                    }
-                ],
-                "size": 10,
-                "sorting": "hot"
-            }
-        "#;
-
-        let feed_request: super::FetcherFeedRequest = serde_json::from_str(json).unwrap();
+        let feed_request: super::FetcherFeedRequest = serde_json::from_str(JSON).unwrap();
         assert_eq!(feed_request.resource_kind, super::RedditFeedKind::UserPosts);
         assert_eq!(
             feed_request.report_types,
@@ -172,5 +172,113 @@ mod tests {
             feed_request.sorting,
             crate::reddit_fetcher::reddit::request::params::FeedSorting::Hot
         );
+    }
+
+    fn testing_request() -> super::FetcherFeedRequest {
+        serde_json::from_str(JSON).unwrap()
+    }
+
+    #[test]
+    fn test_validate_feed_request_with_valid_data() {
+        let feed_request = testing_request();
+        assert!(feed_request.validate().is_ok());
+    }
+
+    #[test]
+    fn test_validate_feed_request_empty_data_sources() {
+        let mut feed_request = testing_request();
+        feed_request.data_sources.clear();
+        assert!(feed_request.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_feed_request_shares_not_sum_to_100() {
+        let mut feed_request = testing_request();
+        feed_request.data_sources = vec![
+            super::DataSource {
+                name: "username".to_string(),
+                post_id: None,
+                share: 50,
+            },
+            super::DataSource {
+                name: "username2".to_string(),
+                post_id: None,
+                share: 40,
+            },
+        ];
+        assert!(feed_request.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_feed_request_zero_share() {
+        let mut feed_request = testing_request();
+        feed_request.data_sources = vec![
+            super::DataSource {
+                name: "username".to_string(),
+                post_id: None,
+                share: 50,
+            },
+            super::DataSource {
+                name: "username2".to_string(),
+                post_id: None,
+                share: 0,
+            },
+        ];
+        assert!(feed_request.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_feed_request_illegal_characters_in_names() {
+        let mut feed_request = testing_request();
+        feed_request.data_sources = vec![
+            super::DataSource {
+                name: "username".to_string(),
+                post_id: None,
+                share: 50,
+            },
+            super::DataSource {
+                name: "username2!".to_string(),
+                post_id: None,
+                share: 50,
+            },
+        ];
+        assert!(feed_request.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_feed_request_illegal_characters_in_post_id() {
+        let mut feed_request = testing_request();
+        feed_request.data_sources = vec![
+            super::DataSource {
+                name: "username".to_string(),
+                post_id: Some("post_id".to_string()),
+                share: 50,
+            },
+            super::DataSource {
+                name: "username2".to_string(),
+                post_id: Some("post_id!".to_string()),
+                share: 50,
+            },
+        ];
+        assert!(feed_request.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_feed_request_incorrectly_declared_data_sources() {
+        let mut feed_request = testing_request();
+        feed_request.resource_kind = super::RedditFeedKind::PostComments;
+        feed_request.data_sources = vec![
+            super::DataSource {
+                name: "username".to_string(),
+                post_id: None,
+                share: 50,
+            },
+            super::DataSource {
+                name: "username2".to_string(),
+                post_id: Some("post_id".to_string()),
+                share: 50,
+            },
+        ];
+        assert!(feed_request.validate().is_err());
     }
 }
