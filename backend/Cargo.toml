@@ -8,7 +8,7 @@ opt-level = 1
 
 [dependencies]
 tokio = { version = "1.37.0", features = ["full"] }
-axum = { version = "0.7.5", features = ["ws"] }
+axum = { version = "0.7.5", features = ["ws", "macros"] }
 env_logger = "0.11.3"
 log = "0.4.21"
 serde = "1.0.203"
@@ -36,3 +36,4 @@ futures = "0.3.31"
 http-serde = "2.1.1"
 typetag = "0.2.18"
 dyn-clone = "1.0.17"
+rand = "0.8.5"

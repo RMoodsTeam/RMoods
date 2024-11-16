@@ -48,9 +48,10 @@ impl RedditConnection {
         let client = RedditApp::new(id, secret);
 
         info!("Fetching initial access token");
-        let access_token = client.fetch_access_token(&http).await.or(Err(
-            RedditError::FailedToFetchAccessToken(client.client_id.to_string()),
-        ))?;
+        let access_token = client
+            .fetch_access_token(&http)
+            .await
+            .or_else(|e| Err(RedditError::FailedToFetchAccessToken(e.to_string())))?;
         debug!("Access token: {:?}", access_token);
         info!("Done fetching access token");
 
@@ -89,7 +90,7 @@ impl RedditConnection {
         url: &str,
         query: Vec<(&str, String)>,
     ) -> Result<Value, InnerFetchError> {
-        info!("Fetching data from: {url:?}\nWith query params: {query:?}");
+        info!("Fetching data from: {url:?}. Query params: {query:?}");
 
         let req = self
             .http
@@ -134,7 +135,7 @@ impl RedditConnection {
             }
         }
 
-        Ok(res.json().await?)
+        Ok(res.json::<Value>().await?)
     }
 
     /// Execute a request to the Reddit API.
@@ -155,6 +156,7 @@ impl RedditConnection {
         // We only care about the comments.
         // [Post, Listing<Comment>]
         if json.is_array() {
+            log::debug!("The returned JSON is an array, extracting comments");
             let comments_container = json.as_array().and_then(|a| a.get(1).cloned()).unwrap();
             let after = comments_container
                 .get("after")
@@ -171,12 +173,15 @@ impl RedditConnection {
                 }
             }
         } else {
+            log::debug!("The returned JSON is not an array, parsing normally");
             let after = json
                 .get("data")
                 .and_then(|d| d.get("after"))
                 .and_then(|a| a.as_str())
                 .map(|s| s.to_string());
-            Ok((serde_json::from_value(json)?, after))
+
+            let parsed = serde_json::from_value::<RawContainer>(json.clone()).unwrap();
+            Ok((parsed, after))
         }
     }
 

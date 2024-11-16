@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// It's a wrapper around the raw data returned by the Reddit API, just for consistency
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserAbout {
-    info: RawUserAbout,
+    pub info: RawUserAbout,
 }
 
 impl RedditAboutData for UserAbout {

@@ -109,8 +109,8 @@ impl RMoodsFetcher {
         &mut self,
         request: T::RequestType,
     ) -> Result<T, FetcherError> {
+        log::debug!("Fetching about: {:?}", request);
         let raw = self.reddit_connection.fetch_raw(request).await?;
-        log::info!("Parsing...");
         let data = T::from_reddit_container(raw.0)?;
         Ok(data)
     }

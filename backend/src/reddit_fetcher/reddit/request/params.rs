@@ -4,7 +4,8 @@ use std::fmt::Display;
 /// Represents a time period for sorting posts in a feed.
 ///
 /// Used in [FeedSorting]
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub enum FeedSortingTime {
     Hour,
     Day,
@@ -34,7 +35,8 @@ impl Display for FeedSortingTime {
 /// * `Controversial` and `Top` require a time period as [FeedSortingTime]
 /// * `Hot`, `New`, and `Rising` do not require a time period
 /// *  Used in [FeedRequestParams]
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub enum FeedSorting {
     #[default]
     Hot,

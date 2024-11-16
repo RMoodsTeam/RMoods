@@ -67,6 +67,7 @@ impl RedditApp {
         &self,
         http_client: &Client,
     ) -> Result<RedditAccessToken, reqwest::Error> {
+        log::debug!("Fetching access token");
         let req = http_client
             .post("https://www.reddit.com/api/v1/access_token")
             .basic_auth(self.client_id.as_str(), Some(self.client_secret.as_str())) // basic http auth
@@ -76,11 +77,11 @@ impl RedditApp {
             .build()?;
 
         // Send the request and parse the response
-        let res = http_client
-            .execute(req)
-            .await?
-            .json::<RedditAccessToken>()
-            .await?;
-        Ok(res)
+        let res = http_client.execute(req).await?;
+
+        let token = res.json::<RedditAccessToken>().await?;
+
+        log::debug!("Fetched Access token: {:?}", token);
+        Ok(token)
     }
 }

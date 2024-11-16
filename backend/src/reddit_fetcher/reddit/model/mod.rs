@@ -201,7 +201,7 @@ pub struct RawUserAbout {
     /// Karma received by getting awards
     pub awardee_karma: i64,
     /// User ID, eg. 1w72
-    pub d: String,
+    pub id: String,
     /// Is the user a verified?
     pub verified: bool,
     /// Karma given to others by giving awards

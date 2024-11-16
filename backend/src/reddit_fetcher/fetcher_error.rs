@@ -12,4 +12,9 @@ pub enum FetcherError {
     /// This bubbles up from the underlying Reddit API client.
     #[error("Failed to fetch data from Reddit: {0}")]
     RedditApiError(#[from] RedditError),
+
+    /// Error while validating the feed request.
+    /// This is used to signal that the request is invalid.
+    #[error("Invalid feed request: {0}")]
+    InvalidFeedRequest(String),
 }
