@@ -59,8 +59,10 @@ pub async fn generate_report_handler(
     user_info: GoogleUserInfo,
     Json(feed_request): Json<FetcherFeedRequest>,
 ) -> Result<ReportAck, AppError> {
-    log::info!("Generating report for user: {}", user_info.email());
-    log::info!("Feed request: {:?}", feed_request);
+    log::debug!("Validating feed request: {:?}", feed_request);
+    feed_request.validate()?;
+    log::debug!("Feed request is valid");
+    log::debug!("Generating report for user: {}", user_info.email());
 
     tokio::spawn(async move {
         let nlp = &state.nlp_client;
