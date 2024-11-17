@@ -1,4 +1,5 @@
 import React from "react";
+import LoremIpsum from "./LoremIpsum";
 
 const Demo: React.FC = () => {
   // const toast = useToast();
@@ -383,7 +384,7 @@ const Demo: React.FC = () => {
   //     </Box>
   //   </Box>
   // );
-  return <>Demo</>
+  return   <LoremIpsum n={3} />
 };
 
 export default Demo;
