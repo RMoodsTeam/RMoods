@@ -7,7 +7,7 @@ const FeedSortingTimeSchema = z.enum(['day', 'week', 'month', 'year', 'all']);
 
 const DataSourceSchema = z.object({
   name: z.string(),
-  post_id: z.string().nullable(),
+  post_id: z.string().optional(),
   share: z.number().min(0).max(100)
 });
 

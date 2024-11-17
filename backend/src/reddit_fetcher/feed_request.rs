@@ -1,6 +1,11 @@
 use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::reddit::request::params::FeedSorting;
+use axum::async_trait;
+use axum::body::Bytes;
+use axum::extract::{FromRequest, Request};
+use http::StatusCode;
 use serde::Deserialize;
+use std::fmt::Debug;
 
 /// What kind of feed do we fetch and make a report on?
 #[derive(Debug, Deserialize, PartialEq)]
@@ -131,6 +136,31 @@ impl FetcherFeedRequest {
         }
 
         Ok(())
+    }
+}
+
+#[async_trait]
+impl<S> FromRequest<S> for FetcherFeedRequest
+where
+    S: Send + Sync,
+{
+    type Rejection = StatusCode;
+    async fn from_request(request: Request, state: &S) -> Result<Self, Self::Rejection> {
+        log::debug!("Extracting FetcherFeedRequest");
+        let body = match Bytes::from_request(request, state).await {
+            Ok(body) => body,
+            Err(_) => return Err(StatusCode::BAD_REQUEST),
+        };
+        match serde_json::from_slice(&body) {
+            Ok(feed_request) => {
+                log::debug!("Extracted FetcherFeedRequest successfully");
+                Ok(feed_request)
+            }
+            Err(e) => {
+                log::error!("Failed to extract FetcherFeedRequest: {e:?}");
+                Err(StatusCode::BAD_REQUEST)
+            }
+        }
     }
 }
 

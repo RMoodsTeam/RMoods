@@ -14,7 +14,6 @@ use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
 use axum::extract::State;
-use axum::{debug_handler, Json};
 use jsonwebtoken::get_current_timestamp;
 
 /// Create a report from the given data.
@@ -53,11 +52,10 @@ async fn generate_report<T: RedditFeedData>(
     Ok(Box::new(report))
 }
 
-#[debug_handler]
 pub async fn generate_report_handler(
     State(mut state): State<AppState>,
     user_info: GoogleUserInfo,
-    Json(feed_request): Json<FetcherFeedRequest>,
+    feed_request: FetcherFeedRequest,
 ) -> Result<ReportAck, AppError> {
     log::debug!("Validating feed request: {:?}", feed_request);
     feed_request.validate()?;
