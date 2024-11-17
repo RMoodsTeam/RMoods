@@ -4,7 +4,13 @@ import {useAtom} from "jotai";
 import Cookies from "js-cookie";
 import {userInfoAtom} from "../../atoms";
 import {useNavigate} from "react-router-dom";
-import {Card, Center, Title} from "@mantine/core";
+import {
+  Center,
+  Text,
+  Paper,
+  Stack,
+  Title,
+} from "@mantine/core";
 
 /**
  * Login card with Google sign in button
@@ -37,9 +43,22 @@ const LoginCard = () => {
   });
 
   return (
-    <Card>
-      <GoogleSignInButton onClick={googleLogin}/>
-    </Card>
+    <Center p="xl">
+      <Paper radius="md" w="540" p="xl" withBorder shadow="md">
+        <Stack gap="lg" align="center">
+          <div>
+            <Title order={1} ta="center">
+              Welcome to RMoods!
+            </Title>
+            <Text c="dimmed" size="lg" ta="center" mt="sm">
+              Sign in to continue
+            </Text>
+          </div>
+
+          <GoogleSignInButton onClick={googleLogin} />
+        </Stack>
+      </Paper>
+    </Center>
   );
 };
 
