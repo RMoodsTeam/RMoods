@@ -2,8 +2,13 @@ import {z} from 'zod';
 
 const FeedKindSchema = z.enum(['subredditPosts', 'userPosts', 'postComments']);
 const AnalysisTypeSchema = z.enum(['language']);
-const FeedSortingSchema = z.enum(['hot', 'new', 'rising', 'top', 'controversial']);
+const FeedSortingKindSchema = z.enum(['hot', 'new', 'rising', 'top', 'controversial']);
 const FeedSortingTimeSchema = z.enum(['day', 'week', 'month', 'year', 'all']);
+
+const FeedSortingSchema = z.object({
+  kind: FeedSortingKindSchema,
+  time: FeedSortingTimeSchema
+});
 
 const DataSourceSchema = z.object({
   name: z.string(),
@@ -16,10 +21,7 @@ const FeedRequestSchema = z.object({
   reportTypes: z.array(AnalysisTypeSchema),
   dataSources: z.array(DataSourceSchema),
   size: z.number().min(1),
-  sorting: z.object({
-    sorting: FeedSortingSchema,
-    time: FeedSortingTimeSchema
-  })
+  sorting: FeedSortingSchema
 });
 
 const GoogleUserInfoSchema = z.object({

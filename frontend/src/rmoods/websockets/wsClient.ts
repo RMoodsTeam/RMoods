@@ -15,6 +15,12 @@ class WebSocketConnection {
     wsClient.onmessage = (event) => {
       console.log("Received WebSocket message");
       console.log(JSON.stringify(event.data));
+      notifications.show({
+        title: 'WebSocket Message',
+        message: "Received a message from the WebSocket connection. Logged in console",
+        color: 'blue',
+        icon: '',
+      })
     };
 
     wsClient.onopen = () => {
@@ -29,7 +35,7 @@ class WebSocketConnection {
         title: 'WebSocket Error',
         message: "An error occurred with the WebSocket connection.",
         color: 'red',
-        icon: 'bell',
+        icon: '',
       })
 
       setWsConnectionStatus(false); // Set the atom to false
