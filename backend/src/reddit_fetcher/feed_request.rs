@@ -1,5 +1,5 @@
 use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::reddit::request::params::FeedSorting;
+use crate::reddit_fetcher::reddit::request::feed_sorting::FeedSorting;
 use axum::async_trait;
 use axum::body::Bytes;
 use axum::extract::{FromRequest, Request};
@@ -181,7 +181,9 @@ mod tests {
                 }
             ],
             "size": 10,
-            "sorting": "hot"
+            "sorting": {
+              "kind": "hot"
+            }
         }
     "#;
 
@@ -200,7 +202,7 @@ mod tests {
         assert_eq!(feed_request.size, 10);
         assert_eq!(
             feed_request.sorting,
-            crate::reddit_fetcher::reddit::request::params::FeedSorting::Hot
+            crate::reddit_fetcher::reddit::request::feed_sorting::FeedSorting::Hot
         );
     }
 
