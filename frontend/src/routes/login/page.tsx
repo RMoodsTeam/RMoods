@@ -38,9 +38,6 @@ const LoginCard = () => {
 
   return (
     <Card>
-      <Title order={1} id="login-title">
-        Sign in to RMoods
-      </Title>
       <GoogleSignInButton onClick={googleLogin}/>
     </Card>
   );
