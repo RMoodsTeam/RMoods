@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 
-use params::FeedSorting;
+use feed_sorting::FeedSorting;
 use serde::{Deserialize, Serialize};
 
 use super::model::MoreComments;
-pub mod params;
+pub mod feed_sorting;
 mod tests;
 
 /// Represents a request to the Reddit API.

@@ -13,13 +13,19 @@ class WebSocketConnection {
     const wsClient = new WebSocket(`ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get("RMOODS_JWT")}`);
 
     wsClient.onmessage = (event) => {
+      console.log("Received WebSocket message");
       console.log(JSON.stringify(event.data));
+      notifications.show({
+        title: 'WebSocket Message',
+        message: "Received a message from the WebSocket connection. Logged in console",
+        color: 'blue',
+        icon: '',
+      })
     };
 
     wsClient.onopen = () => {
-      console.log("Hello on open!");
+      console.log("WebSocket connection opened.");
       setWsConnectionStatus(true); // Set the atom to true
-      console.log("WebSocket connection status:", true);
     };
 
     wsClient.onerror = (event) => {
@@ -29,15 +35,15 @@ class WebSocketConnection {
         title: 'WebSocket Error',
         message: "An error occurred with the WebSocket connection.",
         color: 'red',
-        icon: 'bell',
+        icon: '',
       })
-      
+
       setWsConnectionStatus(false); // Set the atom to false
       console.log("WebSocket connection status:", false);
     };
 
     wsClient.onclose = () => {
-      console.log("Bye!");
+      console.log("WebSocket connection closed.");
     };
   }
 }
