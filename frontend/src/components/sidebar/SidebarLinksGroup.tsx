@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Group, Box, Collapse, ThemeIcon, Text, UnstyledButton, rem } from '@mantine/core';
+import {
+  Group,
+  Box,
+  Collapse,
+  ThemeIcon,
+  Text,
+  UnstyledButton,
+  rem,
+} from '@mantine/core';
 import { IconCalendarStats, IconChevronRight } from '@tabler/icons-react';
 import classes from './SidebarLinksGroup.module.css';
 
@@ -10,7 +18,12 @@ interface LinksGroupProps {
   links?: { label: string; link: string }[];
 }
 
-export function LinksGroup({ icon: Icon, label, initiallyOpened, links }: LinksGroupProps) {
+export function LinksGroup({
+  icon: Icon,
+  label,
+  initiallyOpened,
+  links,
+}: LinksGroupProps) {
   const hasLinks = Array.isArray(links);
   const [opened, setOpened] = useState(initiallyOpened || false);
   const items = (hasLinks ? links : []).map((link) => (
@@ -27,8 +40,9 @@ export function LinksGroup({ icon: Icon, label, initiallyOpened, links }: LinksG
 
   return (
     <>
-      <UnstyledButton onClick={() => setOpened((o) => !o)}
-                      className={classes.control}
+      <UnstyledButton
+        onClick={() => setOpened((o) => !o)}
+        className={classes.control}
       >
         <Group justify="space-between" gap={0}>
           <Box style={{ display: 'flex', alignItems: 'center' }}>

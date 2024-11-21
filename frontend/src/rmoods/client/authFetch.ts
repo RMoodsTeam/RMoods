@@ -1,7 +1,7 @@
 export default async function authFetch(
   url: string | URL,
   token: string,
-  options: RequestInit = {},
+  options: RequestInit = {}
 ) {
   // Use the user-provided options, but always override the authorization header with our own.
   const fullOptions = {

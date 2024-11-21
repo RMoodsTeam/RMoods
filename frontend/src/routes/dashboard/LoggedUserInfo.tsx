@@ -1,13 +1,13 @@
 //import { userInfoFromJWT } from "../../utility/serverActions";
 
-import {Avatar, Box, Card, Title} from "@mantine/core";
+import { Avatar, Box, Card, Title } from '@mantine/core';
 
 const LoggedUserInfo = async () => {
   // const userInfo = await userInfoFromJWT();
   const userInfo = {
-    name: "John Doe",
-    email: "",
-    picture: "https://bit.ly/dan-abramov",
+    name: 'John Doe',
+    email: '',
+    picture: 'https://bit.ly/dan-abramov',
   };
 
   return (
@@ -16,7 +16,7 @@ const LoggedUserInfo = async () => {
         <Title order={3}>User Info</Title>
       </Box>
       <Box>
-        <Avatar src={userInfo.picture} size="2xl"/>
+        <Avatar src={userInfo.picture} size="2xl" />
       </Box>
       <Box>
         <Box>
