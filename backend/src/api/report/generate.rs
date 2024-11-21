@@ -2,8 +2,7 @@ use crate::api::auth::google::GoogleUserInfo;
 use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
 use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::nlp_response::RawLanguageResponse;
-use crate::nlp::report::{RMoodsReport, ReportMetadata, SendableRMoodsReport};
+use crate::nlp::report::{new_report_id, NlpAnalyses, RMoodsReport, ReportMetadata};
 use crate::reddit_fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::reddit_fetcher::model::post_comments::PostComments;
@@ -23,16 +22,19 @@ pub async fn nlp_analysis<T: RedditFeedData>(
     nlp_client: &NlpClient,
     data: T,
     user_info: GoogleUserInfo,
-) -> Result<RMoodsReport<RawLanguageResponse>, AppError> {
+) -> Result<RMoodsReport, AppError> {
     let texts = data.extract_texts();
     let language_analysis = nlp_client.analyze_language(&texts).await?;
     let report = RMoodsReport {
+        id: new_report_id(),
         metadata: ReportMetadata {
             created_at: get_current_timestamp(),
             user_info: user_info.clone(),
             is_public: true,
         },
-        nlp_response: language_analysis,
+        analyses: NlpAnalyses {
+            language: Some(language_analysis),
+        },
     };
     Ok(report)
 }
@@ -46,10 +48,10 @@ async fn generate_report<T: RedditFeedData>(
     feed_request: FetcherFeedRequest,
     nlp: &NlpClient,
     user_info: &GoogleUserInfo,
-) -> Result<Box<dyn SendableRMoodsReport>, AppError> {
+) -> Result<RMoodsReport, AppError> {
     let (data, _) = fetcher.fetch_feed::<T>(feed_request).await?;
     let report = nlp_analysis(nlp, data, user_info.clone()).await?;
-    Ok(Box::new(report))
+    Ok(report)
 }
 
 pub async fn generate_report_handler(
@@ -82,7 +84,7 @@ pub async fn generate_report_handler(
             Ok(report) => {
                 state
                     .system_tx
-                    .send(SystemMessage::ReportDone(report))
+                    .send(SystemMessage::ReportDone((report.id, user_info)))
                     .await
                     .unwrap();
             }

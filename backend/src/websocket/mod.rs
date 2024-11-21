@@ -1,6 +1,6 @@
 use crate::api::auth::google::GoogleUserInfo;
 use crate::app_error::AppError;
-use crate::nlp::report::SendableRMoodsReport;
+use crate::nlp::report::ReportID;
 use crate::AppState;
 use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
 use axum::response::IntoResponse;
@@ -24,9 +24,9 @@ fn generate_user_id() -> String {
 }
 
 #[derive(Debug, Serialize)]
-pub enum ServiceToClientMessage {
+pub enum ClientMessage {
     RemainingRequestsUpdate(u16),
-    ReportDone(Box<dyn SendableRMoodsReport>),
+    ReportDone(ReportID),
     ReportError(AppError),
 }
 
@@ -43,11 +43,11 @@ type WsUserId = (GoogleId, ConnectionId);
 
 /// Messages that the WebSocket Service can receive from the main HTTP process.
 #[derive(Debug)]
-pub enum SystemMessage<T> {
+pub enum SystemMessage {
     RemainingRequestsUpdate(u16),
-    ReportDone(T),
+    ReportDone((ReportID, GoogleUserInfo)),
     ReportError((AppError, GoogleUserInfo)),
-    AddPeer((WsUserId, Sender<ServiceToClientMessage>)),
+    AddPeer((WsUserId, Sender<ClientMessage>)),
     RemovePeer(ConnectionId),
 }
 
