@@ -1,6 +1,6 @@
-import Cookies from "js-cookie";
-import {atom} from "jotai";
-import {notifications} from "@mantine/notifications";
+import Cookies from 'js-cookie';
+import { atom } from 'jotai';
+import { notifications } from '@mantine/notifications';
 
 // Define an atom to store the WebSocket connection status
 // for now the atom manipulation is in the onerror function as it was the easiest to test on
@@ -10,21 +10,24 @@ export const wsConnectionStatusAtom = atom<boolean>(false);
 
 class WebSocketConnection {
   constructor(setWsConnectionStatus: (status: boolean) => void) {
-    const wsClient = new WebSocket(`ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get("RMOODS_JWT")}`);
+    const wsClient = new WebSocket(
+      `ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
+    );
 
     wsClient.onmessage = (event) => {
-      console.log("Received WebSocket message");
+      console.log('Received WebSocket message');
       console.log(JSON.stringify(event.data));
       notifications.show({
         title: 'WebSocket Message',
-        message: "Received a message from the WebSocket connection. Logged in console",
+        message:
+          'Received a message from the WebSocket connection. Logged in console',
         color: 'blue',
         icon: '',
-      })
+      });
     };
 
     wsClient.onopen = () => {
-      console.log("WebSocket connection opened.");
+      console.log('WebSocket connection opened.');
       setWsConnectionStatus(true); // Set the atom to true
     };
 
@@ -33,17 +36,17 @@ class WebSocketConnection {
 
       notifications.show({
         title: 'WebSocket Error',
-        message: "An error occurred with the WebSocket connection.",
+        message: 'An error occurred with the WebSocket connection.',
         color: 'red',
         icon: '',
-      })
+      });
 
       setWsConnectionStatus(false); // Set the atom to false
-      console.log("WebSocket connection status:", false);
+      console.log('WebSocket connection status:', false);
     };
 
     wsClient.onclose = () => {
-      console.log("WebSocket connection closed.");
+      console.log('WebSocket connection closed.');
     };
   }
 }

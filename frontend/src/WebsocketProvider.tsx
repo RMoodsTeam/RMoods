@@ -1,8 +1,10 @@
-import WebSocketConnection, {wsConnectionStatusAtom} from "./rmoods/websockets/wsClient.ts";
-import {useEffect} from "react";
-import {useSetAtom} from "jotai";
+import WebSocketConnection, {
+  wsConnectionStatusAtom,
+} from './rmoods/websockets/wsClient.ts';
+import { useEffect } from 'react';
+import { useSetAtom } from 'jotai';
 
-const WebsocketProvider = ({children}: { children: React.ReactNode }) => {
+const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   let webSocketConnection: WebSocketConnection | null = null;
   const setWsConnectionStatus = useSetAtom(wsConnectionStatusAtom);
 
@@ -16,12 +18,8 @@ const WebsocketProvider = ({children}: { children: React.ReactNode }) => {
     if (webSocketConnection == null) {
       webSocketConnection = new WebSocketConnection(setWsConnectionStatus);
     }
-  }, [setWsConnectionStatus])
-  return (
-    <>
-      {children}
-    </>
-  )
+  }, [setWsConnectionStatus]);
+  return <>{children}</>;
 };
 
 export default WebsocketProvider;

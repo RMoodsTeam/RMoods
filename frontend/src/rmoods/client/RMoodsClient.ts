@@ -1,12 +1,12 @@
-import {FeedRequest} from "./types.ts";
-import authFetch from "./authFetch.ts";
-import Cookies from "js-cookie";
+import { FeedRequest } from './types.ts';
+import authFetch from './authFetch.ts';
+import Cookies from 'js-cookie';
 
 /**
  * Provides a simple interface to the RMoods Backend API.
  */
 export default class RMoodsClient {
-  static URL = "http://localhost:8001/api";
+  static URL = 'http://localhost:8001/api';
 
   /**
    * Requests a report from the RMoods API
@@ -20,9 +20,9 @@ export default class RMoodsClient {
    * @param request
    */
   static async requestReport(request: FeedRequest): Promise<Response> {
-    const jwt = Cookies.get("RMOODS_JWT");
+    const jwt = Cookies.get('RMOODS_JWT');
     if (!jwt) {
-      throw new Error("No JWT token found when trying to request a report");
+      throw new Error('No JWT token found when trying to request a report');
     }
 
     return await authFetch(`${RMoodsClient.URL}/report`, jwt, {
@@ -32,24 +32,22 @@ export default class RMoodsClient {
       },
       body: JSON.stringify(request),
     }).then((res) => {
-      console.log("Requested a report");
+      console.log('Requested a report');
       console.log(res);
       if (!res.ok) {
-        throw new Error("Failed to request report");
+        throw new Error('Failed to request report');
       }
       return res.json();
-    })
+    });
   }
 
   /**
    * Fetch information about a subreddit using the `/about/subreddit` endpoint
    */
-  static async fetchAboutSubreddit() {
-  }
+  static async fetchAboutSubreddit() {}
 
   /**
    * Fetch information about a user using the `/about/user` endpoint
    */
-  static async fetchAboutUser() {
-  }
+  static async fetchAboutUser() {}
 }

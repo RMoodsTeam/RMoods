@@ -1,6 +1,6 @@
 //import { fetchUserInfo } from "../../rmoods/api";
 
-import {Box, Card, Title} from "@mantine/core";
+import { Box, Card, Title } from '@mantine/core';
 
 /**
  * Async debug function to display user info
@@ -8,7 +8,7 @@ import {Box, Card, Title} from "@mantine/core";
  */
 export default async function DebugUserInfo() {
   //const debugUserInfo = await fetchUserInfo("spez");
-  const debugUserInfo = {user: "spez"};
+  const debugUserInfo = { user: 'spez' };
   return (
     <Card>
       <Title order={3}>Debug user info</Title>

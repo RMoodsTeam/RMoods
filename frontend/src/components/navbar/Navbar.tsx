@@ -1,6 +1,6 @@
-import UserMenu from "./UserMenu";
-import ThemeSwitch from "./ThemeSwitch";
-import {Anchor, Card, Flex, Grid} from "@mantine/core";
+import UserMenu from './UserMenu';
+import ThemeSwitch from './ThemeSwitch';
+import { Anchor, Card, Flex, Grid } from '@mantine/core';
 
 const LeftNavItems = () => {
   return (
@@ -13,9 +13,9 @@ const LeftNavItems = () => {
 
 const RightNavItems = () => {
   return (
-    <Flex gap={10} justify={"right"}>
-      <ThemeSwitch/>
-      <UserMenu/>
+    <Flex gap={10} justify={'right'}>
+      <ThemeSwitch />
+      <UserMenu />
     </Flex>
   );
 };
@@ -25,17 +25,19 @@ const RightNavItems = () => {
  */
 const Navbar = () => {
   return (
-    <Card style={{margin: 0, borderRadius: 0, marginBottom: 0, height: "10vh"}}>
+    <Card
+      style={{ margin: 0, borderRadius: 0, marginBottom: 0, height: '10vh' }}
+    >
       <nav>
         <Grid>
           <Grid.Col span={4}>
-            <LeftNavItems/>
+            <LeftNavItems />
           </Grid.Col>
           <Grid.Col span={4}>
-            <div/>
+            <div />
           </Grid.Col>
           <Grid.Col span={4}>
-            <RightNavItems/>
+            <RightNavItems />
           </Grid.Col>
         </Grid>
       </nav>
