@@ -1,22 +1,25 @@
 import React from 'react';
-import { Image } from '@mantine/core';
+import { Image, Box } from '@mantine/core';
 
 interface ProfilePictureProps {
-    src: string;
-    alt: string;
+  src: string;
+  alt: string;
 }
 
 const ProfilePicture: React.FC<ProfilePictureProps> = ({ src, alt }) => {
-    return (
-        <Image
-            src={src}
-            alt={alt}
-            w={'100%'}
-            fit="contain"
-            radius="50%"
-            style={{ objectFit: 'cover', display: 'inline-block' }}
-        />
-    );
+  return (
+    <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Image
+        src={src}
+        alt={alt}
+        w={'250px'}
+        h={'250px'}
+        fit="contain"
+        radius="50%"
+        style={{ objectFit: 'cover', display: 'block' }}
+      />
+    </Box>
+  );
 };
 
 export default ProfilePicture;

@@ -15,15 +15,15 @@ interface UserCardProps {
 
 const UserCard: React.FC<UserCardProps> = ({ user }) => {
     return (
-        <Card shadow="sm" padding="lg" style={{ maxWidth: '25%', MaxHeight: '100%' }} withBorder>
-            <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <Box style={{ width: '350px', height: '600px', padding: '20px' }}>
+            <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <ProfilePicture src={user.picture} alt={user.name} />
-                <Title order={2} style={{ marginTop: '10px', fontSize: '2vw' }}>{user.name}</Title>
-                <Text size="sm" c="dimmed" style={{ fontSize: '1.5vw' }}>{user.givenName}</Text>
+                <Title order={2} style={{ marginTop: '10px', fontSize: '22px' }}>{user.name}</Title>
+                <Text size="sm" c="dimmed" style={{ fontSize: '18px' }}>{user.givenName}</Text>
                 <Divider my="sm" />
-                <Text size="sm" c="dimmed" style={{ fontSize: '1.5vw' }}>{user.email}</Text>
+                <Text size="sm" c="dimmed" style={{ fontSize: '18px' }}>{user.email}</Text>
             </Box>
-        </Card>
+        </Box>
     );
 };
 

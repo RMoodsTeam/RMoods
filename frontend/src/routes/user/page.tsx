@@ -1,8 +1,9 @@
-import { Text } from '@mantine/core';
+import { Box, Text } from '@mantine/core';
 import Cookies from 'js-cookie';
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from 'react';
 import UserCard from './UserCard';
+import StatisticItem from './StatisticItem';
 
 
 interface User {
@@ -11,6 +12,19 @@ interface User {
     email: string;
     picture: string;
 }
+
+const statistics = {
+    likedReports: ['Report 1', 'Report 2', 'Report 3'],
+    latestReportDate: '2023-10-01',
+    totalReports: 100,
+    topSubreddits: [
+        'subreddit1', 'subreddit2', 'subreddit3'
+    ],
+    karma: 5000,
+    totalRequests: 200,
+    generatedCost: 150.75,
+    longestReportTime: '2 hours',
+};
 
 const UserPage = () => {
     const [user, setUser] = useState<User | null>(null);
@@ -41,7 +55,27 @@ const UserPage = () => {
         return <Text>Loading...</Text>;
     }
 
-    return <UserCard user={user} />;
+    return (
+        <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', margin: '50px 200px 0 200px' }}>
+            <Box style={{ flex: '0 0 350px', marginRight: '20px' }}>
+                <UserCard user={user} />
+            </Box>
+            <Box style={{ flex: '1', display: 'flex', flexWrap: 'wrap' }}>
+                <Box style={{ flex: '1 1 50%', padding: '10px' }}>
+                    <StatisticItem label="Liked reports" value={statistics.likedReports.join(', ')} />
+                    <StatisticItem label="Latest report" value={statistics.latestReportDate} />
+                    <StatisticItem label="Number of created reports" value={statistics.totalReports} />
+                    <StatisticItem label="Top 3 subreddits" value={statistics.topSubreddits.join(', ')} />
+                </Box>
+                <Box style={{ flex: '1 1 50%', padding: '10px' }}>
+                    <StatisticItem label="Karma" value={statistics.karma} />
+                    <StatisticItem label="Total cost of reports" value={statistics.generatedCost} />
+                    <StatisticItem label="Total used requests" value={statistics.totalRequests} />
+                    <StatisticItem label="Longest Report Time" value={statistics.longestReportTime} />
+                </Box>
+            </Box>
+        </Box>
+    );
 };
 
 export default UserPage;
