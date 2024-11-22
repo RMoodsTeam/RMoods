@@ -23,7 +23,8 @@ pub struct GoogleTokenResponse {
 #[derive(Deserialize, Debug, Clone)]
 pub struct GoogleUserInfo {
     /// Unique user ID
-    pub sub: String,
+    #[serde(rename = "sub")]
+    pub id: String,
     pub name: String,
     pub given_name: String,
     pub family_name: Option<String>,

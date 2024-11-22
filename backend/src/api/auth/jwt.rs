@@ -26,7 +26,7 @@ pub fn create_jwt(user_info: GoogleUserInfo) -> String {
         Claims {
             exp,
             iat,
-            user_info: JwtUserInfo { id: user_info.sub },
+            user_info: JwtUserInfo { id: user_info.id },
         }
     };
     let key = jsonwebtoken::EncodingKey::from_secret(secret.as_bytes());
