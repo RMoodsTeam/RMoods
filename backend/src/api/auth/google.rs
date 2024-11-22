@@ -20,7 +20,7 @@ pub struct GoogleTokenResponse {
     id_token: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, sqlx::FromRow)]
 pub struct GoogleUserInfo {
     /// Unique user ID
     #[serde(rename = "sub")]
