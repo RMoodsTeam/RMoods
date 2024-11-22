@@ -11,7 +11,6 @@ use reqwest::{multipart::Form, Client};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug, Getters)]
-#[allow(unused)]
 pub struct GoogleTokenResponse {
     access_token: String,
     expires_in: u32,
@@ -21,17 +20,24 @@ pub struct GoogleTokenResponse {
     id_token: String,
 }
 
-#[derive(Deserialize, Serialize, Debug, Getters, Clone)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct GoogleUserInfo {
     /// Unique user ID
-    sub: String,
-    name: String,
-    given_name: String,
-    family_name: Option<String>,
+    pub sub: String,
+    pub name: String,
+    pub given_name: String,
+    pub family_name: Option<String>,
     /// URL to the user's picture
-    picture: String,
-    email: String,
-    email_verified: bool,
+    pub picture: String,
+    pub email: String,
+    pub email_verified: bool,
+}
+
+pub type GoogleId = String;
+
+#[derive(Serialize, Deserialize, Getters, Clone, Debug)]
+pub struct JwtUserInfo {
+    pub(crate) id: GoogleId,
 }
 
 /// Implement `FromRequestParts` for `GoogleUserInfo` to extract the user info from the request.
@@ -39,7 +45,7 @@ pub struct GoogleUserInfo {
 /// With this trait implemented, the user info can be extracted by any Axum HTTP handler without
 /// jumping through extra hoops like obtaining an `Authorization` header and decoding the JWT.
 #[async_trait]
-impl<T> FromRequestParts<T> for GoogleUserInfo {
+impl<T> FromRequestParts<T> for JwtUserInfo {
     type Rejection = StatusCode;
 
     async fn from_request_parts(parts: &mut Parts, _: &T) -> Result<Self, Self::Rejection> {
@@ -50,9 +56,9 @@ impl<T> FromRequestParts<T> for GoogleUserInfo {
             .map(|claims| claims.claims.user_info);
 
         match result {
-            Some(info) => {
+            Some(user_info) => {
                 log::debug!("Extracted GoogleUserInfo successfully");
-                Ok(info)
+                Ok(user_info)
             }
             None => {
                 log::error!("Failed to extract GoogleUserInfo");
@@ -89,6 +95,10 @@ pub async fn fetch_google_access_token(
     Ok(token)
 }
 
+/// Fetches the user info from Google using the given access token.
+///
+/// The access token is used to authenticate the request to the Google API.
+/// The user info is then extracted from the response.
 #[logfn(err = "ERROR", fmt = "Failed to fetch user info: {:?}")]
 pub async fn fetch_google_user_info(
     access_token: String,
