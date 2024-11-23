@@ -1,20 +1,17 @@
-from fastapi import FastAPI, HTTPException
-from src.version_checker import update_model_versions
-from pydantic import BaseModel
-from typing import List
-from contextlib import asynccontextmanager
+from transformers import pipeline, AutoTokenizer
 from langcodes import tag_is_valid, Language
-import os
 from contextlib import asynccontextmanager
 from typing import List
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from src.version_checker import update_model_versions
 
 import fasttext
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from src.version_checker import update_model_versions
+import os
+
 
 language_model = None
-
+sentiment_model = None
 
 def load_language_model():
     """Load language model."""
@@ -25,6 +22,22 @@ def load_language_model():
 
     try:
         language_model = fasttext.load_model(language_model_path)
+    except ValueError as e:
+        raise RuntimeError(f"Failed to load model: {e}")
+
+
+def load_sentiment_model():
+    """Load sentiment model."""
+    global sentiment_model
+    sentiment_model_path = os.path.join("models", "sentiment", "v1")
+    if not os.path.exists(sentiment_model_path):
+        raise RuntimeError("Model file not found")
+
+    try:
+        sentiment_tokenizer = AutoTokenizer.from_pretrained(sentiment_model_path)
+        sentiment_model = pipeline("sentiment-analysis",
+                                   model=sentiment_model_path,
+                                   tokenizer=sentiment_tokenizer)
     except ValueError as e:
         raise RuntimeError(f"Failed to load model: {e}")
 
@@ -42,6 +55,9 @@ async def lifespan(application: FastAPI):
     print("Loading language model.")
     load_language_model()
 
+    print("Loading sentiment model.")
+    load_sentiment_model()
+
     yield
     print("Application is shutting down.")
 
@@ -54,7 +70,7 @@ class TextRequest(BaseModel):
     text: List[str]
 
 
-@app.post("/report/sentiment")
+@app.post("/report/sentiment", response_model=dict)
 async def get_sentiment(request: TextRequest):
     """
     Get sentiment of the text.
@@ -63,8 +79,21 @@ async def get_sentiment(request: TextRequest):
 
     :return: Dictionary with model output
     """
-    text = request.text[0]
-    return {"sentiment": text}
+    global sentiment_model
+    if sentiment_model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
+    results = []
+    for text in request.text:
+        prediction = sentiment_model.predict(text)
+
+        text_values = {
+            "label": prediction[0]["label"],
+            "score": f'{prediction[0]["score"]:.2f}'
+        }
+        results.append(text_values)
+
+    return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
 @app.post("/report/language", response_model=dict)
