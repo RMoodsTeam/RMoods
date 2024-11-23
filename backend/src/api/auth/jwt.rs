@@ -6,6 +6,7 @@ use log_derive::logfn;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Claims {
     /// Expire at this timestamp
     pub exp: usize,

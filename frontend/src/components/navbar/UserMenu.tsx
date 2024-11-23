@@ -16,6 +16,7 @@ const UserMenu = () => {
         <Button>User Menu</Button>
       </Menu.Target>
       <Menu.Dropdown>
+        <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>
         <Menu.Item onClick={() => navigate('/dashboard')}>Dashboard</Menu.Item>
         <Menu.Item onClick={() => handleLogout()}>Log out</Menu.Item>
       </Menu.Dropdown>
