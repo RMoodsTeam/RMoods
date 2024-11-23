@@ -387,7 +387,7 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
             return False
 
         folder_id = find_folder(SERVICE, folder_name)
-        if folder_id == "":
+        if folder_id is None:
             folder_name_id = create_folder(folder_name)
             version_folder_id = create_folder(version, folder_name_id)
             file_create = create_file(folder_name_id, version_folder_id,

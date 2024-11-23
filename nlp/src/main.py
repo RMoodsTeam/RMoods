@@ -1,4 +1,4 @@
-from transformers import pipeline, AutoTokenizer
+from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
 from langcodes import tag_is_valid, Language
 from contextlib import asynccontextmanager
 from typing import List
@@ -8,10 +8,14 @@ from src.version_checker import update_model_versions
 
 import fasttext
 import os
+import string
 
 
 language_model = None
 sentiment_model = None
+sarcastic_model = None
+sarcastic_tokenizer = None
+
 
 def load_language_model():
     """Load language model."""
@@ -42,6 +46,32 @@ def load_sentiment_model():
         raise RuntimeError(f"Failed to load model: {e}")
 
 
+def load_sarcastic_model():
+    """Load sarcastic model."""
+    global sarcastic_model
+    global sarcastic_tokenizer
+    sarcastic_model_path = os.path.join("models", "sarcasm", "v1")
+    if not os.path.exists(sarcastic_model_path):
+        raise RuntimeError("Model file not found")
+
+    try:
+        sarcastic_tokenizer = AutoTokenizer.from_pretrained(sarcastic_model_path)
+        sarcastic_model = AutoModelForSequenceClassification.from_pretrained(
+            sarcastic_model_path)
+    except ValueError as e:
+        raise RuntimeError(f"Failed to load model: {e}")
+
+
+def preprocess_data(input_text):
+    """
+    Preprocess input text.
+
+    :param input_text: Input text to preprocess.
+    :return: Preprocessed text.
+    """
+    return input_text.lower().translate(str.maketrans('', '', string.punctuation))
+
+
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     """
@@ -57,6 +87,9 @@ async def lifespan(application: FastAPI):
 
     print("Loading sentiment model.")
     load_sentiment_model()
+
+    print("Loading sarcastic model.")
+    load_sarcastic_model()
 
     yield
     print("Application is shutting down.")
@@ -79,7 +112,6 @@ async def get_sentiment(request: TextRequest):
 
     :return: Dictionary with model output
     """
-    global sentiment_model
     if sentiment_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
@@ -106,7 +138,6 @@ async def get_language(request: TextRequest):
     :return: Dictionary with language and predictions. Each of them is a list, with
             list as many text as in the request array.
     """
-    global language_model
     if language_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
@@ -133,17 +164,34 @@ async def get_language(request: TextRequest):
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/report/sarcasm")
+@app.post("/report/sarcasm", response_model=dict)
 async def get_sarcasm(request: TextRequest):
     """
-    Get sarcasm of the text.
+    Get sarcasm of the text. 0 is not sarcastic, 1 is sarcastic.
 
     :param request: Request from server in json format
 
     :return: Dictionary with model output
     """
-    text = request.text[0]
-    return {"sarcasm": text}
+    if sarcastic_model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
+    results = []
+    for text in request.text:
+        tokenized_text = sarcastic_tokenizer([preprocess_data(text)],
+                                             padding=True, truncation=True,
+                                             max_length=128, return_tensors="pt")
+        output = sarcastic_model(**tokenized_text)
+        probs = output.logits.softmax(dim=-1).tolist()[0]
+        confidence = max(probs)
+        prediction = probs.index(confidence)
+        text_values = {
+            "prediction": prediction,
+            "confidence": confidence
+        }
+        results.append(text_values)
+
+    return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
 @app.post("/report/keywords")
