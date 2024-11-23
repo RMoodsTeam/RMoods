@@ -83,6 +83,12 @@ impl From<NlpError> for AppError {
     }
 }
 
+impl From<sqlx::Error> for AppError {
+    fn from(_value: sqlx::Error) -> Self {
+        AppError::internal_server_error()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

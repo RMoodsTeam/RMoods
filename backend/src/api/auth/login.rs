@@ -52,6 +52,8 @@ pub async fn login(
         Err(AppError::internal_server_error())
     })?;
 
+    log::debug!("User logged in: {:?}", user_info);
+
     let jwt = create_jwt(user_info);
 
     Ok(Json(LoginResponse { jwt }))

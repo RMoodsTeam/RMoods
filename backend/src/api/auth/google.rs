@@ -20,7 +20,7 @@ pub struct GoogleTokenResponse {
     id_token: String,
 }
 
-#[derive(Deserialize, Debug, Clone, sqlx::FromRow)]
+#[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
 pub struct GoogleUserInfo {
     /// Unique user ID
     #[serde(rename = "sub")]
@@ -114,4 +114,25 @@ pub async fn fetch_google_user_info(
         .await?;
 
     Ok(user_info)
+}
+
+#[cfg(test)]
+mod test {
+    use serde_json::json;
+
+    #[test]
+    fn test_google_user_info_deserialization() {
+        let json = json!(
+            {
+                "sub": "1234567890",
+                "name": "John Doe",
+                "given_name": "John",
+                "family_name": "Doe",
+                "picture": "https://example.com/picture.jpg",
+                "email": "123@example.com",
+                "email_verified": true
+            }
+        );
+        serde_json::from_value::<super::GoogleUserInfo>(json).unwrap();
+    }
 }
