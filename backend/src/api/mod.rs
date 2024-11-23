@@ -5,6 +5,7 @@ use axum::{routing::get, Router};
 pub mod about;
 pub mod auth;
 pub mod report;
+mod user;
 
 /// Defines routes for the /api path.
 pub fn router() -> Router<AppState> {
@@ -13,4 +14,6 @@ pub fn router() -> Router<AppState> {
         //
         .route("/about/subreddit", get(about::subreddit::subreddit_about))
         .route("/about/user", get(about::user::user_about))
+        //
+        .route("/user", get(user::get_user))
 }

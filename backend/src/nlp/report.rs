@@ -1,4 +1,4 @@
-use crate::api::auth::google::GoogleUserInfo;
+use crate::api::auth::google::GoogleId;
 use crate::nlp::nlp_response::{NlpResponse, RawLanguageResponse};
 use nanoid::nanoid;
 use serde::Serialize;
@@ -16,16 +16,16 @@ use std::fmt::Debug;
 #[derive(Debug, Clone, Serialize)]
 pub struct ReportMetadata {
     /// The UNIX timestamp of the report's creation.
-    pub created_at: u64, // TODO: Make private
+    pub created_at: u64,
     /// Information about the user that requested the report.
-    pub user_info: GoogleUserInfo,
+    pub user_id: GoogleId,
     /// Whether the report is public.
     pub is_public: bool,
 }
 
-pub type ReportID = String;
+pub type ReportId = String;
 
-pub fn new_report_id() -> ReportID {
+pub fn new_report_id() -> ReportId {
     // let alphabet_str = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     // let alphabet = alphabet_str.chars().collect::<Vec<char>>();
     nanoid!(10)
@@ -37,7 +37,7 @@ pub fn new_report_id() -> ReportID {
 /// Contains metadata and a raw response from the NLP service.
 #[derive(Serialize)]
 pub struct RMoodsReport {
-    pub id: ReportID,
+    pub id: ReportId,
     pub metadata: ReportMetadata,
     pub analyses: NlpAnalyses,
 }

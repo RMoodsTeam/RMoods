@@ -1,4 +1,4 @@
-use crate::api::auth::google::GoogleUserInfo;
+use crate::api::auth::google::{GoogleId, GoogleUserInfo, JwtUserInfo};
 use crate::websocket;
 use crate::websocket::{ClientMessage, SystemMessage};
 use axum::extract::ws::{Message, WebSocket};
@@ -18,12 +18,11 @@ pub async fn handle_socket(
     mut socket: WebSocket,
     system_tx: Sender<SystemMessage>,
     socket_addr: SocketAddr,
-    user_info: GoogleUserInfo,
+    user_id: GoogleId,
 ) {
     log::info!("New WebSocket connection: {:?}", socket_addr);
-    dbg!(&user_info);
 
-    let user_ws_id_pair = (user_info.sub().to_string(), websocket::generate_user_id());
+    let user_ws_id_pair = (user_id.to_string(), websocket::generate_user_id());
 
     let (service_to_client_tx, mut service_to_client_rx) =
         tokio::sync::mpsc::channel::<ClientMessage>(100);
