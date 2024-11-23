@@ -4,6 +4,7 @@ import Dashboard from "./routes/dashboard/page";
 import Login from "./routes/login/page";
 import Root from "./routes/page";
 import UserPage from "./routes/user/page";
+import Report from "./routes/report/page"
 import Layout from "./Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./components/DashboardLayout.tsx";
@@ -13,29 +14,37 @@ const router = createBrowserRouter([
     element: <DashboardLayout />,
     children: [
       {
-        path: "dashboard",
+        path: 'dashboard',
         element: (
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
         ),
       },
-    ]
+      {
+        path: 'report',
+        element: (
+          <ProtectedRoute>
+            <Report />
+          </ProtectedRoute>
+        ),
+      },
+    ],
   },
   {
     element: <Layout />,
     children: [
       {
-        path: "/",
+        path: '/',
         element: <Root />,
       },
       {
-        path: "about",
+        path: 'about',
         element: <About />,
       },
 
       {
-        path: "login",
+        path: 'login',
         element: <Login />,
       },
 

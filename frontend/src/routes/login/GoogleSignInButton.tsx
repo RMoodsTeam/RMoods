@@ -1,4 +1,4 @@
-import {Button, Image} from "@mantine/core";
+import { Button, Image } from '@mantine/core';
 
 /**
  * @param params - onClick function

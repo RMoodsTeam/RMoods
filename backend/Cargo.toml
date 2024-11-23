@@ -1,6 +1,6 @@
 [package]
 name = "rmoods-backend"
-version = "0.1.0"
+version = "0.4.0"
 edition = "2021"
 
 [profile.dev]
@@ -37,3 +37,4 @@ http-serde = "2.1.1"
 typetag = "0.2.18"
 dyn-clone = "1.0.17"
 rand = "0.8.5"
+nanoid = "0.4.0"

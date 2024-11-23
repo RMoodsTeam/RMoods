@@ -1,6 +1,6 @@
 //import { fetchSubredditInfo } from "../../rmoods/api";
 
-import {Card, Title} from "@mantine/core";
+import { Card, Title } from '@mantine/core';
 
 /**
  * Async debug function to display subreddit info
@@ -8,7 +8,7 @@ import {Card, Title} from "@mantine/core";
  */
 export default async function DebugSubredditInfo() {
   //const subredditData = await fetchSubredditInfo("Polska");
-  const subredditData = {test: "test"};
+  const subredditData = { test: 'test' };
   return (
     <Card>
       <Title order={3}>Debug subreddit info</Title>

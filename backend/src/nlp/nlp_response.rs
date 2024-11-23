@@ -4,8 +4,7 @@ use std::fmt::Debug;
 
 /// Private trait used to constrain the types that can be used as the inner type of NlpResponse.
 /// Blanket implemented for all types that implement Serialize, DeserializeOwned, Debug, and Clone.
-pub trait NlpResponseInner: Clone + Send + Serialize {}
-impl<T> NlpResponseInner for T where T: Serialize + DeserializeOwned + Debug + Clone + Send {}
+pub trait NlpResponseInner: Serialize + DeserializeOwned {}
 
 /// Response from the NLP service for language analysis.
 /// Preserves the order of the input texts.
@@ -18,6 +17,7 @@ pub struct RawLanguageResponse {
     pub language: Vec<String>,
     pub predicted: Vec<String>,
 }
+impl NlpResponseInner for RawLanguageResponse {}
 
 /// Metadata for the NLP response.
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -29,7 +29,11 @@ pub struct NlpMetadata {
 /// Generic NLP response type.
 /// Contains metadata and a list of analysis results.
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct NlpResponse<T: NlpResponseInner> {
+#[serde(bound = "T: DeserializeOwned")]
+pub struct NlpResponse<T>
+where
+    T: NlpResponseInner,
+{
     pub metadata: NlpMetadata,
     pub results: Vec<T>,
 }

@@ -14,7 +14,7 @@ use log_derive::logfn;
 /// * It's responsible for handling pagination and fetching more comments.
 /// * It's also responsible for parsing the raw data into the desired format.
 /// * It's a thin layer over the `RedditConnection` and the data models of the low-level Reddit module.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RMoodsFetcher {
     reddit_connection: RedditConnection,
 }

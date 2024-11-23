@@ -1,17 +1,17 @@
+use super::{error::AuthError, google::GoogleUserInfo};
+use crate::api::auth::google::JwtUserInfo;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, DecodingKey, Header, TokenData, Validation};
 use log_derive::logfn;
 use serde::{Deserialize, Serialize};
 
-use super::{error::AuthError, google::GoogleUserInfo};
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Claims {
     /// Expire at this timestamp
-    exp: usize,
+    pub exp: usize,
     /// Issued at this timestamp
-    iat: usize,
-    pub user_info: GoogleUserInfo,
+    pub iat: usize,
+    pub user_info: JwtUserInfo,
 }
 
 /// Create a new JWT based on the secret defined in the environment.
@@ -26,7 +26,7 @@ pub fn create_jwt(user_info: GoogleUserInfo) -> String {
         Claims {
             exp,
             iat,
-            user_info,
+            user_info: JwtUserInfo { id: user_info.id },
         }
     };
     let key = jsonwebtoken::EncodingKey::from_secret(secret.as_bytes());
@@ -35,7 +35,7 @@ pub fn create_jwt(user_info: GoogleUserInfo) -> String {
         .expect("Failed to encode JWT, unrecoverable")
 }
 
-/// Decode given JWT, verifing it at the same time. Return the decoded token data.
+/// Decode given JWT, verifying it at the same time. Return the decoded token data.
 #[logfn(err = "ERROR", fmt = "Failed to decode JWT: {:?}")]
 pub fn decode_jwt(token: &str) -> Result<TokenData<Claims>, AuthError> {
     let secret = dotenvy::var("JWT_SECRET").expect("JWT_SECRET should be set");
