@@ -1,4 +1,4 @@
-from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from langcodes import tag_is_valid, Language
 from contextlib import asynccontextmanager
 from typing import List
@@ -13,8 +13,11 @@ import string
 
 language_model = None
 sentiment_model = None
+sentiment_tokenizer = None
 sarcastic_model = None
 sarcastic_tokenizer = None
+spam_model = None
+spam_tokenizer = None
 
 
 def load_language_model():
@@ -29,37 +32,38 @@ def load_language_model():
     except ValueError as e:
         raise RuntimeError(f"Failed to load model: {e}")
 
+def load_model(model_name: str):
+    """
+    Load spam models function. It loads the model and tokenizer for the given
+    model name.
 
-def load_sentiment_model():
-    """Load sentiment model."""
-    global sentiment_model
-    sentiment_model_path = os.path.join("models", "sentiment", "v1")
-    if not os.path.exists(sentiment_model_path):
+    :param model_name: Name of the model to load.
+    """
+    global spam_model, spam_tokenizer
+    global sarcastic_model, sarcastic_tokenizer
+    global sentiment_model, sentiment_tokenizer
+
+    model_path = os.path.join("models", model_name, "v1")
+
+    if not os.path.exists(model_path):
         raise RuntimeError("Model file not found")
 
     try:
-        sentiment_tokenizer = AutoTokenizer.from_pretrained(sentiment_model_path)
-        sentiment_model = pipeline("sentiment-analysis",
-                                   model=sentiment_model_path,
-                                   tokenizer=sentiment_tokenizer)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_path)
     except ValueError as e:
         raise RuntimeError(f"Failed to load model: {e}")
 
-
-def load_sarcastic_model():
-    """Load sarcastic model."""
-    global sarcastic_model
-    global sarcastic_tokenizer
-    sarcastic_model_path = os.path.join("models", "sarcasm", "v1")
-    if not os.path.exists(sarcastic_model_path):
-        raise RuntimeError("Model file not found")
-
-    try:
-        sarcastic_tokenizer = AutoTokenizer.from_pretrained(sarcastic_model_path)
-        sarcastic_model = AutoModelForSequenceClassification.from_pretrained(
-            sarcastic_model_path)
-    except ValueError as e:
-        raise RuntimeError(f"Failed to load model: {e}")
+    if model_name == "spam":
+        spam_model = model
+        spam_tokenizer = tokenizer
+    elif model_name == "sarcasm":
+        sarcastic_model = model
+        sarcastic_tokenizer = tokenizer
+    elif model_name == "sentiment":
+        sentiment_model = model
+        sentiment_tokenizer = tokenizer
 
 
 def preprocess_data(input_text):
@@ -86,10 +90,13 @@ async def lifespan(application: FastAPI):
     load_language_model()
 
     print("Loading sentiment model.")
-    load_sentiment_model()
+    load_model("sentiment")
 
     print("Loading sarcastic model.")
-    load_sarcastic_model()
+    load_model("sarcasm")
+
+    print("Loading spam model.")
+    load_model("spam")
 
     yield
     print("Application is shutting down.")
@@ -115,13 +122,27 @@ async def get_sentiment(request: TextRequest):
     if sentiment_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
+    labels = {
+        0: "Sadness",
+        1: "Joy",
+        2: "Love",
+        3: "Anger",
+        4: "Fear",
+        5: "Surprise"
+    }
+
     results = []
     for text in request.text:
-        prediction = sentiment_model.predict(text)
-
+        tokenized_text = sentiment_tokenizer([preprocess_data(text)],
+                                             padding=True, truncation=True,
+                                             max_length=128, return_tensors="pt")
+        output = sentiment_model(**tokenized_text)
+        probs = output.logits.softmax(dim=-1).tolist()[0]
+        confidence = max(probs)
+        prediction = probs.index(confidence)
         text_values = {
-            "label": prediction[0]["label"],
-            "score": f'{prediction[0]["score"]:.2f}'
+            "prediction": labels[prediction],
+            "confidence": f'{confidence:.2f}'
         }
         results.append(text_values)
 
@@ -187,7 +208,7 @@ async def get_sarcasm(request: TextRequest):
         prediction = probs.index(confidence)
         text_values = {
             "prediction": prediction,
-            "confidence": confidence
+            "confidence": f'{confidence:.2f}'
         }
         results.append(text_values)
 
@@ -210,14 +231,31 @@ async def get_keywords(request: TextRequest):
 @app.post("/report/spam")
 async def get_spam(request: TextRequest):
     """
-    Get spam of the text.
+    Get spam of the text. 0 is not spam, 1 is spam.
 
     :param request: Request from server in json format
 
     :return: Dictionary with model output
     """
-    text = request.text[0]
-    return {"spam": text}
+    if spam_model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
+    results = []
+    for text in request.text:
+        tokenized_text = spam_tokenizer([text],
+                                        padding=True, truncation=True,
+                                        max_length=128, return_tensors="pt")
+        output = spam_model(**tokenized_text)
+        probs = output.logits.softmax(dim=-1).tolist()[0]
+        confidence = max(probs)
+        prediction = probs.index(confidence)
+        text_values = {
+            "prediction": prediction,
+            "confidence": f'{confidence:.2f}'
+        }
+        results.append(text_values)
+
+    return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
 @app.post("/report/politics")
