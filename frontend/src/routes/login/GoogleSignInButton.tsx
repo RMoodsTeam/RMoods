@@ -1,15 +1,11 @@
 import {
   Button,
   Image,
-  Text,
-  Paper,
-  Stack,
   Center,
-  Title,
   Box,
 } from "@mantine/core";
 
-export default function LoginPage({ onClick }: { onClick: () => void }) {
+export default function GoogleSignInButton({ onClick }: { onClick: () => void }) {
   return (
     <Center p="xl">
           <Button
