@@ -5,20 +5,22 @@ import {
   Group,
   TextInput,
   Title,
-  Select,
   NumberInput,
   SegmentedControl,
-  RadioGroup,
   Radio,
   Stack,
+  Table,
+  Center,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useState } from 'react';
+import { TbPlus, TbTrash } from 'react-icons/tb';
 
 const Report = () => {
   const form = useForm({
     initialValues: {
       name: '',
-      resourceType: 'subredditPosts', // or 'posts'
+      resourceType: 'subredditPosts',
       isPublic: 'true',
       size: 'small',
       customSize: undefined,
@@ -28,6 +30,33 @@ const Report = () => {
       },
     },
   });
+  const [rows, setRows] = useState([] as any[]); // Array to store all rows
+
+  const handleInputChange = (field: string) => (event: any) => {
+    setInputRow((prev: any) => ({
+      ...prev,
+      [field]: event.target.value,
+    }));
+  };
+
+  const [inputRow, setInputRow] = useState({} as any);
+
+  const handleAddRow = () => {
+    setRows((prevRows) => [...prevRows, inputRow]);
+    setInputRow({ name: '', postId: '', share: '' });
+  };
+
+  const handleRowEdit = (index: number, property: string) => (event: any) => {
+    setRows(
+      rows.map((row, i) =>
+        i === index ? { ...row, [property]: event.target.value } : row
+      )
+    );
+  };
+
+  const deleteRow = (index: number) => {
+    setRows((_) => rows.filter((_, i) => i !== index));
+  };
 
   return (
     <Box>
@@ -39,7 +68,6 @@ const Report = () => {
           placeholder="Enter report name"
           {...form.getInputProps('name')}
         />
-
         <SegmentedControl
           data={[
             { label: 'Public', value: 'true' },
@@ -47,7 +75,6 @@ const Report = () => {
           ]}
           {...form.getInputProps('isPublic')}
         />
-
         <Radio.Group
           name="sourceType"
           label="Select source type"
@@ -59,18 +86,107 @@ const Report = () => {
             <Radio value="userComments" label="User Comments" />
           </Stack>
         </Radio.Group>
+        <Box style={{ border: '1px solid red' }}>
+          <Table striped highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>
+                  <Center>Name</Center>
+                </Table.Th>
+                <Table.Th>
+                  <Center>Post ID</Center>
+                </Table.Th>
+                <Table.Th>
+                  <Center>Share</Center>
+                </Table.Th>
+                <Table.Th></Table.Th>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>
+                  <Center>
+                    <TextInput
+                      placeholder="eg. r/Polska"
+                      onChange={handleInputChange('name')}
+                      value={inputRow.name}
+                    />
+                  </Center>
+                </Table.Th>
+                <Table.Th>
+                  <Center>
+                    <TextInput
+                      placeholder={'eg. 1gyonvx'}
+                      onChange={handleInputChange('postId')}
+                      value={inputRow.postId}
+                    />
+                  </Center>
+                </Table.Th>
+                <Table.Th>
+                  <Center>
+                    <TextInput
+                      placeholder="eg. 0.5"
+                      onChange={handleInputChange('share')}
+                      value={inputRow.share}
+                    />
+                  </Center>
+                </Table.Th>
+                <Table.Th>
+                  <Center>
+                    <Button
+                      variant="transparent"
+                      onClick={() => handleAddRow()}
+                    >
+                      <TbPlus color={'white'} size={24} />
+                    </Button>
+                  </Center>
+                </Table.Th>
+              </Table.Tr>
+            </Table.Thead>
 
-        <Select
-          label="Size"
-          data={[
-            { value: 'small', label: 'Small (30)' },
-            { value: 'medium', label: 'Medium (70)' },
-            { value: 'large', label: 'Large (100)' },
-            { value: 'custom', label: 'Custom' },
-          ]}
+            <Table.Tbody>
+              {rows.map((row, index) => (
+                <Table.Tr key={index}>
+                  <Table.Td>
+                    <TextInput
+                      onChange={handleRowEdit(index, 'name')}
+                      variant="unstyled"
+                      defaultValue={row.name}
+                    />
+                  </Table.Td>
+                  <Table.Td>
+                    <TextInput variant="unstyled" defaultValue={row.postId} />
+                  </Table.Td>
+                  <Table.Td>
+                    <TextInput variant="unstyled" defaultValue={row.share} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Center>
+                      <Button
+                        color={'white'}
+                        variant="transparent"
+                        onClick={() => deleteRow(index)}
+                      >
+                        <TbTrash size={24} />
+                      </Button>
+                    </Center>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Box>
+
+        <Radio.Group
+          name="size"
+          label="Select size"
           {...form.getInputProps('size')}
-        />
-
+        >
+          <Stack>
+            <Radio value="small" label="Small (30)" />
+            <Radio value="medium" label="Medium (70)" />
+            <Radio value="large" label="Large (100)" />
+            <Radio value="custom" label="Custom" />
+          </Stack>
+        </Radio.Group>
         {form.values.size === 'custom' && (
           <NumberInput
             label="Custom Size"
@@ -78,7 +194,6 @@ const Report = () => {
             {...form.getInputProps('customSize')}
           />
         )}
-
         <Title order={3}>Analyses</Title>
         <Checkbox
           label="Language Analysis"
@@ -88,7 +203,6 @@ const Report = () => {
           label="Sentiment Analysis"
           {...form.getInputProps('analyses.sentiment', { type: 'checkbox' })}
         />
-
         <Group justify="flex-end">
           <Button type="submit">Create Report</Button>
         </Group>
