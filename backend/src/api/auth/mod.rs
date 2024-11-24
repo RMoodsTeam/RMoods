@@ -15,3 +15,5 @@ pub use login::login;
 pub fn router() -> Router<AppState> {
     Router::<AppState>::new().route("/login", post(login::login))
 }
+
+// TODO: Refactor auth router, remove it

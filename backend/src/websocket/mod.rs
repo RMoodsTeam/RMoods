@@ -1,6 +1,6 @@
-use crate::api::auth::google::GoogleUserInfo;
+use crate::api::auth::google::{GoogleId, GoogleUserInfo, JwtUserInfo};
 use crate::app_error::AppError;
-use crate::nlp::report::SendableRMoodsReport;
+use crate::nlp::report::ReportId;
 use crate::AppState;
 use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
 use axum::response::IntoResponse;
@@ -24,14 +24,13 @@ fn generate_user_id() -> String {
 }
 
 #[derive(Debug, Serialize)]
-pub enum ServiceToClientMessage {
+pub enum ClientMessage {
     RemainingRequestsUpdate(u16),
-    ReportDone(Box<dyn SendableRMoodsReport>),
+    ReportDone(ReportId),
     ReportError(AppError),
 }
 
 type ConnectionId = String;
-type GoogleId = String;
 
 /// A tuple of the user's Google ID and the WebSocket connection ID.
 /// * Google ID is used to identify the user
@@ -43,11 +42,11 @@ type WsUserId = (GoogleId, ConnectionId);
 
 /// Messages that the WebSocket Service can receive from the main HTTP process.
 #[derive(Debug)]
-pub enum SystemMessage<T> {
+pub enum SystemMessage {
     RemainingRequestsUpdate(u16),
-    ReportDone(T),
-    ReportError((AppError, GoogleUserInfo)),
-    AddPeer((WsUserId, Sender<ServiceToClientMessage>)),
+    ReportDone((ReportId, GoogleId)),
+    ReportError((AppError, GoogleId)),
+    AddPeer((WsUserId, Sender<ClientMessage>)),
     RemovePeer(ConnectionId),
 }
 
@@ -63,10 +62,10 @@ async fn websocket_handler(
     ws: WebSocketUpgrade,
     State(state): State<AppState>,
     ConnectInfo(socket_info): ConnectInfo<SocketAddr>,
-    google_user_info: GoogleUserInfo,
+    user_info: JwtUserInfo,
 ) -> impl IntoResponse {
     ws.on_failed_upgrade(|e| log::error!("Failed WebSocket upgrade: {}", e))
         .on_upgrade(move |ws| {
-            socket_handler::handle_socket(ws, state.system_tx, socket_info, google_user_info)
+            socket_handler::handle_socket(ws, state.system_tx, socket_info, user_info.id)
         })
 }

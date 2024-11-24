@@ -1,4 +1,4 @@
-import {Title} from "@mantine/core";
+import { Title } from '@mantine/core';
 
 /**
  * Dashboard page, gets user info asynchonously
@@ -37,7 +37,8 @@ const Dashboard = () => {
 
       {/*Aliquam pretium vehicula ipsum, nec venenatis turpis viverra elementum. Ut iaculis felis nec leo elementum, eget lobortis est mollis. Etiam tincidunt ligula pellentesque, pharetra diam ut, aliquam ex. Morbi urna massa, iaculis vel suscipit eu, facilisis in turpis. Donec nec lectus eu nibh elementum tincidunt. Duis vel felis metus. Nulla faucibus quam at congue tincidunt. Aliquam quis aliquam ipsum. Proin at lorem iaculis, dictum urna et, rhoncus diam. Sed molestie accumsan purus, at blandit sapien consequat sed. Sed felis magna, pulvinar in consequat sed, venenatis non elit. Vestibulum metus libero, aliquet a dolor quis, dignissim dictum est. Quisque consectetur blandit iaculis.*/}
 
-      {/*Etiam vehicula, erat a ullamcorper egestas, ante eros feugiat quam, sed ultricies quam tortor ac risus. Fusce blandit lorem non ultrices malesuada. Integer pellentesque eu urna nec rutrum. Aenean ultrices dui id nunc fermentum sagittis. Nam tristique dolor risus, nec ullamcorper lectus gravida sit amet. Cras vitae ante et lacus suscipit egestas. Quisque molestie magna ligula, egestas finibus ante posuere sed.*/}{/**/}
+      {/*Etiam vehicula, erat a ullamcorper egestas, ante eros feugiat quam, sed ultricies quam tortor ac risus. Fusce blandit lorem non ultrices malesuada. Integer pellentesque eu urna nec rutrum. Aenean ultrices dui id nunc fermentum sagittis. Nam tristique dolor risus, nec ullamcorper lectus gravida sit amet. Cras vitae ante et lacus suscipit egestas. Quisque molestie magna ligula, egestas finibus ante posuere sed.*/}
+      {/**/}
 
       {/*Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas a ligula nec augue consequat venenatis. Fusce tellus sapien, dignissim non hendrerit at, auctor sed diam. Maecenas et lacus consequat, gravida orci vitae, accumsan ipsum. Duis imperdiet tellus sit amet imperdiet placerat. Phasellus tempor at odio at fermentum. Nunc non hendrerit dui. Nunc dapibus sed purus ut euismod. Phasellus mattis viverra velit et lacinia. Donec nec congue massa, finibus pretium turpis.*/}
 

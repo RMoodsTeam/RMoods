@@ -1,5 +1,5 @@
-import Demo from "../components/Demo";
-import {Center, Container, Title} from "@mantine/core";
+import Demo from '../components/Demo';
+import { Center, Container, Title } from '@mantine/core';
 
 const Root = () => {
   return (
@@ -7,7 +7,7 @@ const Root = () => {
       <Center>
         <Title order={1}>RMoods Demo Content</Title>
       </Center>
-      <Demo/>
+      <Demo />
     </Container>
   );
 };

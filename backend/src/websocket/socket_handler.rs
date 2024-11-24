@@ -1,7 +1,6 @@
-use crate::api::auth::google::GoogleUserInfo;
-use crate::nlp::report::SendableRMoodsReport;
+use crate::api::auth::google::{GoogleId, GoogleUserInfo, JwtUserInfo};
 use crate::websocket;
-use crate::websocket::{ServiceToClientMessage, SystemMessage};
+use crate::websocket::{ClientMessage, SystemMessage};
 use axum::extract::ws::{Message, WebSocket};
 use futures_util::StreamExt;
 use serde_json::json;
@@ -17,17 +16,16 @@ use tokio::sync::mpsc::Sender;
 /// 2. `service_to_client_tx` channel is the chanel where the Service sends messages to the client handlers.
 pub async fn handle_socket(
     mut socket: WebSocket,
-    system_tx: Sender<SystemMessage<Box<dyn SendableRMoodsReport>>>,
+    system_tx: Sender<SystemMessage>,
     socket_addr: SocketAddr,
-    user_info: GoogleUserInfo,
+    user_id: GoogleId,
 ) {
     log::info!("New WebSocket connection: {:?}", socket_addr);
-    dbg!(&user_info);
 
-    let user_ws_id_pair = (user_info.sub().to_string(), websocket::generate_user_id());
+    let user_ws_id_pair = (user_id.to_string(), websocket::generate_user_id());
 
     let (service_to_client_tx, mut service_to_client_rx) =
-        tokio::sync::mpsc::channel::<ServiceToClientMessage>(100);
+        tokio::sync::mpsc::channel::<ClientMessage>(100);
 
     // Register the connection. We give the Service our tx, so it can call the handler when needed.
     let res = system_tx

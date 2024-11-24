@@ -1,5 +1,4 @@
 use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::report::SendableRMoodsReport;
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::reddit_fetcher::reddit::connection::RedditConnection;
@@ -7,7 +6,6 @@ use crate::startup::{shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
 use api::auth;
 use axum::Router;
-use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
@@ -23,6 +21,7 @@ use websocket::ws_service;
 mod api;
 mod app_error;
 mod env;
+mod logging;
 mod nlp;
 mod open_api;
 mod reddit_fetcher;
@@ -32,13 +31,13 @@ mod websocket;
 /// State to be shared between all routes.
 ///
 /// Contains common resources that shouldn't be created over and over again.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AppState {
     pub fetcher: RMoodsFetcher,
     pub pool: Pool<Postgres>,
     pub http: Client,
     pub nlp_client: NlpClient,
-    pub system_tx: tokio::sync::mpsc::Sender<SystemMessage<Box<dyn SendableRMoodsReport>>>,
+    pub system_tx: tokio::sync::mpsc::Sender<SystemMessage>,
 }
 
 /// Run the server, assuming the environment has been already validated.
@@ -78,16 +77,13 @@ async fn run() -> anyhow::Result<()> {
     };
 
     // Allow browsers to use GET and PUT from any origin
-    let cors =
-        CorsLayer::new()
-            .allow_origin(Any)
-            .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
+    let cors = CorsLayer::new().allow_origin(Any).allow_headers(Any);
 
     // Add logging
     let tracing = TraceLayer::new_for_http();
 
     let authorization = axum::middleware::from_fn(auth::middleware::authorization);
-
+    let response_logging = axum::middleware::from_fn(logging::response_logging_middleware);
     // Routes after the layers won't have the layers applied
     // Example: /auth routes won't have the authorization layer, but /api will
     let app = Router::<AppState>::new()
@@ -98,6 +94,7 @@ async fn run() -> anyhow::Result<()> {
         .with_state(state)
         .layer(tracing)
         .layer(cors)
+        .layer(response_logging)
         .merge(SwaggerUi::new("/doc/ui").url("/doc/api.json", ApiDoc::openapi()))
         .into_make_service_with_connect_info::<SocketAddr>();
 

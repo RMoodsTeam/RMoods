@@ -1,9 +1,8 @@
-use crate::api::auth::google::GoogleUserInfo;
+use crate::api::auth::google::{GoogleId, JwtUserInfo};
 use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
 use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::nlp_response::RawLanguageResponse;
-use crate::nlp::report::{RMoodsReport, ReportMetadata, SendableRMoodsReport};
+use crate::nlp::report::{new_report_id, NlpAnalyses, RMoodsReport, ReportMetadata};
 use crate::reddit_fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::reddit_fetcher::model::post_comments::PostComments;
@@ -14,7 +13,6 @@ use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
 use axum::extract::State;
-use axum::{debug_handler, Json};
 use jsonwebtoken::get_current_timestamp;
 
 /// Create a report from the given data.
@@ -23,17 +21,20 @@ use jsonwebtoken::get_current_timestamp;
 pub async fn nlp_analysis<T: RedditFeedData>(
     nlp_client: &NlpClient,
     data: T,
-    user_info: GoogleUserInfo,
-) -> Result<RMoodsReport<RawLanguageResponse>, AppError> {
+    user_id: GoogleId,
+) -> Result<RMoodsReport, AppError> {
     let texts = data.extract_texts();
     let language_analysis = nlp_client.analyze_language(&texts).await?;
     let report = RMoodsReport {
+        id: new_report_id(),
         metadata: ReportMetadata {
             created_at: get_current_timestamp(),
-            user_info: user_info.clone(),
+            user_id,
             is_public: true,
         },
-        nlp_response: language_analysis,
+        analyses: NlpAnalyses {
+            language: Some(language_analysis),
+        },
     };
     Ok(report)
 }
@@ -46,37 +47,41 @@ async fn generate_report<T: RedditFeedData>(
     fetcher: &mut RMoodsFetcher,
     feed_request: FetcherFeedRequest,
     nlp: &NlpClient,
-    user_info: &GoogleUserInfo,
-) -> Result<Box<dyn SendableRMoodsReport>, AppError> {
+    user_info: &GoogleId,
+) -> Result<RMoodsReport, AppError> {
     let (data, _) = fetcher.fetch_feed::<T>(feed_request).await?;
     let report = nlp_analysis(nlp, data, user_info.clone()).await?;
-    Ok(Box::new(report))
+    Ok(report)
 }
 
-#[debug_handler]
 pub async fn generate_report_handler(
     State(mut state): State<AppState>,
-    user_info: GoogleUserInfo,
-    Json(feed_request): Json<FetcherFeedRequest>,
+    user_info: JwtUserInfo,
+    feed_request: FetcherFeedRequest,
 ) -> Result<ReportAck, AppError> {
     log::debug!("Validating feed request: {:?}", feed_request);
     feed_request.validate()?;
     log::debug!("Feed request is valid");
-    log::debug!("Generating report for user: {}", user_info.email());
+    log::debug!("Generating report for user: {}", user_info.id);
 
     tokio::spawn(async move {
         let nlp = &state.nlp_client;
         let report_res = match feed_request.resource_kind {
             RedditFeedKind::UserPosts => {
-                generate_report::<UserPosts>(&mut state.fetcher, feed_request, nlp, &user_info)
+                generate_report::<UserPosts>(&mut state.fetcher, feed_request, nlp, &user_info.id)
                     .await
             }
             RedditFeedKind::PostComments => {
-                generate_report::<PostComments>(&mut state.fetcher, feed_request, nlp, &user_info)
-                    .await
+                generate_report::<PostComments>(
+                    &mut state.fetcher,
+                    feed_request,
+                    nlp,
+                    &user_info.id,
+                )
+                .await
             }
             RedditFeedKind::SubredditPosts => {
-                generate_report::<Posts>(&mut state.fetcher, feed_request, nlp, &user_info).await
+                generate_report::<Posts>(&mut state.fetcher, feed_request, nlp, &user_info.id).await
             }
         };
 
@@ -84,14 +89,14 @@ pub async fn generate_report_handler(
             Ok(report) => {
                 state
                     .system_tx
-                    .send(SystemMessage::ReportDone(report))
+                    .send(SystemMessage::ReportDone((report.id, user_info.id)))
                     .await
                     .unwrap();
             }
             Err(e) => {
                 state
                     .system_tx
-                    .send(ReportError((AppError::from(e), user_info)))
+                    .send(ReportError((AppError::from(e), user_info.id)))
                     .await
                     .unwrap();
             }

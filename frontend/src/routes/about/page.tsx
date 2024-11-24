@@ -1,5 +1,5 @@
-import Section from "./Section";
-import {Box} from "@mantine/core";
+import Section from './Section';
+import { Box } from '@mantine/core';
 
 /**
  * About page, contains information about the project and the team.
