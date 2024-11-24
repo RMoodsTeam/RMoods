@@ -10,6 +10,7 @@ import {
   Paper,
   Stack,
   Title,
+  Box,
 } from "@mantine/core";
 
 
@@ -44,17 +45,17 @@ const LoginCard = () => {
   });
 
   return (
-    <Center p="xl">
+    <Center p="xl" h="70vh">
       <Paper radius="md" w="540" p="xl" withBorder shadow="md">
         <Stack gap="lg" align="center">
-          <div>
+          <Box>
             <Title order={1} ta="center">
               Welcome to RMoods!
             </Title>
             <Text c="dimmed" size="lg" ta="center" mt="sm">
               Sign in to continue
             </Text>
-          </div>
+          </Box>
 
           <GoogleSignInButton onClick={googleLogin} />
         </Stack>

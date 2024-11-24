@@ -12,17 +12,6 @@ import {
 export default function LoginPage({ onClick }: { onClick: () => void }) {
   return (
     <Center p="xl">
-      <Paper radius="md" w="540" p="xl" withBorder shadow="md">
-        <Stack gap="lg" align="center">
-          <div>
-            <Title order={1} ta="center">
-              Welcome to RMoods!
-            </Title>
-            <Text c="dimmed" size="lg" ta="center" mt="sm">
-              Sign in to continue
-            </Text>
-          </div>
-
           <Button
             variant="default"
             onClick={onClick}
@@ -44,8 +33,6 @@ export default function LoginPage({ onClick }: { onClick: () => void }) {
           >
             Google
           </Button>
-        </Stack>
-      </Paper>
     </Center>
   );
 }
