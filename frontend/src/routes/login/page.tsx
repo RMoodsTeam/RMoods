@@ -47,16 +47,12 @@ const LoginCard = () => {
   return (
     <Center p="xl" h="70vh">
       <Paper radius="md" w="540" p="xl" withBorder shadow="md">
-        <Stack gap="lg" align="center">
+        <Stack gap="md" align="center">
           <Box>
             <Title order={1} ta="center">
               Welcome to RMoods!
             </Title>
-            <Text c="dimmed" size="lg" ta="center" mt="sm">
-              Sign in to continue
-            </Text>
           </Box>
-
           <GoogleSignInButton onClick={googleLogin} />
         </Stack>
       </Paper>

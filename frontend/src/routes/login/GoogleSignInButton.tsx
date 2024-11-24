@@ -27,7 +27,7 @@ export default function GoogleSignInButton({ onClick }: { onClick: () => void })
               </Box>
             }
           >
-            Google
+            Sign in with Google
           </Button>
     </Center>
   );
