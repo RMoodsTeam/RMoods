@@ -1,10 +1,18 @@
-import { useGoogleLogin } from '@react-oauth/google';
-import GoogleSignInButton from './GoogleSignInButton';
-import { useAtom } from 'jotai';
-import Cookies from 'js-cookie';
-import { userInfoAtom } from '../../atoms';
-import { useNavigate } from 'react-router-dom';
-import { Card, Center, Title } from '@mantine/core';
+import {useGoogleLogin} from "@react-oauth/google";
+import GoogleSignInButton from "./GoogleSignInButton";
+import {useAtom} from "jotai";
+import Cookies from "js-cookie";
+import {userInfoAtom} from "../../atoms";
+import {useNavigate} from "react-router-dom";
+import {
+  Center,
+  Text,
+  Paper,
+  Stack,
+  Title,
+  Box,
+} from "@mantine/core";
+
 
 /**
  * Login card with Google sign in button
@@ -37,12 +45,18 @@ const LoginCard = () => {
   });
 
   return (
-    <Card>
-      <Title order={1} id="login-title">
-        Sign in to RMoods
-      </Title>
-      <GoogleSignInButton onClick={googleLogin} />
-    </Card>
+    <Center p="xl" h="70vh">
+      <Paper radius="md" w="540" p="xl" withBorder shadow="md">
+        <Stack gap="md" align="center">
+          <Box>
+            <Title order={1} ta="center">
+              Welcome to RMoods!
+            </Title>
+          </Box>
+          <GoogleSignInButton onClick={googleLogin} />
+        </Stack>
+      </Paper>
+    </Center>
   );
 };
 
