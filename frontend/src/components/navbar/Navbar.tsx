@@ -7,6 +7,7 @@ const LeftNavItems = () => {
     <Flex gap={10}>
       <Anchor href="/">Main</Anchor>
       <Anchor href="/about">About</Anchor>
+      <Anchor href="/report">Report</Anchor>
     </Flex>
   );
 };
