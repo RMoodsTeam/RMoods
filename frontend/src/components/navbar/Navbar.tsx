@@ -1,6 +1,7 @@
 import UserMenu from './UserMenu';
 import ThemeSwitch from './ThemeSwitch';
 import { Anchor, Card, Flex, Grid } from '@mantine/core';
+import StatusIndicator from './StatusIndicator';
 
 const LeftNavItems = () => {
   return (
@@ -13,7 +14,8 @@ const LeftNavItems = () => {
 
 const RightNavItems = () => {
   return (
-    <Flex gap={10} justify={'right'}>
+    <Flex gap={10} justify={'right'} align="center">
+      <StatusIndicator />
       <ThemeSwitch />
       <UserMenu />
     </Flex>
