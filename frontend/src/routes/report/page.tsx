@@ -16,6 +16,7 @@ import { useForm } from '@mantine/form';
 import { useState } from 'react';
 import { TbPlus, TbTrash } from 'react-icons/tb';
 import { DataSource } from '../../rmoods/client/types.ts';
+import InputRow from './inputRow.tsx';
 
 const Report = () => {
   const form = useForm({
@@ -39,24 +40,6 @@ const Report = () => {
   });
   const [rows, setRows] = useState<DataSource[]>([]); // Array to store all rows
 
-  const makeInputChangeHandler = (field: keyof DataSource) => (event: any) => {
-    setInputRow((prev) => ({
-      ...prev,
-      [field]: field === 'share' ? event : event.target?.value || event,
-    }));
-  };
-
-  const [inputRow, setInputRow] = useState<DataSource>({
-    name: '',
-    postId: '',
-    share: 0,
-  });
-
-  const handleAddRow = () => {
-    setRows((prevRows) => [...prevRows, inputRow]);
-    setInputRow({ name: '', postId: '', share: 0 });
-  };
-
   const makeRowEditHandler =
     (index: number, property: keyof DataSource) => (event: any) => {
       setRows(
@@ -64,8 +47,7 @@ const Report = () => {
           i === index
             ? {
                 ...row,
-                [property]:
-                  property === 'share' ? event : event.target?.value || event,
+                [property]: property === 'share' ? event : event.target?.value,
               }
             : row
         )
@@ -73,7 +55,11 @@ const Report = () => {
     };
 
   const deleteRow = (index: number) => {
-    setRows((_) => rows.filter((_, i) => i !== index));
+    console.log('delete row', index);
+    console.log(rows);
+    const newRows = rows.filter((_, i) => i !== index);
+    console.log(newRows);
+    setRows(newRows);
   };
 
   return (
@@ -119,47 +105,8 @@ const Report = () => {
                 </Table.Th>
                 <Table.Th></Table.Th>
               </Table.Tr>
-              <Table.Tr>
-                <Table.Th>
-                  <Center>
-                    <TextInput
-                      placeholder="eg. r/Polska"
-                      onChange={makeInputChangeHandler('name')}
-                      value={inputRow.name}
-                    />
-                  </Center>
-                </Table.Th>
-                <Table.Th>
-                  <Center>
-                    <TextInput
-                      placeholder={'eg. 1gyonvx'}
-                      onChange={makeInputChangeHandler('postId')}
-                      value={inputRow.postId}
-                    />
-                  </Center>
-                </Table.Th>
-                <Table.Th>
-                  <Center>
-                    <NumberInput
-                      placeholder="eg. 3"
-                      onChange={makeInputChangeHandler('share')}
-                      value={inputRow.share}
-                    />
-                  </Center>
-                </Table.Th>
-                <Table.Th>
-                  <Center>
-                    <Button
-                      variant="transparent"
-                      onClick={() => handleAddRow()}
-                    >
-                      <TbPlus color={'white'} size={24} />
-                    </Button>
-                  </Center>
-                </Table.Th>
-              </Table.Tr>
+              <InputRow setRows={setRows} />
             </Table.Thead>
-
             <Table.Tbody>
               {rows.map((row, index) => (
                 <Table.Tr key={index}>
@@ -189,7 +136,9 @@ const Report = () => {
                       <Button
                         color={'white'}
                         variant="transparent"
-                        onClick={() => deleteRow(index)}
+                        onClick={() => {
+                          deleteRow(index);
+                        }}
                       >
                         <TbTrash size={24} />
                       </Button>
