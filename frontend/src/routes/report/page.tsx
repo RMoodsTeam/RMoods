@@ -39,7 +39,11 @@ const Report = () => {
     }));
   };
 
-  const [inputRow, setInputRow] = useState({} as any);
+  const [inputRow, setInputRow] = useState({
+    name: '',
+    postId: '',
+    share: '',
+  } as any);
 
   const handleAddRow = () => {
     setRows((prevRows) => [...prevRows, inputRow]);
@@ -153,10 +157,18 @@ const Report = () => {
                     />
                   </Table.Td>
                   <Table.Td>
-                    <TextInput variant="unstyled" defaultValue={row.postId} />
+                    <TextInput
+                      onChange={handleRowEdit(index, 'postId')}
+                      variant="unstyled"
+                      defaultValue={row.postId}
+                    />
                   </Table.Td>
                   <Table.Td>
-                    <TextInput variant="unstyled" defaultValue={row.share} />
+                    <TextInput
+                      onChange={handleRowEdit(index, 'share')}
+                      variant="unstyled"
+                      defaultValue={row.share}
+                    />
                   </Table.Td>
                   <Table.Td>
                     <Center>
