@@ -1,25 +1,21 @@
-import { useEffect } from 'react';
 import Cookies from 'js-cookie';
-import { useAtom, useSetAtom } from 'jotai';
-import { atom } from 'jotai';
+import { useAtom } from 'jotai';
 import { notifications } from '@mantine/notifications';
-
-export const wsConnectionStatusAtom = atom<boolean>(false);
+import { useEffect, useRef } from 'react';
+import { wsConnectionStatusAtom } from './atoms.ts';
 
 const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   console.log('WebsocketProvider: rendering');
-  const [wsConnection, setWsConnectionStatus] = useAtom(wsConnectionStatusAtom);
-      const wsClient = new WebSocket(
-        `ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
-      );
+
+  const connection = useRef<WebSocket | null>(null);
+  const [, setWsConnectionStatus] = useAtom(wsConnectionStatusAtom);
 
   useEffect(() => {
-    console.log('WebSocket connection status updated:', {wsConnection, timestamp: new Date().toISOString(),});
-  }, [wsConnection]);
+    const ws = new WebSocket(
+      `ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
+    );
 
-  useEffect(() => {
-
-    wsClient.onmessage = (event) => {
+    ws.onmessage = (event) => {
       console.log('Received WebSocket message');
       console.log(JSON.stringify(event.data));
       notifications.show({
@@ -31,13 +27,12 @@ const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
       });
     };
 
-    wsClient.onopen = () => {
+    ws.onopen = () => {
       console.log('WebSocket connection opened.');
       setWsConnectionStatus(true);
-      console.log('WebSocket connection status:' , wsConnection);
     };
 
-    wsClient.onerror = (event) => {
+    ws.onerror = (event) => {
       console.error(event);
       notifications.show({
         title: 'WebSocket Error',
@@ -46,18 +41,16 @@ const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
         icon: '',
       });
       setWsConnectionStatus(false);
-      console.log('WebSocket connection status:',  wsConnection);
     };
 
-    wsClient.onclose = () => {
-      console.log('WebSocket connection closed.');
+    ws.onclose = () => {
       setWsConnectionStatus(false);
     };
 
-    // return () => {
-    //   wsClient.close();
-    //   setWsConnectionStatus(false);
-    // };
+    connection.current = ws;
+    return () => {
+      ws.close();
+    };
   }, []);
 
   return <>{children}</>;

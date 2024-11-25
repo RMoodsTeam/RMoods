@@ -8,3 +8,5 @@ export const colorModeAtom = atomWithStorage<MantineColorScheme>(
   'COLOR_MODE',
   (localStorage.getItem('COLOR_MODE') as MantineColorScheme) || 'light'
 );
+
+export const wsConnectionStatusAtom = atom<boolean>(false);

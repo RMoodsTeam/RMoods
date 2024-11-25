@@ -11,14 +11,16 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <StrictMode>
-      <MantineProvider defaultColorScheme={colorScheme}>
-        <Notifications />
-        <WebsocketProvider>
-          <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">
-            <JotaiProvider>{children}</JotaiProvider>
-          </GoogleOAuthProvider>
-        </WebsocketProvider>
-      </MantineProvider>
+      <JotaiProvider>
+        <MantineProvider defaultColorScheme={colorScheme}>
+          <Notifications />
+          <WebsocketProvider>
+            <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">
+              {children}
+            </GoogleOAuthProvider>
+          </WebsocketProvider>
+        </MantineProvider>
+      </JotaiProvider>
     </StrictMode>
   );
 };

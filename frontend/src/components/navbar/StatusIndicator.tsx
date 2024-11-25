@@ -1,17 +1,12 @@
-import React, { useEffect } from 'react';
-import { useAtom } from 'jotai';
-import { wsConnectionStatusAtom } from '../../WebsocketProvider';
+import React from 'react';
+import { useAtomValue } from 'jotai';
 import { ActionIcon, Tooltip } from '@mantine/core';
+import { wsConnectionStatusAtom } from '../../atoms.ts';
 
 const StatusIndicator = () => {
-  const [isConnected] = useAtom(wsConnectionStatusAtom);
-  
-  useEffect(() => {
-    console.log('StatusIndicator: connection status changed:', {
-      isConnected,
-      timestamp: new Date().toISOString(),
-    });
-  }, [isConnected]);
+  const isConnected = useAtomValue(wsConnectionStatusAtom);
+  console.log('StatusIndicator: rendering');
+  console.log('StatusIndicator: connection status:', isConnected);
 
   return (
     <Tooltip
