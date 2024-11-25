@@ -14,9 +14,10 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
-import { TbPlus, TbTrash } from 'react-icons/tb';
-import { DataSource } from '../../rmoods/client/types.ts';
+import { TbTrash } from 'react-icons/tb';
 import InputRow from './inputRow.tsx';
+import { RowWrapper } from './inputRow.tsx';
+import { DataSource } from '../../rmoods/client/types.ts';
 
 const Report = () => {
   const form = useForm({
@@ -38,7 +39,7 @@ const Report = () => {
       },
     },
   });
-  const [rows, setRows] = useState<DataSource[]>([]); // Array to store all rows
+  const [rows, setRows] = useState<RowWrapper[]>([]); // Array to store all rows
 
   const makeRowEditHandler =
     (index: number, property: keyof DataSource) => (event: any) => {
@@ -47,18 +48,19 @@ const Report = () => {
           i === index
             ? {
                 ...row,
-                [property]: property === 'share' ? event : event.target?.value,
+                dataSource: {
+                  ...row.dataSource,
+                  [property]:
+                    property === 'share' ? event : event.target?.value,
+                },
               }
             : row
         )
       );
     };
 
-  const deleteRow = (index: number) => {
-    console.log('delete row', index);
-    console.log(rows);
-    const newRows = rows.filter((_, i) => i !== index);
-    console.log(newRows);
+  const deleteRow = (id: number) => {
+    const newRows = rows.filter((row) => row.id !== id);
     setRows(newRows);
   };
 
@@ -109,26 +111,26 @@ const Report = () => {
             </Table.Thead>
             <Table.Tbody>
               {rows.map((row, index) => (
-                <Table.Tr key={index}>
+                <Table.Tr key={row.id}>
                   <Table.Td>
                     <TextInput
                       onChange={makeRowEditHandler(index, 'name')}
                       variant="unstyled"
-                      defaultValue={row.name}
+                      defaultValue={row.dataSource.name}
                     />
                   </Table.Td>
                   <Table.Td>
                     <TextInput
                       onChange={makeRowEditHandler(index, 'postId')}
                       variant="unstyled"
-                      defaultValue={row.postId}
+                      defaultValue={row.dataSource.postId}
                     />
                   </Table.Td>
                   <Table.Td>
                     <NumberInput
                       onChange={makeRowEditHandler(index, 'share')}
                       variant="unstyled"
-                      defaultValue={row.share}
+                      defaultValue={row.dataSource.share}
                     />
                   </Table.Td>
                   <Table.Td>
@@ -137,7 +139,7 @@ const Report = () => {
                         color={'white'}
                         variant="transparent"
                         onClick={() => {
-                          deleteRow(index);
+                          deleteRow(row.id);
                         }}
                       >
                         <TbTrash size={24} />

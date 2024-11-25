@@ -16,7 +16,7 @@ const FeedSortingSchema = z.object({
   time: FeedSortingTimeSchema,
 });
 
-const DataSourceSchema = z.object({
+export const DataSourceSchema = z.object({
   name: z.string(),
   postId: z.string().optional(),
   share: z.number().min(0).max(100),

@@ -1,24 +1,48 @@
 import { Button, Center, NumberInput, Table, TextInput } from '@mantine/core';
 import { TbPlus } from 'react-icons/tb';
-import { DataSource } from '../../rmoods/client/types.ts';
+import { DataSource, DataSourceSchema } from '../../rmoods/client/types.ts';
 import { useState } from 'react';
+import { z } from 'zod';
+
+const RowWrapperSchema = z.object({
+  dataSource: DataSourceSchema,
+  id: z.number(),
+});
+
+let ID = 1;
+
+function generateId() {
+  return ID++;
+}
+
+export type RowWrapper = z.infer<typeof RowWrapperSchema>;
 
 const InputRow = ({ setRows }: any) => {
-  const [inputRow, setInputRow] = useState<DataSource>({
-    name: '',
-    postId: '',
-    share: 0,
+  const [inputRow, setInputRow] = useState<RowWrapper>({
+    dataSource: {
+      name: '',
+      postId: '',
+      share: 0,
+    },
+    id: 0,
   });
 
   const makeInputChangeHandler = (field: keyof DataSource) => (event: any) => {
     setInputRow((prev) => ({
       ...prev,
-      [field]: field === 'share' ? event : event.target?.value,
+      dataSource: {
+        ...prev.dataSource,
+        [field]: field === 'share' ? event : event.target?.value,
+      },
     }));
   };
+
   const handleAddRow = () => {
-    setRows((prevRows: DataSource[]) => [...prevRows, inputRow]);
-    setInputRow({ name: '', postId: '', share: 0 });
+    setRows((prevRows: RowWrapper[]) => [...prevRows, inputRow]);
+    setInputRow({
+      dataSource: { name: '', postId: '', share: 0 },
+      id: generateId(),
+    });
   };
 
   return (
@@ -28,7 +52,7 @@ const InputRow = ({ setRows }: any) => {
           <TextInput
             placeholder="eg. r/Polska"
             onChange={makeInputChangeHandler('name')}
-            value={inputRow.name}
+            value={inputRow.dataSource.name}
           />
         </Center>
       </Table.Th>
@@ -37,7 +61,7 @@ const InputRow = ({ setRows }: any) => {
           <TextInput
             placeholder={'eg. 1gyonvx'}
             onChange={makeInputChangeHandler('postId')}
-            value={inputRow.postId}
+            value={inputRow.dataSource.postId}
           />
         </Center>
       </Table.Th>
@@ -46,7 +70,7 @@ const InputRow = ({ setRows }: any) => {
           <NumberInput
             placeholder="eg. 3"
             onChange={makeInputChangeHandler('share')}
-            value={inputRow.share}
+            value={inputRow.dataSource.share}
           />
         </Center>
       </Table.Th>
