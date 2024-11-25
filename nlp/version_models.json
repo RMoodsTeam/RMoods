@@ -2,5 +2,6 @@
     "language": "v1",
     "sentiment": "v1",
     "sarcasm": "v1",
-    "spam": "v1"
+    "spam": "v1",
+    "political": "v1"
 }

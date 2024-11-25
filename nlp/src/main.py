@@ -18,6 +18,8 @@ sarcastic_model = None
 sarcastic_tokenizer = None
 spam_model = None
 spam_tokenizer = None
+political_model = None
+political_tokenizer = None
 
 
 def load_language_model():
@@ -42,6 +44,7 @@ def load_model(model_name: str):
     global spam_model, spam_tokenizer
     global sarcastic_model, sarcastic_tokenizer
     global sentiment_model, sentiment_tokenizer
+    global political_model, political_tokenizer
 
     model_path = os.path.join("models", model_name, "v1")
 
@@ -64,6 +67,9 @@ def load_model(model_name: str):
     elif model_name == "sentiment":
         sentiment_model = model
         sentiment_tokenizer = tokenizer
+    elif model_name == "political":
+        political_model = model
+        political_tokenizer = tokenizer
 
 
 def preprocess_data(input_text):
@@ -98,6 +104,9 @@ async def lifespan(application: FastAPI):
     print("Loading spam model.")
     load_model("spam")
 
+    print("Loading politics model.")
+    load_model("political")
+
     yield
     print("Application is shutting down.")
 
@@ -110,7 +119,7 @@ class TextRequest(BaseModel):
     text: List[str]
 
 
-@app.post("/report/sentiment", response_model=dict)
+@app.post("/sentiment", response_model=dict)
 async def get_sentiment(request: TextRequest):
     """
     Get sentiment of the text.
@@ -149,7 +158,7 @@ async def get_sentiment(request: TextRequest):
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/report/language", response_model=dict)
+@app.post("/language", response_model=dict)
 async def get_language(request: TextRequest):
     """
     Get language of the texts from request.
@@ -185,7 +194,7 @@ async def get_language(request: TextRequest):
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/report/sarcasm", response_model=dict)
+@app.post("/sarcasm", response_model=dict)
 async def get_sarcasm(request: TextRequest):
     """
     Get sarcasm of the text. 0 is not sarcastic, 1 is sarcastic.
@@ -215,7 +224,7 @@ async def get_sarcasm(request: TextRequest):
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/report/keywords")
+@app.post("/keywords")
 async def get_keywords(request: TextRequest):
     """
     Get keywords of the text.
@@ -228,7 +237,7 @@ async def get_keywords(request: TextRequest):
     return {"keywords": text}
 
 
-@app.post("/report/spam")
+@app.post("/spam")
 async def get_spam(request: TextRequest):
     """
     Get spam of the text. 0 is not spam, 1 is spam.
@@ -237,7 +246,7 @@ async def get_spam(request: TextRequest):
 
     :return: Dictionary with model output
     """
-    if spam_model is None:
+    if spam_model is None or spam_tokenizer is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     results = []
@@ -258,7 +267,7 @@ async def get_spam(request: TextRequest):
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/report/politics")
+@app.post("/politics")
 async def get_politics(request: TextRequest):
     """
     Get politics of the text.
@@ -267,11 +276,33 @@ async def get_politics(request: TextRequest):
 
     :return: Dictionary with model output
     """
-    text = request.text[0]
-    return {"politics": text}
+    if political_model is None or political_tokenizer is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
+    label = {
+        0: "Republican",
+        1: "Democrat",
+    }
+
+    results = []
+    for text in request.text:
+        tokenized_text = political_tokenizer([preprocess_data(text)],
+                                             padding=True, truncation=True,
+                                             max_length=128, return_tensors="pt")
+        output = political_model(**tokenized_text)
+        probs = output.logits.softmax(dim=-1).tolist()[0]
+        confidence = max(probs)
+        prediction = probs.index(confidence)
+        text_values = {
+            "prediction": label[prediction],
+            "confidence": f'{confidence:.2f}'
+        }
+        results.append(text_values)
+
+    return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/report/hate-speach")
+@app.post("/hate-speach")
 async def get_hate_speech(request: TextRequest):
     """
     Get hate speech of the text.
@@ -284,7 +315,7 @@ async def get_hate_speech(request: TextRequest):
     return {"hate-speech": text}
 
 
-@app.post("/report/clickbait")
+@app.post("/clickbait")
 async def get_clickbait(request: TextRequest):
     """
     Get clickbait of the text.
@@ -297,7 +328,7 @@ async def get_clickbait(request: TextRequest):
     return {"clickbait": text}
 
 
-@app.post("/report/troll")
+@app.post("/troll")
 async def get_troll(request: TextRequest):
     """
     Get troll of the text.
