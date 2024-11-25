@@ -1,3 +1,4 @@
+from statsmodels.graphics.tukeyplot import results
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from langcodes import tag_is_valid, Language
 from contextlib import asynccontextmanager
@@ -20,6 +21,8 @@ spam_model = None
 spam_tokenizer = None
 political_model = None
 political_tokenizer = None
+hate_speech_model = None
+hate_speech_tokenizer = None
 
 
 def load_language_model():
@@ -45,6 +48,7 @@ def load_model(model_name: str):
     global sarcastic_model, sarcastic_tokenizer
     global sentiment_model, sentiment_tokenizer
     global political_model, political_tokenizer
+    global hate_speech_model, hate_speech_tokenizer
 
     model_path = os.path.join("models", model_name, "v1")
 
@@ -70,6 +74,9 @@ def load_model(model_name: str):
     elif model_name == "political":
         political_model = model
         political_tokenizer = tokenizer
+    elif model_name == "hate_speech":
+        hate_speech_model = model
+        hate_speech_tokenizer = tokenizer
 
 
 def preprocess_data(input_text):
@@ -106,6 +113,9 @@ async def lifespan(application: FastAPI):
 
     print("Loading politics model.")
     load_model("political")
+
+    print("Loadaing hate_speech model.")
+    load_model("hate_speech")
 
     yield
     print("Application is shutting down.")
@@ -276,6 +286,7 @@ async def get_politics(request: TextRequest):
 
     :return: Dictionary with model output
     """
+    # Model accuracy may not hold up on pieces of text longer than a tweet.
     if political_model is None or political_tokenizer is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
@@ -311,8 +322,32 @@ async def get_hate_speech(request: TextRequest):
 
     :return: Dictionary with model output
     """
-    text = request.text[0]
-    return {"hate-speech": text}
+    # Do zamieszczenia bibliografie z linku
+    # https: // huggingface.co / Hate - speech - CNERG / dehatebert - mono - english
+    #Pamiętamy
+    if hate_speech_model is None or hate_speech_tokenizer is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
+    label = {
+        0: "Not-hate",
+        1: "Hate"
+    }
+    results = []
+    for text in request.text:
+        tokenized_text = hate_speech_tokenizer([preprocess_data(text)],
+                                               padding=True, truncation=True,
+                                               max_length=128, return_tensors="pt")
+        output = hate_speech_model(**tokenized_text)
+        probs = output.logits.softmax(dim=-1).tolist()[0]
+        confidence = max(probs)
+        prediction = probs.index(confidence)
+        text_values = {
+            "prediction": label[prediction],
+            "confidence": f'{confidence:.2f}'
+        }
+        results.append(text_values)
+
+    return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
 @app.post("/clickbait")
