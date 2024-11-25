@@ -1,5 +1,5 @@
 from statsmodels.graphics.tukeyplot import results
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 from langcodes import tag_is_valid, Language
 from contextlib import asynccontextmanager
 from typing import List
@@ -13,17 +13,13 @@ import string
 
 
 language_model = None
-sentiment_model = None
 sentiment_tokenizer = None
-sarcastic_model = None
-sarcastic_tokenizer = None
-spam_model = None
-spam_tokenizer = None
-political_model = None
-political_tokenizer = None
-hate_speech_model = None
-hate_speech_tokenizer = None
-
+sentiment_model = None
+sarcastic_pipeline = None
+spam_pipeline = None
+political_pipeline = None
+hate_speech_pipeline = None
+clickbait_pipeline = None
 
 def load_language_model():
     """Load language model."""
@@ -44,11 +40,9 @@ def load_model(model_name: str):
 
     :param model_name: Name of the model to load.
     """
-    global spam_model, spam_tokenizer
-    global sarcastic_model, sarcastic_tokenizer
+    global spam_pipeline, sarcastic_pipeline, political_pipeline,\
+        hate_speech_pipeline, clickbait_pipeline
     global sentiment_model, sentiment_tokenizer
-    global political_model, political_tokenizer
-    global hate_speech_model, hate_speech_tokenizer
 
     model_path = os.path.join("models", model_name, "v1")
 
@@ -63,20 +57,23 @@ def load_model(model_name: str):
         raise RuntimeError(f"Failed to load model: {e}")
 
     if model_name == "spam":
-        spam_model = model
-        spam_tokenizer = tokenizer
+        spam_pipeline = pipeline("text-classification", model=model,
+                                 tokenizer=tokenizer)
     elif model_name == "sarcasm":
-        sarcastic_model = model
-        sarcastic_tokenizer = tokenizer
+        sarcastic_pipeline = pipeline("text-classification", model=model,
+                                        tokenizer=tokenizer)
     elif model_name == "sentiment":
         sentiment_model = model
         sentiment_tokenizer = tokenizer
     elif model_name == "political":
-        political_model = model
-        political_tokenizer = tokenizer
+        political_pipeline = pipeline("text-classification", model=model,
+                                      tokenizer=tokenizer)
     elif model_name == "hate_speech":
-        hate_speech_model = model
-        hate_speech_tokenizer = tokenizer
+        hate_speech_pipeline = pipeline("text-classification", model=model,
+                                      tokenizer=tokenizer)
+    elif model_name == "clickbait":
+        clickbait_pipeline = pipeline("text-classification", model=model,
+                                      tokenizer=tokenizer)
 
 
 def preprocess_data(input_text):
@@ -96,26 +93,29 @@ async def lifespan(application: FastAPI):
 
     :param application: FastAPI application.
     """
-    print("Application is starting.")
-    update_model_versions()
+    # print("Application is starting.")
+    # update_model_versions()
+    #
+    # print("Loading language model.")
+    # load_language_model()
+    #
+    # print("Loading sentiment model.")
+    # load_model("sentiment")
+    #
+    # print("Loading sarcastic model.")
+    # load_model("sarcasm")
 
-    print("Loading language model.")
-    load_language_model()
+    # print("Loading spam model.")
+    # load_model("spam")
 
-    print("Loading sentiment model.")
-    load_model("sentiment")
-
-    print("Loading sarcastic model.")
-    load_model("sarcasm")
-
-    print("Loading spam model.")
-    load_model("spam")
-
-    print("Loading politics model.")
-    load_model("political")
-
+    # print("Loading politics model.")
+    # load_model("political")
+    #
     print("Loadaing hate_speech model.")
     load_model("hate_speech")
+    #
+    # print("Loading clickbait model.")
+    # load_model("clickbait")
 
     yield
     print("Application is shutting down.")
@@ -138,7 +138,7 @@ async def get_sentiment(request: TextRequest):
 
     :return: Dictionary with model output
     """
-    if sentiment_model is None:
+    if sentiment_model is None or sentiment_tokenizer is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     labels = {
@@ -160,11 +160,10 @@ async def get_sentiment(request: TextRequest):
         confidence = max(probs)
         prediction = probs.index(confidence)
         text_values = {
-            "prediction": labels[prediction],
-            "confidence": f'{confidence:.2f}'
+          "prediction": labels[prediction],
+          "confidence": f'{confidence:.2f}'
         }
         results.append(text_values)
-
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
@@ -213,23 +212,21 @@ async def get_sarcasm(request: TextRequest):
 
     :return: Dictionary with model output
     """
-    if sarcastic_model is None:
+    if sarcastic_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
+    labels = {
+        "0": "NOT_SARCASTIC",
+        "1": "SARCASTIC"
+    }
     results = []
     for text in request.text:
-        tokenized_text = sarcastic_tokenizer([preprocess_data(text)],
-                                             padding=True, truncation=True,
-                                             max_length=128, return_tensors="pt")
-        output = sarcastic_model(**tokenized_text)
-        probs = output.logits.softmax(dim=-1).tolist()[0]
-        confidence = max(probs)
-        prediction = probs.index(confidence)
-        text_values = {
-            "prediction": prediction,
-            "confidence": f'{confidence:.2f}'
+        predict = sarcastic_pipeline(text)
+        output = {
+            "label": labels[predict[0]["label"].replace("LABEL_", "")],
+            "score": f'{predict[0]["score"]:.2f}'
         }
-        results.append(text_values)
+        results.append(output)
 
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
@@ -256,23 +253,22 @@ async def get_spam(request: TextRequest):
 
     :return: Dictionary with model output
     """
-    if spam_model is None or spam_tokenizer is None:
+    if spam_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
+
+    labels = {
+        "0": "NOT_SPAM",
+        "1": "SPAM"
+    }
 
     results = []
     for text in request.text:
-        tokenized_text = spam_tokenizer([text],
-                                        padding=True, truncation=True,
-                                        max_length=128, return_tensors="pt")
-        output = spam_model(**tokenized_text)
-        probs = output.logits.softmax(dim=-1).tolist()[0]
-        confidence = max(probs)
-        prediction = probs.index(confidence)
-        text_values = {
-            "prediction": prediction,
-            "confidence": f'{confidence:.2f}'
+        predict = spam_pipeline(text)
+        output = {
+            "label": labels[predict[0]["label"].replace("LABEL_", "")],
+            "score": f'{predict[0]["score"]:.2f}'
         }
-        results.append(text_values)
+        results.append(output)
 
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
@@ -287,28 +283,17 @@ async def get_politics(request: TextRequest):
     :return: Dictionary with model output
     """
     # Model accuracy may not hold up on pieces of text longer than a tweet.
-    if political_model is None or political_tokenizer is None:
+    if political_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
-
-    label = {
-        0: "Republican",
-        1: "Democrat",
-    }
 
     results = []
     for text in request.text:
-        tokenized_text = political_tokenizer([preprocess_data(text)],
-                                             padding=True, truncation=True,
-                                             max_length=128, return_tensors="pt")
-        output = political_model(**tokenized_text)
-        probs = output.logits.softmax(dim=-1).tolist()[0]
-        confidence = max(probs)
-        prediction = probs.index(confidence)
-        text_values = {
-            "prediction": label[prediction],
-            "confidence": f'{confidence:.2f}'
+        predict = political_pipeline(text)
+        output = {
+            "label": predict[0]["label"],
+            "score": f'{predict[0]["score"]:.2f}'
         }
-        results.append(text_values)
+        results.append(output)
 
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
@@ -325,27 +310,17 @@ async def get_hate_speech(request: TextRequest):
     # Do zamieszczenia bibliografie z linku
     # https: // huggingface.co / Hate - speech - CNERG / dehatebert - mono - english
     #Pamiętamy
-    if hate_speech_model is None or hate_speech_tokenizer is None:
+    if hate_speech_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    label = {
-        0: "Not-hate",
-        1: "Hate"
-    }
     results = []
     for text in request.text:
-        tokenized_text = hate_speech_tokenizer([preprocess_data(text)],
-                                               padding=True, truncation=True,
-                                               max_length=128, return_tensors="pt")
-        output = hate_speech_model(**tokenized_text)
-        probs = output.logits.softmax(dim=-1).tolist()[0]
-        confidence = max(probs)
-        prediction = probs.index(confidence)
-        text_values = {
-            "prediction": label[prediction],
-            "confidence": f'{confidence:.2f}'
+        predict = hate_speech_pipeline(text)
+        output = {
+            "label": predict[0]["label"],
+            "score": f'{predict[0]["score"]:.2f}'
         }
-        results.append(text_values)
+        results.append(output)
 
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
@@ -357,10 +332,20 @@ async def get_clickbait(request: TextRequest):
 
     :param request: Request from server in json format
 
-    :return: Dictionary with model output
+    :return: Dictionary with model output. Label is set to CLICKBAIT or NOT_CLICKBAIT.
     """
-    text = request.text[0]
-    return {"clickbait": text}
+    if clickbait_pipeline is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
+    results = []
+    for text in request.text:
+        predict = clickbait_pipeline(text)
+        output = {
+            "label" : predict[0]["label"],
+            "score" : f'{predict[0]["score"]:.2f}'
+        }
+        results.append(output)
+    return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
 @app.post("/troll")

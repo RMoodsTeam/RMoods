@@ -4,5 +4,6 @@
     "sarcasm": "v1",
     "spam": "v1",
     "political": "v1",
-    "hate_speech": "v1"
+    "hate_speech": "v1",
+    "clickbait": "v1"
 }
