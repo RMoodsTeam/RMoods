@@ -18,7 +18,7 @@ const FeedSortingSchema = z.object({
 
 const DataSourceSchema = z.object({
   name: z.string(),
-  post_id: z.string().optional(),
+  postId: z.string().optional(),
   share: z.number().min(0).max(100),
 });
 

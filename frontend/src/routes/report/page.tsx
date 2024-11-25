@@ -15,6 +15,7 @@ import {
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
 import { TbPlus, TbTrash } from 'react-icons/tb';
+import { DataSource } from '../../rmoods/client/types.ts';
 
 const Report = () => {
   const form = useForm({
@@ -27,36 +28,49 @@ const Report = () => {
       analyses: {
         language: false,
         sentiment: false,
+        sarcasm: false,
+        spam: false,
+        politics: false,
+        hateSpeech: false,
+        clickbait: false,
+        trolling: false,
       },
     },
   });
-  const [rows, setRows] = useState([] as any[]); // Array to store all rows
+  const [rows, setRows] = useState<DataSource[]>([]); // Array to store all rows
 
-  const handleInputChange = (field: string) => (event: any) => {
-    setInputRow((prev: any) => ({
+  const makeInputChangeHandler = (field: keyof DataSource) => (event: any) => {
+    setInputRow((prev) => ({
       ...prev,
-      [field]: event.target.value,
+      [field]: field === 'share' ? event : event.target?.value || event,
     }));
   };
 
-  const [inputRow, setInputRow] = useState({
+  const [inputRow, setInputRow] = useState<DataSource>({
     name: '',
     postId: '',
-    share: '',
-  } as any);
+    share: 0,
+  });
 
   const handleAddRow = () => {
     setRows((prevRows) => [...prevRows, inputRow]);
-    setInputRow({ name: '', postId: '', share: '' });
+    setInputRow({ name: '', postId: '', share: 0 });
   };
 
-  const handleRowEdit = (index: number, property: string) => (event: any) => {
-    setRows(
-      rows.map((row, i) =>
-        i === index ? { ...row, [property]: event.target.value } : row
-      )
-    );
-  };
+  const makeRowEditHandler =
+    (index: number, property: keyof DataSource) => (event: any) => {
+      setRows(
+        rows.map((row, i) =>
+          i === index
+            ? {
+                ...row,
+                [property]:
+                  property === 'share' ? event : event.target?.value || event,
+              }
+            : row
+        )
+      );
+    };
 
   const deleteRow = (index: number) => {
     setRows((_) => rows.filter((_, i) => i !== index));
@@ -110,7 +124,7 @@ const Report = () => {
                   <Center>
                     <TextInput
                       placeholder="eg. r/Polska"
-                      onChange={handleInputChange('name')}
+                      onChange={makeInputChangeHandler('name')}
                       value={inputRow.name}
                     />
                   </Center>
@@ -119,16 +133,16 @@ const Report = () => {
                   <Center>
                     <TextInput
                       placeholder={'eg. 1gyonvx'}
-                      onChange={handleInputChange('postId')}
+                      onChange={makeInputChangeHandler('postId')}
                       value={inputRow.postId}
                     />
                   </Center>
                 </Table.Th>
                 <Table.Th>
                   <Center>
-                    <TextInput
-                      placeholder="eg. 0.5"
-                      onChange={handleInputChange('share')}
+                    <NumberInput
+                      placeholder="eg. 3"
+                      onChange={makeInputChangeHandler('share')}
                       value={inputRow.share}
                     />
                   </Center>
@@ -151,21 +165,21 @@ const Report = () => {
                 <Table.Tr key={index}>
                   <Table.Td>
                     <TextInput
-                      onChange={handleRowEdit(index, 'name')}
+                      onChange={makeRowEditHandler(index, 'name')}
                       variant="unstyled"
                       defaultValue={row.name}
                     />
                   </Table.Td>
                   <Table.Td>
                     <TextInput
-                      onChange={handleRowEdit(index, 'postId')}
+                      onChange={makeRowEditHandler(index, 'postId')}
                       variant="unstyled"
                       defaultValue={row.postId}
                     />
                   </Table.Td>
                   <Table.Td>
-                    <TextInput
-                      onChange={handleRowEdit(index, 'share')}
+                    <NumberInput
+                      onChange={makeRowEditHandler(index, 'share')}
                       variant="unstyled"
                       defaultValue={row.share}
                     />
@@ -208,12 +222,44 @@ const Report = () => {
         )}
         <Title order={3}>Analyses</Title>
         <Checkbox
-          label="Language Analysis"
+          value={form.values.analyses.language}
+          label="Language"
           {...form.getInputProps('analyses.language', { type: 'checkbox' })}
         />
         <Checkbox
-          label="Sentiment Analysis"
+          value={form.values.analyses.sentiment}
+          label="Sentiment"
           {...form.getInputProps('analyses.sentiment', { type: 'checkbox' })}
+        />
+        <Checkbox
+          value={form.values.analyses.sarcasm}
+          label="Sarcasm"
+          {...form.getInputProps('analyses.sarcasm', { type: 'checkbox' })}
+        />
+        <Checkbox
+          value={form.values.analyses.spam}
+          label="Spam"
+          {...form.getInputProps('analyses.spam', { type: 'checkbox' })}
+        />
+        <Checkbox
+          value={form.values.analyses.politics}
+          label="Politics"
+          {...form.getInputProps('analyses.politics', { type: 'checkbox' })}
+        />
+        <Checkbox
+          value={form.values.analyses.hateSpeech}
+          label="Hate Speech"
+          {...form.getInputProps('analyses.hateSpeech', { type: 'checkbox' })}
+        />
+        <Checkbox
+          value={form.values.analyses.clickbait}
+          label="Clickbait"
+          {...form.getInputProps('analyses.clickbait', { type: 'checkbox' })}
+        />
+        <Checkbox
+          value={form.values.analyses.trolling}
+          label="Trolling"
+          {...form.getInputProps('analyses.trolling', { type: 'checkbox' })}
         />
         <Group justify="flex-end">
           <Button type="submit">Create Report</Button>
