@@ -11,7 +11,6 @@ import fasttext
 import os
 import string
 
-
 language_model = None
 sentiment_tokenizer = None
 sentiment_model = None
@@ -22,17 +21,6 @@ hate_speech_pipeline = None
 clickbait_pipeline = None
 keyword_model = None
 
-def load_language_model():
-    """Load language model."""
-    global language_model
-    language_model_path = os.path.join("models", "language", "v1", "model.bin")
-    if not os.path.exists(language_model_path):
-        raise RuntimeError("Model file not found")
-
-    try:
-        language_model = fasttext.load_model(language_model_path)
-    except ValueError as e:
-        raise RuntimeError(f"Failed to load model: {e}")
 
 def load_model(model_name: str):
     """
@@ -41,31 +29,36 @@ def load_model(model_name: str):
 
     :param model_name: Name of the model to load.
     """
-    global spam_pipeline, sarcastic_pipeline, political_pipeline,\
-        hate_speech_pipeline, clickbait_pipeline
-    global sentiment_model, sentiment_tokenizer, keyword_model
+    global spam_pipeline, sarcastic_pipeline, political_pipeline, \
+        hate_speech_pipeline, clickbait_pipeline, sentiment_model, \
+        sentiment_tokenizer, keyword_model, language_model
 
     model_path = os.path.join("models", model_name, "v1")
 
-    if not os.path.exists(model_path):
+    if not os.path.exists(model_path) and model_name != "keywords":
         raise RuntimeError("Model file not found")
 
-    if model_name != "keywords":
+    if model_name != "keywords" and model_name != "language":
         try:
             tokenizer = AutoTokenizer.from_pretrained(model_path)
             model = AutoModelForSequenceClassification.from_pretrained(
                 model_path)
         except ValueError as e:
             raise RuntimeError(f"Failed to load model: {e}")
-    else:
-        keyword_model = KeyBert(model_path)
+    elif model_name == "keywords":
+        keyword_model = KeyBERT()
+    elif model_name == "language":
+        try:
+            language_model = fasttext.load_model(model_path + "/model.bin")
+        except ValueError as e:
+            raise RuntimeError(f"Failed to load model: {e}")
 
     if model_name == "spam":
         spam_pipeline = pipeline("text-classification", model=model,
                                  tokenizer=tokenizer)
     elif model_name == "sarcasm":
         sarcastic_pipeline = pipeline("text-classification", model=model,
-                                        tokenizer=tokenizer)
+                                      tokenizer=tokenizer)
     elif model_name == "sentiment":
         sentiment_model = model
         sentiment_tokenizer = tokenizer
@@ -74,7 +67,7 @@ def load_model(model_name: str):
                                       tokenizer=tokenizer)
     elif model_name == "hate_speech":
         hate_speech_pipeline = pipeline("text-classification", model=model,
-                                      tokenizer=tokenizer)
+                                        tokenizer=tokenizer)
     elif model_name == "clickbait":
         clickbait_pipeline = pipeline("text-classification", model=model,
                                       tokenizer=tokenizer)
@@ -90,6 +83,16 @@ def preprocess_data(input_text):
     return input_text.lower().translate(str.maketrans('', '', string.punctuation))
 
 
+def confidence_output(value: float | str):
+    """
+    Convert confidence value to float.
+
+    :param value: Confidence value.
+    :return: Float value of confidence.
+    """
+    return float(round(value, 2))
+
+
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     """
@@ -101,7 +104,7 @@ async def lifespan(application: FastAPI):
     update_model_versions()
 
     print("Loading language model.")
-    load_language_model()
+    load_model("language")
 
     print("Loading sentiment model.")
     load_model("sentiment")
@@ -111,7 +114,7 @@ async def lifespan(application: FastAPI):
 
     print("Loading spam model.")
     load_model("spam")
-
+    #
     print("Loading politics model.")
     load_model("political")
 
@@ -123,7 +126,6 @@ async def lifespan(application: FastAPI):
 
     print("Loading keyword model.")
     load_model("keywords")
-
     yield
     print("Application is shutting down.")
 
@@ -136,7 +138,24 @@ class TextRequest(BaseModel):
     text: List[str]
 
 
-@app.post("/sentiment", response_model=dict)
+class Result(BaseModel):
+    """Result model for text"""
+    label: List[str]
+    confidence: List[float]
+
+
+class Metadata(BaseModel):
+    """Metadata model for text"""
+    generated_in: float
+
+
+class TextResponse(BaseModel):
+    """Response model for text"""
+    metadata: Metadata
+    results: List[Result]
+
+
+@app.post("/sentiment", response_model=TextResponse)
 async def get_sentiment(request: TextRequest):
     """
     Get sentiment of the text.
@@ -167,14 +186,14 @@ async def get_sentiment(request: TextRequest):
         confidence = max(probs)
         prediction = probs.index(confidence)
         text_values = {
-          "prediction": labels[prediction],
-          "confidence": f'{confidence:.2f}'
+            "label": [labels[prediction]],
+            "confidence": [confidence_output(confidence)]
         }
         results.append(text_values)
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/language", response_model=dict)
+@app.post("/language", response_model=TextResponse)
 async def get_language(request: TextRequest):
     """
     Get language of the texts from request.
@@ -191,7 +210,7 @@ async def get_language(request: TextRequest):
     for text in request.text:
         languages = []
         prediction = language_model.predict(text, k=2)
-        
+
         for predicted_lang in prediction[0]:
             lang_tag = predicted_lang.rsplit("_")[-2]
             if tag_is_valid(lang_tag):
@@ -200,17 +219,17 @@ async def get_language(request: TextRequest):
             else:
                 languages.append(lang_tag)
 
-        predictions = [f"{y:.2f}" for y in prediction[1]]
+        predictions = [confidence_output(y) for y in prediction[1]]
 
         text_values = {
-            "language": languages,
-            "predicted": predictions
+            "label": languages,
+            "confidence": predictions
         }
         results.append(text_values)
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/sarcasm", response_model=dict)
+@app.post("/sarcasm", response_model=TextResponse)
 async def get_sarcasm(request: TextRequest):
     """
     Get sarcasm of the text. 0 is not sarcastic, 1 is sarcastic.
@@ -230,15 +249,15 @@ async def get_sarcasm(request: TextRequest):
     for text in request.text:
         predict = sarcastic_pipeline(text)
         output = {
-            "label": labels[predict[0]["label"].replace("LABEL_", "")],
-            "score": f'{predict[0]["score"]:.2f}'
+            "label": [labels[predict[0]["label"].replace("LABEL_", "")]],
+            "confidence": [confidence_output(predict[0]["score"])]
         }
         results.append(output)
 
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/keywords")
+@app.post("/keywords", response_model=TextResponse)
 async def get_keywords(request: TextRequest):
     """
     Get keywords of the text.
@@ -249,18 +268,21 @@ async def get_keywords(request: TextRequest):
     """
     # Rememeber add author if we wan to use this model
     # How keywords will work with long text?
+    if keyword_model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
     results = []
     for text in request.text:
         keywords = keyword_model.extract_keywords(text, top_n=5)
         output = {
-            "lable": [kw[0] for kw in keywords],
-            "score": [kw[1] for kw in keywords]
+            "label": [kw[0] for kw in keywords],
+            "confidence": [kw[1] for kw in keywords]
         }
         results.append(output)
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/spam")
+@app.post("/spam", response_model=TextResponse)
 async def get_spam(request: TextRequest):
     """
     Get spam of the text. 0 is not spam, 1 is spam.
@@ -281,15 +303,15 @@ async def get_spam(request: TextRequest):
     for text in request.text:
         predict = spam_pipeline(text)
         output = {
-            "label": labels[predict[0]["label"].replace("LABEL_", "")],
-            "score": f'{predict[0]["score"]:.2f}'
+            "label": [labels[predict[0]["label"].replace("LABEL_", "")]],
+            "confidence": [confidence_output(predict[0]["score"])]
         }
         results.append(output)
 
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/politics")
+@app.post("/politics", response_model=TextResponse)
 async def get_politics(request: TextRequest):
     """
     Get politics of the text.
@@ -307,15 +329,15 @@ async def get_politics(request: TextRequest):
     for text in request.text:
         predict = political_pipeline(text)
         output = {
-            "label": predict[0]["label"],
-            "score": f'{predict[0]["score"]:.2f}'
+            "label": [predict[0]["label"]],
+            "confidence": [confidence_output(predict[0]["score"])]
         }
         results.append(output)
 
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/hate-speach")
+@app.post("/hate-speach", response_model=TextResponse)
 async def get_hate_speech(request: TextRequest):
     """
     Get hate speech of the text.
@@ -326,7 +348,7 @@ async def get_hate_speech(request: TextRequest):
     """
     # Do zamieszczenia bibliografie z linku
     # https: // huggingface.co / Hate - speech - CNERG / dehatebert - mono - english
-    #Pamiętamy
+    # Pamiętamy
     if hate_speech_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
@@ -334,15 +356,15 @@ async def get_hate_speech(request: TextRequest):
     for text in request.text:
         predict = hate_speech_pipeline(text)
         output = {
-            "label": predict[0]["label"],
-            "score": f'{predict[0]["score"]:.2f}'
+            "label": [predict[0]["label"]],
+            "confidence": [confidence_output(predict[0]["score"])]
         }
         results.append(output)
 
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/clickbait")
+@app.post("/clickbait", response_model=TextResponse)
 async def get_clickbait(request: TextRequest):
     """
     Get clickbait of the text.
@@ -358,8 +380,8 @@ async def get_clickbait(request: TextRequest):
     for text in request.text:
         predict = clickbait_pipeline(text)
         output = {
-            "label" : predict[0]["label"],
-            "score" : f'{predict[0]["score"]:.2f}'
+            "label": [predict[0]["label"]],
+            "confidence": [confidence_output(predict[0]["score"])]
         }
         results.append(output)
     return {"metadata": {"generated_in": 0.0}, "results": results}

@@ -486,3 +486,4 @@ def upload_manager(folders: str = None) -> None:
         except KeyError:
             print(f"Model {folder} not found in the version_models.json file. "
                   f"Check out name of the model")
+            
