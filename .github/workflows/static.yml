@@ -55,6 +55,12 @@ jobs:
 ### END BACKEND ###
 
 ### BEGIN NLP ###
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
       - name: Install NLP dependencies
         working-directory: nlp
         run: |
