@@ -5,15 +5,15 @@ from src.main import app
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("endpoint, expected_response", [
-    ("/report/sentiment", {"sentiment": "I love this!"}),
-    ("/report/language", {"language": "I love this!"}),
-    ("/report/sarcasm", {"sarcasm": "I love this!"}),
-    ("/report/keywords", {"keywords": "I love this!"}),
-    ("/report/spam", {"spam": "I love this!"}),
-    ("/report/politics", {"politics": "I love this!"}),
-    ("/report/hate-speach", {"hate-speach": "I love this!"}),
-    ("/report/clickbait", {"clickbait": "I love this!"}),
-    ("/report/troll", {"troll": "I love this!"}),
+    ("/sentiment", {"sentiment": "I love this!"}),
+    ("/language", {"language": "I love this!"}),
+    ("/sarcasm", {"sarcasm": "I love this!"}),
+    ("/keywords", {"keywords": "I love this!"}),
+    ("/spam", {"spam": "I love this!"}),
+    ("/politics", {"politics": "I love this!"}),
+    ("/hate-speach", {"hate-speach": "I love this!"}),
+    ("/clickbait", {"clickbait": "I love this!"}),
+    ("/troll", {"troll": "I love this!"}),
 ])
 async def test_bad_responses(endpoint, expected_response):
     async with AsyncClient(transport=ASGITransport(app=app),

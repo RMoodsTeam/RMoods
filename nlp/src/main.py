@@ -6,6 +6,7 @@ from typing import List
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from src.version_checker import update_model_versions
+from keybert import KeyBERT
 
 import fasttext
 import os
@@ -20,6 +21,7 @@ spam_pipeline = None
 political_pipeline = None
 hate_speech_pipeline = None
 clickbait_pipeline = None
+keyword_model = None
 
 def load_language_model():
     """Load language model."""
@@ -42,19 +44,22 @@ def load_model(model_name: str):
     """
     global spam_pipeline, sarcastic_pipeline, political_pipeline,\
         hate_speech_pipeline, clickbait_pipeline
-    global sentiment_model, sentiment_tokenizer
+    global sentiment_model, sentiment_tokenizer, keyword_model
 
     model_path = os.path.join("models", model_name, "v1")
 
     if not os.path.exists(model_path):
         raise RuntimeError("Model file not found")
 
-    try:
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
-        model = AutoModelForSequenceClassification.from_pretrained(
-            model_path)
-    except ValueError as e:
-        raise RuntimeError(f"Failed to load model: {e}")
+    if model_name != "keywords":
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(model_path)
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_path)
+        except ValueError as e:
+            raise RuntimeError(f"Failed to load model: {e}")
+    else:
+        keyword_model = KeyBert(model_path)
 
     if model_name == "spam":
         spam_pipeline = pipeline("text-classification", model=model,
@@ -93,29 +98,32 @@ async def lifespan(application: FastAPI):
 
     :param application: FastAPI application.
     """
-    # print("Application is starting.")
-    # update_model_versions()
-    #
-    # print("Loading language model.")
-    # load_language_model()
-    #
-    # print("Loading sentiment model.")
-    # load_model("sentiment")
-    #
-    # print("Loading sarcastic model.")
-    # load_model("sarcasm")
+    print("Application is starting.")
+    update_model_versions()
 
-    # print("Loading spam model.")
-    # load_model("spam")
+    print("Loading language model.")
+    load_language_model()
 
-    # print("Loading politics model.")
-    # load_model("political")
-    #
+    print("Loading sentiment model.")
+    load_model("sentiment")
+
+    print("Loading sarcastic model.")
+    load_model("sarcasm")
+
+    print("Loading spam model.")
+    load_model("spam")
+
+    print("Loading politics model.")
+    load_model("political")
+
     print("Loadaing hate_speech model.")
     load_model("hate_speech")
-    #
-    # print("Loading clickbait model.")
-    # load_model("clickbait")
+
+    print("Loading clickbait model.")
+    load_model("clickbait")
+
+    print("Loading keyword model.")
+    load_model("keywords")
 
     yield
     print("Application is shutting down.")
@@ -240,8 +248,17 @@ async def get_keywords(request: TextRequest):
 
     :return: Dictionary with model output
     """
-    text = request.text[0]
-    return {"keywords": text}
+    # Rememeber add author if we wan to use this model
+    # How keywords will work with long text?
+    results = []
+    for text in request.text:
+        keywords = keyword_model.extract_keywords(text, top_n=5)
+        output = {
+            "lable": [kw[0] for kw in keywords],
+            "score": [kw[1] for kw in keywords]
+        }
+        results.append(output)
+    return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
 @app.post("/spam")
@@ -283,6 +300,7 @@ async def get_politics(request: TextRequest):
     :return: Dictionary with model output
     """
     # Model accuracy may not hold up on pieces of text longer than a tweet.
+    # Slice it to smaller pieces if needed?
     if political_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
