@@ -2,21 +2,29 @@ use super::{
     auth::{RedditAccessToken, RedditApp},
     error::RedditError,
     model::{MoreComments, RawComment, RawContainer},
+    ratelimit_headers,
     request::RedditRequest,
 };
+use crate::reddit_fetcher::reddit::ratelimit_headers::RatelimitHeaders;
 use http::StatusCode;
 use log::{debug, info, warn};
 use log_derive::logfn;
 use serde_json::Value;
+use std::sync::Arc;
 use std::time::SystemTime;
 use thiserror::Error;
+use tokio::sync::RwLock;
 
 #[derive(Debug, Error)]
 pub enum InnerFetchError {
     #[error("HTTP Error: {0:?}")]
     HttpError(#[from] reqwest::Error),
+
     #[error("Reddit Error: {0:?}")]
     RedditError(#[from] RedditError),
+
+    #[error("Missing rate limit header: {0}")]
+    MissingRateLimitHeader(String),
 }
 
 /// Manages a collection of RedditApp clients and their access tokens.
@@ -30,6 +38,8 @@ pub struct RedditConnection {
     pub(crate) access_token: RedditAccessToken,
     /// The connection's own HTTP client, decoupled from our main app. Can remove, but it would hurt performance a bit when making many requests.
     pub(crate) http: reqwest::Client,
+    /// Rate limit headers as we last got them from Reddit, along with a timestamp of when we got them
+    pub(crate) ratelimit_headers: Arc<RwLock<RatelimitHeaders>>,
 }
 
 impl RedditConnection {
@@ -42,8 +52,11 @@ impl RedditConnection {
         let id = std::env::var("CLIENT_ID").expect("CLIENT_ID should be set");
         let secret = std::env::var("CLIENT_SECRET").expect("CLIENT_SECRET should be set");
 
-        assert!(!id.is_empty());
-        assert!(!secret.is_empty());
+        if id.is_empty() || secret.is_empty() {
+            return Err(RedditError::FailedToFetchAccessToken(
+                "CLIENT_ID or CLIENT_SECRET is empty".to_string(),
+            ));
+        }
 
         let client = RedditApp::new(id, secret);
 
@@ -59,6 +72,7 @@ impl RedditConnection {
             client,
             access_token,
             http,
+            ratelimit_headers: Arc::new(RwLock::new(RatelimitHeaders::new())),
         })
     }
 
@@ -106,7 +120,9 @@ impl RedditConnection {
         let res = if let Err(e) = &res {
             // we get a redirection error only if the subreddit does not exist, see [RedditConnection::redirect_policy]
             if e.is_redirect() {
-                warn!("Redirected to subreddits/search.json because subreddit does not exist.");
+                log::warn!(
+                    "Redirected to subreddits/search.json because subreddit does not exist."
+                );
                 return Err(InnerFetchError::RedditError(RedditError::ResourceNotFound(
                     url.to_string(),
                 )));
@@ -116,8 +132,11 @@ impl RedditConnection {
             res?
         };
 
-        let header_log = create_ratelimit_log(&res);
-        info!("Headers: {}", header_log.trim_end());
+        let ratelimit_headers = ratelimit_headers::get_ratelimit_headers(&res)?;
+        info!("Rate Limits: {:?}", ratelimit_headers);
+        {
+            *self.ratelimit_headers.write().await = ratelimit_headers;
+        }
 
         info!("Data fetched successfully. Took {:?}", elapsed);
 
@@ -167,7 +186,7 @@ impl RedditConnection {
                 Ok(parsed) => Ok((parsed, after)),
                 Err(err) => {
                     warn!("Failed to parse comments: {:?}", err);
-                    Err(RedditError::OtherJsonError(
+                    Err(RedditError::OtherRedditError(
                         "Failed to parse comments".to_string(),
                     ))
                 }
@@ -180,7 +199,7 @@ impl RedditConnection {
                 .and_then(|a| a.as_str())
                 .map(|s| s.to_string());
 
-            let parsed = serde_json::from_value::<RawContainer>(json.clone()).unwrap();
+            let parsed = serde_json::from_value::<RawContainer>(json.clone())?;
             Ok((parsed, after))
         }
     }
@@ -221,7 +240,7 @@ impl RedditConnection {
                     .collect::<Vec<RawComment>>();
                 comments.extend(new_comments);
             } else {
-                return Err(RedditError::OtherJsonError(
+                return Err(RedditError::OtherRedditError(
                     "Expected json.data.things to be present in response to MoreComments request"
                         .to_string(),
                 )
@@ -235,31 +254,4 @@ impl RedditConnection {
 
         Ok((comments, requests_made))
     }
-}
-
-/// Read Reddit headers from the provided [reqwest::Request] and return a string ready to log.
-/// Used for monitoring API usage.
-///
-/// The string contains information about:
-/// * Number of remaining requests in the current period (1000s)
-/// * Number of seconds until new period
-/// * Number of requests used in the current period
-fn create_ratelimit_log(res: &reqwest::Response) -> String {
-    let ratelimit_headers = const {
-        [
-            "x-ratelimit-remaining",
-            "x-ratelimit-reset",
-            "x-ratelimit-used",
-        ]
-    };
-    res.headers()
-        .iter()
-        .filter_map(|(k, v)| {
-            if ratelimit_headers.contains(&k.as_str()) {
-                Some(format!("{}: {}\n", k, v.to_str().unwrap()))
-            } else {
-                None
-            }
-        })
-        .collect::<String>()
 }
