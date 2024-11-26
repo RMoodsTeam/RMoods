@@ -19,3 +19,4 @@ numpy==1.26.4
 pytest-asyncio==0.24.0
 langcodes==3.4.1
 transformers==4.46.2
+keybert==0.8.5
