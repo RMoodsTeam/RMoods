@@ -7,7 +7,6 @@ use super::{
 };
 use crate::reddit_fetcher::reddit::ratelimit_headers::RatelimitHeaders;
 use http::StatusCode;
-use log::{debug, info, warn};
 use log_derive::logfn;
 use serde_json::Value;
 use std::sync::Arc;
@@ -60,13 +59,13 @@ impl RedditConnection {
 
         let client = RedditApp::new(id, secret);
 
-        info!("Fetching initial access token");
+        log::info!("Fetching initial access token");
         let access_token = client
             .fetch_access_token(&http)
             .await
             .or_else(|e| Err(RedditError::FailedToFetchAccessToken(e.to_string())))?;
-        debug!("Access token: {:?}", access_token);
-        info!("Done fetching access token");
+        log::debug!("Access token: {:?}", access_token);
+        log::info!("Done fetching access token");
 
         Ok(RedditConnection {
             client,
@@ -79,9 +78,9 @@ impl RedditConnection {
     #[logfn(err = "ERROR", fmt = "Failed to refresh access token: {0:?}")]
     async fn refresh_access_token(&mut self) -> Result<(), RedditError> {
         if self.access_token.is_expired() {
-            warn!("Access token expired, fetching new one");
+            log::warn!("Access token expired, fetching new one");
             self.access_token = self.client.fetch_access_token(&self.http).await?;
-            info!("New access token fetched");
+            log::info!("New access token fetched");
         }
         Ok(())
     }
@@ -104,7 +103,7 @@ impl RedditConnection {
         url: &str,
         query: Vec<(&str, String)>,
     ) -> Result<Value, InnerFetchError> {
-        info!("Fetching data from: {url:?}. Query params: {query:?}");
+        log::info!("Fetching data from: {url:?}. Query params: {query:?}");
 
         let req = self
             .http
@@ -133,15 +132,15 @@ impl RedditConnection {
         };
 
         let ratelimit_headers = ratelimit_headers::get_ratelimit_headers(&res)?;
-        info!("Rate Limits: {:?}", ratelimit_headers);
+        log::info!("Rate Limits: {:?}", ratelimit_headers);
         {
             *self.ratelimit_headers.write().await = ratelimit_headers;
         }
 
-        info!("Data fetched successfully. Took {:?}", elapsed);
+        log::info!("Data fetched successfully. Took {:?}", elapsed);
 
         if !res.status().is_success() {
-            warn!("Failed to fetch data: {:?}", res);
+            log::warn!("Failed to fetch data: {:?}", res);
             match res.status() {
                 StatusCode::NOT_FOUND => {
                     return Err(InnerFetchError::RedditError(RedditError::ResourceNotFound(
@@ -185,7 +184,7 @@ impl RedditConnection {
             match parsed {
                 Ok(parsed) => Ok((parsed, after)),
                 Err(err) => {
-                    warn!("Failed to parse comments: {:?}", err);
+                    log::warn!("Failed to parse comments: {:?}", err);
                     Err(RedditError::OtherRedditError(
                         "Failed to parse comments".to_string(),
                     ))
@@ -220,7 +219,7 @@ impl RedditConnection {
             let json = self.inner_fetch(&url, query).await?;
 
             requests_made += 1;
-            debug!("Comment requests made: {}/{}", requests_made, requests_left);
+            log::debug!("Comment requests made: {}/{}", requests_made, requests_left);
 
             let json_list = json
                 .get("json")
@@ -247,7 +246,7 @@ impl RedditConnection {
                 .into());
             }
             if requests_made >= requests_left {
-                debug!("No more comments - no requests left");
+                log::debug!("No more comments - no requests left");
                 break;
             }
         }
