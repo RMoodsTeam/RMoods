@@ -1,7 +1,20 @@
 import { z } from 'zod';
 
-const FeedKindSchema = z.enum(['subredditPosts', 'userPosts', 'postComments']);
-const AnalysisTypeSchema = z.enum(['language']);
+export const FeedKindSchema = z.enum([
+  'subredditPosts',
+  'userPosts',
+  'postComments',
+]);
+export const AnalysisTypeSchema = z.object({
+  language: z.boolean(),
+  sentiment: z.boolean(),
+  sarcasm: z.boolean(),
+  spam: z.boolean(),
+  politics: z.boolean(),
+  hateSpeech: z.boolean(),
+  clickbait: z.boolean(),
+  trolling: z.boolean(),
+});
 const FeedSortingKindSchema = z.enum([
   'hot',
   'new',

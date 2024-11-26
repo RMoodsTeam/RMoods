@@ -4,7 +4,7 @@ import { DataSource, DataSourceSchema } from '../../rmoods/client/types.ts';
 import { useState } from 'react';
 import { z } from 'zod';
 
-const RowWrapperSchema = z.object({
+export const RowWrapperSchema = z.object({
   dataSource: DataSourceSchema,
   id: z.number(),
 });

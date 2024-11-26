@@ -13,11 +13,18 @@ import {
   Center,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useState } from 'react';
-import { TbTrash } from 'react-icons/tb';
-import InputRow from './inputRow.tsx';
+import { useEffect, useState } from 'react';
+import InputRow, { RowWrapperSchema } from './inputRow.tsx';
 import { RowWrapper } from './inputRow.tsx';
-import { DataSource } from '../../rmoods/client/types.ts';
+import {
+  AnalysisTypeSchema,
+  DataSource,
+  DataSourceSchema,
+  FeedKindSchema,
+} from '../../rmoods/client/types.ts';
+import { zodResolver } from 'mantine-form-zod-resolver';
+import { TbTrash } from 'react-icons/tb';
+import { boolean, z } from 'zod';
 
 const Report = () => {
   const form = useForm({
@@ -27,6 +34,7 @@ const Report = () => {
       isPublic: 'true',
       size: 'small',
       customSize: undefined,
+      dataSource: [] as DataSource[],
       analyses: {
         language: false,
         sentiment: false,
@@ -38,8 +46,28 @@ const Report = () => {
         trolling: false,
       },
     },
+    validate: zodResolver(
+      z.object({
+        name: z.string().min(1),
+        resourceType: FeedKindSchema,
+        isPublic: z.enum(['true', 'false']),
+        size: z.enum(['small', 'medium', 'large', 'custom']),
+        customSize: z.number().optional(),
+        dataSource: z.array(DataSourceSchema),
+        analyses: AnalysisTypeSchema,
+      })
+    ),
   });
+
+  // form.setFieldError('name', 'Name is required');
   const [rows, setRows] = useState<RowWrapper[]>([]); // Array to store all rows
+
+  useEffect(() => {
+    form.setFieldValue(
+      'dataSource',
+      rows.map((row) => row.dataSource)
+    );
+  }, [rows]);
 
   const makeRowEditHandler =
     (index: number, property: keyof DataSource) => (event: any) => {
@@ -213,7 +241,14 @@ const Report = () => {
           {...form.getInputProps('analyses.trolling', { type: 'checkbox' })}
         />
         <Group justify="flex-end">
-          <Button type="submit">Create Report</Button>
+          <Button
+            type="submit"
+            onClick={() => {
+              console.log(form.errors);
+            }}
+          >
+            Create Report
+          </Button>
         </Group>
       </form>
     </Box>
