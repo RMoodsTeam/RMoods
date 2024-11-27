@@ -77,7 +77,7 @@ jobs:
       ### BEGIN FRONTEND ###
       - name: Build Frontend
         working-directory: frontend
-        run: npm ci --force && npm run build
+        run: npm ci && npm run build
 
       - name: Copy Frontend build to root directory
         working-directory: frontend
