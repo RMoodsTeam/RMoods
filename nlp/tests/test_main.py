@@ -11,7 +11,7 @@ from src.main import app
     ("/keywords", {"keywords": "I love this!"}),
     ("/spam", {"spam": "I love this!"}),
     ("/politics", {"politics": "I love this!"}),
-    ("/hate-speach", {"hate-speach": "I love this!"}),
+    ("/hate-speech", {"hate-speech": "I love this!"}),
     ("/clickbait", {"clickbait": "I love this!"}),
     ("/troll", {"troll": "I love this!"}),
 ])
