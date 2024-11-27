@@ -81,7 +81,7 @@ jobs:
 
       - name: Copy Frontend build to root directory
         working-directory: frontend
-        run: cp -r ./build/* ../
+        run: cp -r ./dist/* ../
       ### END FRONTEND ###
 
       - name: Upload artifact
