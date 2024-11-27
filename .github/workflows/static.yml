@@ -98,6 +98,7 @@ jobs:
           name: github-pages
           path: './docs'
       - name: Upload frontend
+        uses: actions/upload-pages-artifact@v3
         with:
           name: frontend
           path: './'
