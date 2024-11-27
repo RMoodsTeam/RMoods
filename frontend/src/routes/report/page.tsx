@@ -11,6 +11,7 @@ import {
   Stack,
   Table,
   Center,
+  Input,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
@@ -48,18 +49,21 @@ const Report = () => {
     },
     validate: zodResolver(
       z.object({
-        name: z.string().min(1),
+        name: z
+          .string()
+          .min(1, { message: 'Name must be longer than 1 character' }),
         resourceType: FeedKindSchema,
         isPublic: z.enum(['true', 'false']),
         size: z.enum(['small', 'medium', 'large', 'custom']),
         customSize: z.number().optional(),
-        dataSource: z.array(DataSourceSchema),
+        dataSource: z
+          .array(DataSourceSchema)
+          .min(1, { message: 'At least 1 data source is required' }),
         analyses: AnalysisTypeSchema,
       })
     ),
   });
 
-  // form.setFieldError('name', 'Name is required');
   const [rows, setRows] = useState<RowWrapper[]>([]); // Array to store all rows
 
   useEffect(() => {
@@ -120,7 +124,15 @@ const Report = () => {
             <Radio value="userComments" label="User Comments" />
           </Stack>
         </Radio.Group>
-        <Box style={{ border: '1px solid red' }}>
+        <Box
+          style={(theme) => ({
+            border: form.errors.dataSource
+              ? `1px solid var(--mantine-color-error)`
+              : `1px solid ${theme.colors.gray[7]}`,
+            borderRadius: theme.radius.sm,
+            padding: theme.spacing.xs,
+          })}
+        >
           <Table striped highlightOnHover>
             <Table.Thead>
               <Table.Tr>
@@ -179,6 +191,15 @@ const Report = () => {
             </Table.Tbody>
           </Table>
         </Box>
+        {form.errors.dataSource && (
+          <Input.Error
+            style={() => ({
+              marginTop: '6px',
+            })}
+          >
+            {form.errors.dataSource}
+          </Input.Error>
+        )}
 
         <Radio.Group
           name="size"
