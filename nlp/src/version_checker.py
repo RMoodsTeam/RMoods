@@ -100,16 +100,22 @@ def download_file(service: object, file_id: str, file_name: str,
     """
     try:
         request = service.files().get_media(fileId=file_id)
+
+        file = service.files().get(fileId=file_id, fields='size').execute()
+        file_size = int(file.get('size', 0)) / (1024 * 1024)
+
         done = False
 
         file = io.BytesIO()
         file.seek(0)
-        downloader = MediaIoBaseDownload(file, request)
-        progress_bar = tqdm(total=100)
+        chunk_size = 1024 * 1024 * 15
+        downloader = MediaIoBaseDownload(file, request, chunksize=chunk_size)
+        progress_bar = tqdm(total=file_size, unit='MB', unit_scale=True, desc=file_name)
 
-        while done is False:
+        while not done:
             status, done = downloader.next_chunk()
-            progress_bar.update(status.progress() * 100)
+            progress_bar.update((status.resumable_progress / (1024 * 1024)) -
+                                progress_bar.n)
         progress_bar.close()
 
         if not os.path.exists(models_directory):
@@ -387,7 +393,7 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
             return False
 
         folder_id = find_folder(SERVICE, folder_name)
-        if folder_id == "":
+        if folder_id is None:
             folder_name_id = create_folder(folder_name)
             version_folder_id = create_folder(version, folder_name_id)
             file_create = create_file(folder_name_id, version_folder_id,
@@ -479,5 +485,5 @@ def upload_manager(folders: str = None) -> None:
                     print(f"Error occurred with file {file_name}.")
         except KeyError:
             print(f"Model {folder} not found in the version_models.json file. "
-                  f"Check out name of the model file.")
-            continue
+                  f"Check out name of the model")
+            

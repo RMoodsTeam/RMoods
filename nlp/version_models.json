@@ -1,3 +1,9 @@
 {
-    "language": "v1"
+    "language": "v1",
+    "sentiment": "v1",
+    "sarcasm": "v1",
+    "spam": "v1",
+    "political": "v1",
+    "hate_speech": "v1",
+    "clickbait": "v1"
 }
