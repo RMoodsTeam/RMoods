@@ -9,13 +9,10 @@ import {
   SegmentedControl,
   Radio,
   Stack,
-  Table,
-  Center,
   Input,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
-import InputRow, { RowWrapperSchema } from './inputRow.tsx';
 import { RowWrapper } from './inputRow.tsx';
 import {
   AnalysisTypeSchema,
@@ -24,8 +21,8 @@ import {
   FeedKindSchema,
 } from '../../rmoods/client/types.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
-import { TbTrash } from 'react-icons/tb';
-import { boolean, z } from 'zod';
+import { z } from 'zod';
+import { DataSourceTable } from './tables.tsx';
 
 const Report = () => {
   const form = useForm({
@@ -117,11 +114,14 @@ const Report = () => {
           name="sourceType"
           label="Select source type"
           {...form.getInputProps('resourceType')}
+          onClick={() => {
+            setRows([]);
+          }}
         >
           <Stack>
             <Radio value="subredditPosts" label="Subreddit Posts" />
             <Radio value="postComments" label="Post Comments" />
-            <Radio value="userComments" label="User Comments" />
+            <Radio value="userPosts" label="User Posts" />
           </Stack>
         </Radio.Group>
         <Box
@@ -133,63 +133,13 @@ const Report = () => {
             padding: theme.spacing.xs,
           })}
         >
-          <Table striped highlightOnHover>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>
-                  <Center>Name</Center>
-                </Table.Th>
-                <Table.Th>
-                  <Center>Post ID</Center>
-                </Table.Th>
-                <Table.Th>
-                  <Center>Share</Center>
-                </Table.Th>
-                <Table.Th></Table.Th>
-              </Table.Tr>
-              <InputRow setRows={setRows} />
-            </Table.Thead>
-            <Table.Tbody>
-              {rows.map((row, index) => (
-                <Table.Tr key={row.id}>
-                  <Table.Td>
-                    <TextInput
-                      onChange={makeRowEditHandler(index, 'name')}
-                      variant="unstyled"
-                      defaultValue={row.dataSource.name}
-                    />
-                  </Table.Td>
-                  <Table.Td>
-                    <TextInput
-                      onChange={makeRowEditHandler(index, 'postId')}
-                      variant="unstyled"
-                      defaultValue={row.dataSource.postId}
-                    />
-                  </Table.Td>
-                  <Table.Td>
-                    <NumberInput
-                      onChange={makeRowEditHandler(index, 'share')}
-                      variant="unstyled"
-                      defaultValue={row.dataSource.share}
-                    />
-                  </Table.Td>
-                  <Table.Td>
-                    <Center>
-                      <Button
-                        color={'white'}
-                        variant="transparent"
-                        onClick={() => {
-                          deleteRow(row.id);
-                        }}
-                      >
-                        <TbTrash size={24} />
-                      </Button>
-                    </Center>
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+          <DataSourceTable
+            form={form}
+            rows={rows}
+            setRows={setRows}
+            deleteRow={deleteRow}
+            makeRowEditHandler={makeRowEditHandler}
+          />
         </Box>
         {form.errors.dataSource && (
           <Input.Error

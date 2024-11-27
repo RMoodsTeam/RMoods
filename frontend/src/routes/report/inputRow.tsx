@@ -17,7 +17,12 @@ function generateId() {
 
 export type RowWrapper = z.infer<typeof RowWrapperSchema>;
 
-const InputRow = ({ setRows }: any) => {
+interface inputRowProps {
+  setRows: any;
+  form: any;
+}
+
+const InputRow = ({ setRows, form }: inputRowProps) => {
   const [inputRow, setInputRow] = useState<RowWrapper>({
     dataSource: {
       name: '',
@@ -50,21 +55,23 @@ const InputRow = ({ setRows }: any) => {
       <Table.Th>
         <Center>
           <TextInput
-            placeholder="eg. r/Polska"
+            placeholder="eg. Polska"
             onChange={makeInputChangeHandler('name')}
             value={inputRow.dataSource.name}
           />
         </Center>
       </Table.Th>
-      <Table.Th>
-        <Center>
-          <TextInput
-            placeholder={'eg. 1gyonvx'}
-            onChange={makeInputChangeHandler('postId')}
-            value={inputRow.dataSource.postId}
-          />
-        </Center>
-      </Table.Th>
+      {form.values.resourceType !== 'postComments' && (
+        <Table.Th>
+          <Center>
+            <TextInput
+              placeholder={'eg. 1gyonvx'}
+              onChange={makeInputChangeHandler('postId')}
+              value={inputRow.dataSource.postId}
+            />
+          </Center>
+        </Table.Th>
+      )}
       <Table.Th>
         <Center>
           <NumberInput
