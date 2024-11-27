@@ -89,7 +89,7 @@ jobs:
 
       - name: Copy Frontend to root directory
         working-directory: frontend
-        run: cp -r ./build/* ../
+        run: cp -r ./dist/* ../
 ### END FRONTEND ###
 
       - name: Upload artifact
