@@ -2,15 +2,19 @@ name: Deploy static content to Pages
 
 on:
   push:
-    branches: ["dev", "113-deploy-frontend-to-gh-pages"]
+    branches: ["dev"]
 
+# Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -31,65 +35,72 @@ jobs:
         with:
           node-version: 20.5.1
 
-      ### BEGIN BACKEND ###
-      - name: Build Backend API Docs
-        working-directory: backend
-        run: cargo doc --document-private-items --no-deps
+### BEGIN BACKEND ###
+#      - name: Build Backend API Docs
+#        working-directory: backend
+#        run: cargo doc --document-private-items --no-deps
+#
+#      - name: Fix permissions
+#        working-directory: backend
+#        run: |
+#          chmod -c -R +rX "target/doc/" | while read line; do
+#          echo "::warning title=Invalid file permissions automatically fixed::$line"
+#          done
+#
+#      - name: Copy Backend API Docs into the docs dir
+#        working-directory: backend
+#        run: |
+#          mv target/doc target/backend
+#          cp -r target/backend ../docs
+#### END BACKEND ###
+#
+#### BEGIN NLP ###
+#      - name: Set up Python
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: "3.12"
+#          cache: 'pip'
+#
+#      - name: Install NLP dependencies
+#        working-directory: nlp
+#        run: |
+#          python -m pip install --upgrade pip
+#          pip install -r requirements.txt
+#
+#      - name: Make the sphinx docs
+#        working-directory: nlp/docs
+#        run: |
+#          make clean
+#          make html
+#
+#      - name: Copy NLP documentation to docs directory
+#        working-directory: nlp
+#        run: cp -r docs/_build/html ../docs/nlp
+### END NLP ###
 
-      - name: Fix permissions
-        working-directory: backend
-        run: |
-          chmod -c -R +rX "target/doc/" | while read line; do
-          echo "::warning title=Invalid file permissions automatically fixed::$line"
-          done
-
-      - name: Copy Backend API Docs into the docs dir
-        working-directory: backend
-        run: |
-          mv target/doc target/backend
-          cp -r target/backend ../docs
-      ### END BACKEND ###
-
-      ### BEGIN NLP ###
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
-          cache: 'pip'
-
-      - name: Install NLP dependencies
-        working-directory: nlp
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Make the sphinx docs
-        working-directory: nlp/docs
-        run: |
-          make clean
-          make html
-
-      - name: Copy NLP documentation to docs directory
-        working-directory: nlp
-        run: cp -r docs/_build/html ../docs/nlp
-      ### END NLP ###
-
-      ### BEGIN FRONTEND ###
-      - name: Build Frontend
+### BEGIN FRONTEND ###
+      - name: Build Frontend API Docs
         working-directory: frontend
-        run: npm ci --force && npm run build
+        run: npm ci  && npm run build-docs && npm run build
 
-      - name: Copy Frontend build to root directory
+      - name: Copy Frontend API Docs into the docs dir
+        working-directory: frontend
+        run: cp -r ./docs/ ../docs/frontend
+
+      - name: Copy Frontend to root directory
         working-directory: frontend
         run: cp -r ./build/* ../
-      ### END FRONTEND ###
+### END FRONTEND ###
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
+          path: './docs'
+      - name: Upload frontend
+        with:
+          name: frontend
           path: './'
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
