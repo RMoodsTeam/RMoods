@@ -34,7 +34,7 @@ impl From<InnerFetchError> for RedditError {
         match e {
             InnerFetchError::HttpError(e) => RedditError::HttpError(e),
             InnerFetchError::RedditError(e) => e,
-            InnerFetchError::MissingRateLimitHeader(e) => RedditError::OtherRedditError(e),
+            InnerFetchError::GetRateLimitHeaderError(e) => RedditError::OtherRedditError(e),
         }
     }
 }

@@ -23,7 +23,7 @@ pub enum InnerFetchError {
     RedditError(#[from] RedditError),
 
     #[error("Missing rate limit header: {0}")]
-    MissingRateLimitHeader(String),
+    GetRateLimitHeaderError(String),
 }
 
 /// Manages a collection of RedditApp clients and their access tokens.
