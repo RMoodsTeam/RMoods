@@ -1,10 +1,10 @@
-import {Box, Text} from '@mantine/core';
+import { Box, Text } from '@mantine/core';
 import Cookies from 'js-cookie';
-import {jwtDecode} from 'jwt-decode';
-import {useEffect, useState} from 'react';
+import { jwtDecode } from 'jwt-decode';
+import { useEffect, useState } from 'react';
 import UserCard from './UserCard';
 import StatisticItem from './StatisticItem';
-import {JwtClaims} from '../../rmoods/jwt.ts';
+import { JwtClaims } from '../../rmoods/jwt.ts';
 import authFetch from '../../rmoods/client/authFetch.ts';
 
 /**
@@ -50,13 +50,11 @@ const UserPage = () => {
       console.log('Decoded data: ', data);
       const id = data.userInfo.id;
 
-      authFetch('http://localhost:8001/api/user?id=' + id, token).then(
-        (response) => {
-          response.json().then((data) => {
-            setUser(data);
-          });
-        }
-      );
+      authFetch('http://localhost:8001/api/user?id=' + id).then((response) => {
+        response.json().then((data) => {
+          setUser(data);
+        });
+      });
     } catch (error) {
       console.error('JWT token could not be decoded.', error);
       throw new Error('JWT token could not be decoded.');
