@@ -2,7 +2,7 @@ use crate::reddit_fetcher::reddit::connection::InnerFetchError;
 use jsonwebtoken::get_current_timestamp;
 use serde::Serialize;
 
-pub const INITIAL_REQUESTS: u64 = 1000;
+pub const MAX_REQUESTS: u64 = 1000;
 
 #[derive(Debug, Copy, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,7 +16,7 @@ pub struct RatelimitHeaders {
 impl RatelimitHeaders {
     pub fn new() -> Self {
         RatelimitHeaders {
-            remaining: INITIAL_REQUESTS,
+            remaining: MAX_REQUESTS,
             reset: 0,
             used: 0,
             created_at: get_current_timestamp(),
