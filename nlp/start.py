@@ -7,7 +7,7 @@ def run_uvicorn():
 
     # Command as a list of arguments
     command = [
-        "uvicorn",
+        ".venv/bin/uvicorn",
         "src.main:app",
         "--host", "0.0.0.0",
         "--port", str(port),

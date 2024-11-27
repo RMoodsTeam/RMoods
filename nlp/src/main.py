@@ -1,15 +1,15 @@
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
-from langcodes import tag_is_valid, Language
-from contextlib import asynccontextmanager
-from typing import List
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from src.version_checker import update_model_versions
-from keybert import KeyBERT
-
-import fasttext
 import os
 import string
+from contextlib import asynccontextmanager
+from typing import List
+
+import fasttext
+from fastapi import FastAPI, HTTPException
+from keybert import KeyBERT
+from langcodes import tag_is_valid, Language
+from pydantic import BaseModel
+from src.version_checker import update_model_versions
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
 language_model = None
 sentiment_tokenizer = None
@@ -337,7 +337,7 @@ async def get_politics(request: TextRequest):
     return {"metadata": {"generated_in": 0.0}, "results": results}
 
 
-@app.post("/hate-speach", response_model=TextResponse)
+@app.post("/hate-speech", response_model=TextResponse)
 async def get_hate_speech(request: TextRequest):
     """
     Get hate speech of the text.
