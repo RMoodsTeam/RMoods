@@ -257,7 +257,7 @@ const Report = () => {
           <Button
             type="submit"
             onClick={() => {
-              formatJson(form.values);
+              console.log(formatJson(form.values as formValues));
             }}
           >
             Create Report

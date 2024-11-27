@@ -33,8 +33,7 @@ export const FeedSortingTimeSchema = z.enum([
   'all',
 ]);
 
-// this might be reduntant now with how we use zodResolver in form
-const FeedSortingSchema = z.object({
+export const FeedSortingSchema = z.object({
   kind: FeedSortingKindSchema,
   time: FeedSortingTimeSchema,
 });
