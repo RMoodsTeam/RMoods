@@ -5,6 +5,7 @@ export const FeedKindSchema = z.enum([
   'userPosts',
   'postComments',
 ]);
+
 export const AnalysisTypeSchema = z.object({
   language: z.boolean(),
   sentiment: z.boolean(),
@@ -15,15 +16,24 @@ export const AnalysisTypeSchema = z.object({
   clickbait: z.boolean(),
   trolling: z.boolean(),
 });
-const FeedSortingKindSchema = z.enum([
+
+export const FeedSortingKindSchema = z.enum([
   'hot',
   'new',
   'rising',
   'top',
   'controversial',
 ]);
-const FeedSortingTimeSchema = z.enum(['day', 'week', 'month', 'year', 'all']);
 
+export const FeedSortingTimeSchema = z.enum([
+  'day',
+  'week',
+  'month',
+  'year',
+  'all',
+]);
+
+// this might be reduntant now with how we use zodResolver in form
 const FeedSortingSchema = z.object({
   kind: FeedSortingKindSchema,
   time: FeedSortingTimeSchema,

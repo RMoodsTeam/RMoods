@@ -19,10 +19,29 @@ import {
   DataSource,
   DataSourceSchema,
   FeedKindSchema,
+  FeedSortingKindSchema,
+  FeedSortingTimeSchema,
 } from '../../rmoods/client/types.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { z } from 'zod';
 import { DataSourceTable } from './tables.tsx';
+import { formatJson } from './formatJson.ts';
+
+const formValidationSchema = z.object({
+  name: z.string().min(1, { message: 'Name must be longer than 1 character' }),
+  resourceType: FeedKindSchema,
+  isPublic: z.enum(['true', 'false']),
+  size: z.enum(['small', 'medium', 'large', 'custom']),
+  customSize: z.number().optional(),
+  sortBy: FeedSortingKindSchema,
+  time: FeedSortingTimeSchema,
+  dataSource: z
+    .array(DataSourceSchema)
+    .min(1, { message: 'At least 1 data source is required' }),
+  analyses: AnalysisTypeSchema,
+});
+
+export type formValues = z.infer<typeof formValidationSchema>;
 
 const Report = () => {
   const form = useForm({
@@ -32,6 +51,8 @@ const Report = () => {
       isPublic: 'true',
       size: 'small',
       customSize: undefined,
+      sortBy: 'hot',
+      time: 'day',
       dataSource: [] as DataSource[],
       analyses: {
         language: false,
@@ -44,21 +65,7 @@ const Report = () => {
         trolling: false,
       },
     },
-    validate: zodResolver(
-      z.object({
-        name: z
-          .string()
-          .min(1, { message: 'Name must be longer than 1 character' }),
-        resourceType: FeedKindSchema,
-        isPublic: z.enum(['true', 'false']),
-        size: z.enum(['small', 'medium', 'large', 'custom']),
-        customSize: z.number().optional(),
-        dataSource: z
-          .array(DataSourceSchema)
-          .min(1, { message: 'At least 1 data source is required' }),
-        analyses: AnalysisTypeSchema,
-      })
-    ),
+    validate: zodResolver(formValidationSchema),
   });
 
   const [rows, setRows] = useState<RowWrapper[]>([]); // Array to store all rows
@@ -97,7 +104,7 @@ const Report = () => {
     <Box>
       <Title order={1}>Create Report</Title>
 
-      <form onSubmit={form.onSubmit((values) => console.log(values))}>
+      <form onSubmit={form.onSubmit(() => {})}>
         <TextInput
           label="Report Name"
           placeholder="Enter report name"
@@ -124,6 +131,41 @@ const Report = () => {
             <Radio value="userPosts" label="User Posts" />
           </Stack>
         </Radio.Group>
+
+        <Radio.Group
+          name="sortBy"
+          label="Sort by"
+          {...form.getInputProps('sortBy')}
+          onClick={() => {
+            setRows([]);
+          }}
+        >
+          <Stack>
+            <Radio value="hot" label="Hot" />
+            <Radio value="new" label="New" />
+            <Radio value="rising" label="Rising" />
+            <Radio value="top" label="Top" />
+            <Radio value="controversial" label="Controversial" />
+          </Stack>
+        </Radio.Group>
+
+        <Radio.Group
+          name="time"
+          label="Select time"
+          {...form.getInputProps('time')}
+          onClick={() => {
+            setRows([]);
+          }}
+        >
+          <Stack>
+            <Radio value="day" label="Day" />
+            <Radio value="week" label="Week" />
+            <Radio value="month" label="Month" />
+            <Radio value="year" label="Year" />
+            <Radio value="all" label="All" />
+          </Stack>
+        </Radio.Group>
+
         <Box
           style={(theme) => ({
             border: form.errors.dataSource
@@ -215,7 +257,7 @@ const Report = () => {
           <Button
             type="submit"
             onClick={() => {
-              console.log(form.errors);
+              formatJson(form.values);
             }}
           >
             Create Report
