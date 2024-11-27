@@ -100,7 +100,7 @@ jobs:
       - name: Upload frontend
         uses: actions/upload-pages-artifact@v3
         with:
-          name: frontend
+          name: github-pages
           path: './'
       - name: Deploy to GitHub Pages
         id: deployment
