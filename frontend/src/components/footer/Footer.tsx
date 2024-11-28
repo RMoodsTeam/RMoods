@@ -38,7 +38,7 @@ export default function FooterCentered() {
         <Group className={classes.links}>{items}</Group>
 
         <Group gap="xs" justify="flex-end" wrap="nowrap">
-          <Link 
+          <Anchor component={Link}
             to="https://github.com/RMoodsTeam/RMoods"
             target="_blank"
             rel="noopener noreferrer"
@@ -49,8 +49,8 @@ export default function FooterCentered() {
                 stroke={1.5}
               />
             </ActionIcon>
-          </Link >
-          <Link 
+          </Anchor >
+          <Anchor component={Link} 
             to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
@@ -61,8 +61,8 @@ export default function FooterCentered() {
                 stroke={1.5}
               />
             </ActionIcon>
-          </Link >
-          <Link 
+          </Anchor >
+          <Anchor component={Link} 
             to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
@@ -73,7 +73,7 @@ export default function FooterCentered() {
                 stroke={1.5}
               />
             </ActionIcon>
-          </Link >
+          </Anchor >
         </Group>
       </div>
     </footer>
