@@ -1,4 +1,4 @@
-import { createBrowserRouter, createHashRouter } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import About from './routes/about/page';
 import Dashboard from './routes/dashboard/page';
 import Login from './routes/login/page';
@@ -9,7 +9,7 @@ import Layout from './Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout.tsx';
 
-const router = createHashRouter(
+const router = createBrowserRouter(
   [
     {
       element: (
