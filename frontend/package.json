@@ -1,6 +1,7 @@
 {
   "name": "frontend",
   "private": true,
+  "homepage": "https://rmoodsteam.github.io/RMoods",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
