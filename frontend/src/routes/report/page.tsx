@@ -25,7 +25,7 @@ import {
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { z } from 'zod';
 import { DataSourceTable } from './tables.tsx';
-import { formatJson } from './formatJson.ts';
+import { transformJson } from './transformJson.ts';
 
 const formValidationSchema = z.object({
   name: z.string().min(1, { message: 'Name must be longer than 1 character' }),
@@ -43,6 +43,11 @@ const formValidationSchema = z.object({
 
 export type formValues = z.infer<typeof formValidationSchema>;
 
+/**
+ * Report component for creating a new report.
+ *
+ * @returns {JSX.Element} - The rendered report creation form.
+ */
 const Report = () => {
   const form = useForm({
     initialValues: {
@@ -77,6 +82,13 @@ const Report = () => {
     );
   }, [rows]);
 
+  /**
+   * Creates a handler function to edit a specific property of a row in the data source.
+   *
+   * @param {number} index - The index of the row to be edited.
+   * @param {keyof DataSource} property - The property of the data source to be updated.
+   * @returns {Function} - A function that handles the change event for the specified property.
+   */
   const makeRowEditHandler =
     (index: number, property: keyof DataSource) => (event: any) => {
       setRows(
@@ -95,6 +107,12 @@ const Report = () => {
       );
     };
 
+  /**
+   * Deletes a row from the list of rows by its ID.
+   *
+   * @param {number} id - The ID of the row to be deleted.
+   * @returns {void}
+   */
   const deleteRow = (id: number) => {
     const newRows = rows.filter((row) => row.id !== id);
     setRows(newRows);
@@ -257,7 +275,7 @@ const Report = () => {
           <Button
             type="submit"
             onClick={() => {
-              console.log(formatJson(form.values as formValues));
+              console.log(transformJson(form.values as formValues));
             }}
           >
             Create Report

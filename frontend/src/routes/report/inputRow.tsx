@@ -22,6 +22,14 @@ interface inputRowProps {
   form: any;
 }
 
+/**
+ * Component that renders an input row for adding new data sources.
+ *
+ * @param {Object} props - The properties object.
+ * @param {Function} props.setRows - Function to update the rows.
+ * @param {any} props.form - The form object containing the values.
+ * @returns {JSX.Element} - The rendered input row component.
+ */
 const InputRow = ({ setRows, form }: inputRowProps) => {
   const [inputRow, setInputRow] = useState<RowWrapper>({
     dataSource: {
@@ -32,6 +40,12 @@ const InputRow = ({ setRows, form }: inputRowProps) => {
     id: 0,
   });
 
+  /**
+   * Creates a change handler for the input fields in the data source.
+   *
+   * @param {keyof DataSource} field - The field of the data source to be updated.
+   * @returns {Function} - A function that handles the change event for the specified field.
+   */
   const makeInputChangeHandler = (field: keyof DataSource) => (event: any) => {
     setInputRow((prev) => ({
       ...prev,
@@ -42,6 +56,11 @@ const InputRow = ({ setRows, form }: inputRowProps) => {
     }));
   };
 
+  /**
+   * Adds the current input row to the list of rows and resets the input row.
+   *
+   * @returns {void}
+   */
   const handleAddRow = () => {
     setRows((prevRows: RowWrapper[]) => [...prevRows, inputRow]);
     setInputRow({

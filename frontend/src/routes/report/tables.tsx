@@ -14,6 +14,12 @@ interface tableProps {
   form: any;
 }
 
+/**
+ * Returns the column name based on the resource type in the form values.
+ *
+ * @param {any} form - The form object containing the values.
+ * @returns {string} - The column name ('Post', 'Comment', or 'Name').
+ */
 const getResourceTypeColumnName = (form: any) => {
   if (form.values.resourceType === 'subredditPosts') {
     return 'Post';
@@ -24,6 +30,17 @@ const getResourceTypeColumnName = (form: any) => {
   }
 };
 
+/**
+ * Component that renders a table for displaying and editing data sources.
+ *
+ * @param {Object} props - The properties object.
+ * @param {RowWrapper[]} props.rows - The array of row data.
+ * @param {Function} props.setRows - Function to update the rows.
+ * @param {Function} props.makeRowEditHandler - Function to create an edit handler for a row.
+ * @param {Function} props.deleteRow - Function to delete a row by its ID.
+ * @param {any} props.form - The form object containing the values.
+ * @returns {JSX.Element} - The rendered table component.
+ */
 export const DataSourceTable = ({
   rows,
   setRows,
