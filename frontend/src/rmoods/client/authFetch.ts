@@ -1,8 +1,11 @@
+import Cookies from 'js-cookie';
+
 export default async function authFetch(
   url: string | URL,
-  token: string,
   options: RequestInit = {}
 ) {
+  const token = Cookies.get('RMOODS_JWT');
+
   // Use the user-provided options, but always override the authorization header with our own.
   const fullOptions = {
     ...options,

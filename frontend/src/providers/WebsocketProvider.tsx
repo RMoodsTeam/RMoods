@@ -2,7 +2,7 @@ import Cookies from 'js-cookie';
 import { useAtom } from 'jotai';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useRef } from 'react';
-import { wsConnectionStatusAtom } from './atoms.ts';
+import { wsConnectionStatusAtom } from '../atoms.ts';
 
 const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   console.log('WebsocketProvider: rendering');

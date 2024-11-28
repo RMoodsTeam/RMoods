@@ -5,7 +5,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import { RouterProvider } from 'react-router-dom';
 import router from './router.tsx';
-import Providers from './Providers.tsx';
+import Providers from './providers/Providers.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
