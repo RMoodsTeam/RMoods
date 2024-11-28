@@ -7,8 +7,8 @@ import { Link } from 'react-router-dom';
 const LeftNavItems = () => {
   return (
     <Flex gap={10}>
-      <Link to="#/">Main</Link>
-      <Link to="#/about">About</Link>
+      <Anchor href="/">Main</Anchor>
+      <Link to="/about">About</Link>
     </Flex>
   );
 };
