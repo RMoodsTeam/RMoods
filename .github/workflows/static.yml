@@ -36,6 +36,8 @@ jobs:
           node-version: 20.5.1
       - name: Create temp deploy folder
         run: mkdir deploy
+      - name: Copy docs to deploy folder
+        run: cp -r docs/ deploy/
 #
 # ## BEGIN BACKEND ###
 #      - name: Build Backend API Docs
