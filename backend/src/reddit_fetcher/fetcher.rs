@@ -1,7 +1,6 @@
 use crate::reddit_fetcher::feed_request::FetcherFeedRequest;
 use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::model::reddit_data::{RedditAboutData, RedditFeedData};
-use crate::reddit_fetcher::reddit::ratelimit_headers::RatelimitHeaders;
 use crate::reddit_fetcher::reddit::{
     connection::RedditConnection,
     error::RedditError,
@@ -114,10 +113,5 @@ impl RMoodsFetcher {
         let raw = self.reddit_connection.fetch_raw(request).await?;
         let data = T::from_reddit_container(raw.0)?;
         Ok(data)
-    }
-
-    pub async fn get_latest_rate_limits(&self) -> Vec<RatelimitHeaders> {
-        let headers = self.reddit_connection.ratelimit_headers.read().await;
-        vec![*headers]
     }
 }
