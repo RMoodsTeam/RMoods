@@ -1,6 +1,6 @@
 describe('Login', () => {
   beforeEach(() => {
-    cy.visit('http://localhost:8000/login');
+    cy.visit('http://localhost:8000/RMoods/login');
   });
 
   it('Displays a title', () => {
