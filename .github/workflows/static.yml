@@ -34,6 +34,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.5.1
+      - name: Create temp deploy folder
+        run: mkdir deploy
 #
 # ## BEGIN BACKEND ###
 #      - name: Build Backend API Docs
@@ -96,7 +98,7 @@ jobs:
        uses: actions/upload-pages-artifact@v3
        with:
          name: github-pages
-         path: './deplot/docs'
+         path: './deploy/docs'
       - name: Upload frontend
         uses: actions/upload-pages-artifact@v3
         with:
