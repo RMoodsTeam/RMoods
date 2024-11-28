@@ -5,7 +5,7 @@ import authFetch from '../../rmoods/client/authFetch.ts';
 import { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { JwtClaims } from '../../rmoods/jwt.ts';
-import { changeImageSize } from '../../utility/changeImageSize.ts';
+import { changeDefaultGoogleProfilePicureSize } from '../../utility/changeDefaultGoogleProfilePicureSize.ts';
 
 /**
  * User interface representing the user data.
@@ -64,7 +64,7 @@ const UserMenu = () => {
   };
 
   const size = 55;
-  const resizedPicture = user ? changeImageSize(user.picture, size) : '';
+  const resizedPicture = user ? changeDefaultGoogleProfilePicureSize(user.picture, size) : '';
   return (
     <Menu id='user-dropdown'>
       <Menu.Target>

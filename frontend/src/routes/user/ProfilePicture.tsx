@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, Box } from '@mantine/core';
-import { changeImageSize } from '../../utility/changeImageSize.ts';
+import { changeDefaultGoogleProfilePicureSize } from '../../utility/changeDefaultGoogleProfilePicureSize.ts';
 
 /**
  * Props for the ProfilePicture component.
@@ -18,7 +18,7 @@ interface ProfilePictureProps {
  * @returns {JSX.Element} The ProfilePicture component.
  */
 const ProfilePicture: React.FC<ProfilePictureProps> = ({ src, alt }) => {
-  const resizedSrc = changeImageSize(src, 250);
+  const resizedSrc = changeDefaultGoogleProfilePicureSize(src, 250);
 
   return (
     <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
