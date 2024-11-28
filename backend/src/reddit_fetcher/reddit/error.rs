@@ -26,7 +26,7 @@ pub enum RedditError {
     JsonError(#[from] serde_json::Error),
 
     #[error("Failed to parse data from Reddit: {0:?}")]
-    OtherRedditError(String),
+    OtherJsonError(String),
 }
 
 impl From<InnerFetchError> for RedditError {
@@ -34,7 +34,6 @@ impl From<InnerFetchError> for RedditError {
         match e {
             InnerFetchError::HttpError(e) => RedditError::HttpError(e),
             InnerFetchError::RedditError(e) => e,
-            InnerFetchError::GetRateLimitHeaderError(e) => RedditError::OtherRedditError(e),
         }
     }
 }

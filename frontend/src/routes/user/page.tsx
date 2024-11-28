@@ -49,11 +49,13 @@ const UserPage = () => {
       const data = jwtDecode<JwtClaims>(token);
       const id = data.userInfo.id;
 
-      authFetch('http://localhost:8001/api/user?id=' + id).then((response) => {
-        response.json().then((data) => {
-          setUser(data);
-        });
-      });
+      authFetch('http://localhost:8001/api/user?id=' + id, token).then(
+        (response) => {
+          response.json().then((data) => {
+            setUser(data);
+          });
+        }
+      );
     } catch (error) {
       console.error('JWT token could not be decoded.', error);
       throw new Error('JWT token could not be decoded.');
