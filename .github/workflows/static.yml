@@ -94,11 +94,11 @@ jobs:
         run: cp -r ./dist/* ../deploy
 ### END FRONTEND ###
 
-     - name: Upload artifact
-       uses: actions/upload-pages-artifact@v3
-       with:
-         name: github-pages
-         path: './deploy/docs'
+    #  - name: Upload artifact
+    #    uses: actions/upload-pages-artifact@v3
+    #    with:
+    #      name: github-pages
+    #      path: './deploy/docs'
       - name: Upload frontend
         uses: actions/upload-pages-artifact@v3
         with:
