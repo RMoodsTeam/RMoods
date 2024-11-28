@@ -51,7 +51,7 @@ const router = createBrowserRouter(
       ],
     },
   ],
-  { basename: '/RMoods/' }
+  { basename: '/RMoods' }
 );
 
 export default router;
