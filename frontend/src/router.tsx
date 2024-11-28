@@ -18,15 +18,15 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        path: 'dashboard',
+        path: 'RMoods/dashboard',
         element: <Dashboard />,
       },
       {
-        path: 'report',
+        path: 'RMoods/report',
         element: <Report />,
       },
       {
-        path: 'user',
+        path: 'RMoods/user',
         element: <UserPage />,
       },
     ],
@@ -35,16 +35,16 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       {
-        path: '/',
+        path: '/RMoods',
         element: <Root />,
       },
       {
-        path: 'about',
+        path: 'RMoods/about',
         element: <About />,
       },
 
       {
-        path: 'login',
+        path: 'RMoods/login',
         element: <Login />,
       },
     ],
