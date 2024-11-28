@@ -6,8 +6,8 @@ import StatusIndicator from './StatusIndicator';
 const LeftNavItems = () => {
   return (
     <Flex gap={10}>
-      <Anchor href="/">Main</Anchor>
-      <Anchor href="/about">About</Anchor>
+      <Anchor href="#/">Main</Anchor>
+      <Anchor href="#/about">About</Anchor>
     </Flex>
   );
 };
