@@ -1,7 +1,7 @@
 import React from 'react';
-import {Box, Divider, Text, Title} from '@mantine/core';
+import { Box, Divider, Text, Title } from '@mantine/core';
 import ProfilePicture from './ProfilePicture';
-import {User} from './page.tsx';
+import { User } from './page.tsx';
 
 /**
  * Props for the UserCard component.
@@ -30,11 +30,11 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
         <Title order={2} style={{ marginTop: '10px', fontSize: '22px' }}>
           {user.name}
         </Title>
-        <Text size="sm" c="dimmed" style={{ fontSize: '18px' }}>
+        <Text size='sm' c='dimmed' style={{ fontSize: '18px' }}>
           {user.givenName}
         </Text>
-        <Divider my="sm" />
-        <Text size="sm" c="dimmed" style={{ fontSize: '18px' }}>
+        <Divider my='sm' />
+        <Text size='sm' c='dimmed' style={{ fontSize: '18px' }}>
           {user.email}
         </Text>
       </Box>

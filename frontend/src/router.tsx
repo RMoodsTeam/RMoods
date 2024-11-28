@@ -8,6 +8,7 @@ import Report from './routes/report/page';
 import Layout from './Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout.tsx';
+import Settings from './routes/settings/page.tsx';
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
       {
         path: 'user',
         element: <UserPage />,
+      },
+      {
+        path: 'settings',
+        element: <Settings />,
       },
     ],
   },
