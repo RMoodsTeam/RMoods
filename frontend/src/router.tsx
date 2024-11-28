@@ -49,6 +49,8 @@ const router = createHashRouter([
       },
     ],
   },
-]);
+],
+{ basename: "/RMoods/"}
+);
 
 export default router;
