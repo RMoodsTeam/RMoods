@@ -83,20 +83,20 @@ jobs:
         working-directory: frontend
         run: npm ci  && npm run build-docs && npm run build
 
-     - name: Copy Frontend API Docs into the docs dir
-       working-directory: frontend
-       run: cp -r ./docs/ ../deploy/docs/frontend
+      - name: Copy Frontend API Docs into the docs dir
+        working-directory: frontend
+        run: cp -r ./docs/ ../deploy/docs/frontend
 
       - name: Copy Frontend to root directory
         working-directory: frontend
         run: cp -r ./dist/* ../deploy
 ### END FRONTEND ###
-#
-#      - name: Upload artifact
-#        uses: actions/upload-pages-artifact@v3
-#        with:
-#          name: github-pages
-#          path: './docs'
+
+     - name: Upload artifact
+       uses: actions/upload-pages-artifact@v3
+       with:
+         name: github-pages
+         path: './docs'
       - name: Upload frontend
         uses: actions/upload-pages-artifact@v3
         with:
