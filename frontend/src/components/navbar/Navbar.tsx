@@ -1,13 +1,13 @@
 import UserMenu from './UserMenu';
 import ThemeSwitch from './ThemeSwitch';
-import { Anchor, Card, Flex, Grid } from '@mantine/core';
+import { Card, Flex, Grid } from '@mantine/core';
 import StatusIndicator from './StatusIndicator';
 import { Link } from 'react-router-dom';
 
 const LeftNavItems = () => {
   return (
     <Flex gap={10}>
-      <Anchor href="/">Main</Anchor>
+      <Link to="/">Main</Link >
       <Link to="/about">About</Link>
     </Flex>
   );

@@ -1,4 +1,4 @@
-import { Anchor, Group, ActionIcon, rem } from '@mantine/core';
+import { Group, ActionIcon, rem, Anchor } from '@mantine/core';
 import {
   IconBrandGithub,
   IconBrandTwitter,
@@ -6,7 +6,7 @@ import {
 } from '@tabler/icons-react';
 import TemporaryLogo from './TemporaryLogo';
 import classes from './FooterCentered.module.css';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const links = [
   { link: '/about', label: 'About' },
@@ -27,7 +27,7 @@ export default function FooterCentered() {
       size="sm"
     >
       {link.label}
-    </Anchor>
+    </Anchor >
   ));
 
   return (
@@ -38,8 +38,8 @@ export default function FooterCentered() {
         <Group className={classes.links}>{items}</Group>
 
         <Group gap="xs" justify="flex-end" wrap="nowrap">
-          <Anchor
-            href="https://github.com/RMoodsTeam/RMoods"
+          <Link 
+            to="https://github.com/RMoodsTeam/RMoods"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -49,9 +49,9 @@ export default function FooterCentered() {
                 stroke={1.5}
               />
             </ActionIcon>
-          </Anchor>
-          <Anchor
-            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          </Link >
+          <Link 
+            to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -61,9 +61,9 @@ export default function FooterCentered() {
                 stroke={1.5}
               />
             </ActionIcon>
-          </Anchor>
-          <Anchor
-            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          </Link >
+          <Link 
+            to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -73,7 +73,7 @@ export default function FooterCentered() {
                 stroke={1.5}
               />
             </ActionIcon>
-          </Anchor>
+          </Link >
         </Group>
       </div>
     </footer>
