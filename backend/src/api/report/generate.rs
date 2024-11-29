@@ -26,7 +26,9 @@ pub async fn nlp_analysis<T: RedditFeedData>(
     user_id: GoogleId,
 ) -> Result<RMoodsReport, AppError> {
     let texts = data.extract_texts();
-    let language_analysis = nlp_client.analyze_language(&texts).await?;
+    let language_analysis = nlp_client
+        .analyze(NlpAnalysisKind::Language, &texts)
+        .await?;
     let report = RMoodsReport {
         id: new_report_id(),
         metadata: ReportMetadata {

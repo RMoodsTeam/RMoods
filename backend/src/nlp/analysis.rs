@@ -9,5 +9,5 @@ pub enum NlpAnalysisKind {
     Politics,
     HateSpeech,
     Clickbait,
-    Keyword,
+    Keywords,
 }

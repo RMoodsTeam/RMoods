@@ -19,7 +19,7 @@ pub struct NlpMetadata {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NlpResponse {
     pub label: Vec<String>,
-    pub confidence: Vec<String>,
+    pub confidence: Vec<f64>,
 }
 
 /// Generic NLP response type.

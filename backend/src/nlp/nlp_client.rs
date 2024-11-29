@@ -1,8 +1,10 @@
 use crate::env::NLP_URL;
+use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::error::NlpError;
 use crate::nlp::nlp_response::NlpAnalysis;
 use log_derive::logfn;
 use serde_with::serde_derive::Serialize;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct NlpClient {
@@ -40,9 +42,27 @@ impl NlpClient {
         }
     }
 
+    fn url_for_analysis(analysis: NlpAnalysisKind) -> &'static str {
+        type A = NlpAnalysisKind;
+        match analysis {
+            A::Language => "/language",
+            A::Sentiment => "/sentiment",
+            A::Sarcasm => "/sarcasm",
+            A::Spam => "/spam",
+            A::Politics => "/politics",
+            A::HateSpeech => "/hate-speech",
+            A::Clickbait => "/clickbait",
+            A::Keywords => "/keywords",
+        }
+    }
+
     #[logfn(err = "ERROR", fmt = "Failed to analyze language: {0:?}")]
-    pub async fn analyze_language(&self, input: &Vec<String>) -> Result<NlpAnalysis, NlpError> {
-        let url = format!("{}/report/language", self.nlp_url);
+    pub async fn analyze(
+        &self,
+        kind: NlpAnalysisKind,
+        input: &Vec<String>,
+    ) -> Result<NlpAnalysis, NlpError> {
+        let url = format!("{}{}", self.nlp_url, Self::url_for_analysis(kind));
 
         log::debug!("Handling only first 10 inputs. Truncating each input to 100 characters.");
         // TODO: Add parallel processing for large inputs, input sampling
@@ -75,7 +95,65 @@ mod tests {
             "Hello, world!".to_string(),
             "Bonjour, le monde!".to_string(),
         ];
-        let res = client.analyze_language(&input).await.unwrap();
+        let res = client
+            .analyze(NlpAnalysisKind::Language, &input)
+            .await
+            .unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_get_sentiment() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec!["I love this!".to_string(), "I hate this!".to_string()];
+        let res = client
+            .analyze(NlpAnalysisKind::Sentiment, &input)
+            .await
+            .unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_get_sarcasm() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec!["I love this!".to_string(), "I hate this!".to_string()];
+        let res = client
+            .analyze(NlpAnalysisKind::Sarcasm, &input)
+            .await
+            .unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_get_spam() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec![
+            "Click here to win a free iPhone!".to_string(),
+            "Hello, world!".to_string(),
+        ];
+        let res = client.analyze(NlpAnalysisKind::Spam, &input).await.unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_get_politics() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec![
+            "Democrats are great!".to_string(),
+            "Republicans are great!".to_string(),
+        ];
+        let res = client
+            .analyze(NlpAnalysisKind::Politics, &input)
+            .await
+            .unwrap();
         dbg!(res);
     }
 }

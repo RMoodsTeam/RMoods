@@ -46,11 +46,7 @@ pub async fn login(
         user_info.email_verified
     )
     .execute(&state.pool)
-    .await
-    .or_else(|e| {
-        log::error!("Failed to insert user info into the database: {:?}", e);
-        Err(AppError::internal_server_error())
-    })?;
+    .await?;
 
     log::debug!("User logged in: {:?}", user_info);
 
