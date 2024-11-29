@@ -171,6 +171,7 @@ class TextResponse(BaseModel):
         self.results = results
 
     def json(self):
+        """Convert object to json"""
         return {
             "kind": self.kind,
             "metadata": self.metadata,
@@ -441,7 +442,7 @@ async def get_clickbait(request: TextRequest):
     return TextResponse(
         kind="clickbait",
         metadata=Metadata(generated_in=0.0),
-        results=results
+        result=results
     ).json()
 
 
