@@ -1,21 +1,14 @@
 import { Button, Center, NumberInput, Table, TextInput } from '@mantine/core';
 import { TbPlus } from 'react-icons/tb';
-import { DataSource, DataSourceSchema } from '../../rmoods/client/types.ts';
+import { DataSource } from '../../rmoods/client/types.ts';
 import { useState } from 'react';
-import { z } from 'zod';
-
-export const RowWrapperSchema = z.object({
-  dataSource: DataSourceSchema,
-  id: z.number(),
-});
+import { RowWrapper } from './types.ts';
 
 let ID = 1;
 
 function generateId() {
   return ID++;
 }
-
-export type RowWrapper = z.infer<typeof RowWrapperSchema>;
 
 interface inputRowProps {
   setRows: any;

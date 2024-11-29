@@ -1,7 +1,8 @@
 import { Button, Center, NumberInput, Table, TextInput } from '@mantine/core';
-import InputRow, { RowWrapper } from './inputRow.tsx';
+import InputRow from './inputRow.tsx';
 import { TbTrash } from 'react-icons/tb';
 import { DataSource } from '../../rmoods/client/types.ts';
+import { RowWrapper } from './types.ts';
 
 interface tableProps {
   rows: RowWrapper[];
@@ -13,7 +14,6 @@ interface tableProps {
   deleteRow: (id: number) => void;
   form: any;
 }
-
 /**
  * Returns the column name based on the resource type in the form values.
  *

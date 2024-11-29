@@ -1,27 +1,4 @@
-import { formValues } from './page.tsx';
-import {
-  AnalysisTypeSchema,
-  DataSourceSchema,
-  FeedKindSchema,
-  FeedSortingSchema,
-} from '../../rmoods/client/types.ts';
-import { z } from 'zod';
-
-const transformedJsonSchema = z.object({
-  name: z.string(),
-  resourceType: FeedKindSchema,
-  isPublic: z.boolean(),
-  size: z.object({
-    kind: z.string(),
-    customSize: z.number().optional(),
-  }),
-  customSize: z.number().optional(),
-  sorting: FeedSortingSchema,
-  dataSource: z.array(DataSourceSchema),
-  analyses: AnalysisTypeSchema,
-});
-
-type transformedJson = z.infer<typeof transformedJsonSchema>;
+import { formValues, transformedJson } from './types.ts';
 
 /**
  * Transforms the old JSON format from form to the new JSON format that backend expects.
@@ -48,7 +25,9 @@ export const transformJson = (oldJson: formValues): transformedJson => {
       source.postId === '' ? (source.postId = null) : source.postId;
       return source;
     }),
-    analyses: oldJson.analyses,
+    analyses: Object.entries(oldJson.analyses)
+      .filter(([_, value]) => value === true)
+      .map(([key]) => String(key)),
   };
   return newJson;
 };
