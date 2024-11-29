@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Avatar } from '@mantine/core';
+import { Avatar, Menu } from '@mantine/core';
 import authFetch from '../../rmoods/client/authFetch.ts';
 import { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
@@ -36,16 +36,14 @@ const UserMenu = () => {
       const data = jwtDecode<JwtClaims>(token);
       const id = data.userInfo.id;
 
-      authFetch('http://localhost:8001/api/user?id=' + id, token).then(
-        (response) => {
-          response.json().then((data) => {
-            if (isMounted) {
-              setUser(data);
-              setLoading(false);
-            }
-          });
-        }
-      );
+      authFetch('http://localhost:8001/api/user?id=' + id).then((response) => {
+        response.json().then((data) => {
+          if (isMounted) {
+            setUser(data);
+            setLoading(false);
+          }
+        });
+      });
     } catch (error) {
       console.error('JWT token could not be decoded.', error);
       if (isMounted) {
@@ -64,16 +62,19 @@ const UserMenu = () => {
   };
 
   const size = 55;
-  const resizedPicture = user ? changeDefaultGoogleProfilePicureSize(user.picture, size) : '';
+  const resizedPicture = user
+    ? changeDefaultGoogleProfilePicureSize(user.picture, size)
+    : '';
   return (
-    <Menu id='user-dropdown'>
+    <Menu id="user-dropdown">
       <Menu.Target>
         <Avatar
           src={resizedPicture}
-          radius='xl'
+          radius="xl"
           size={size}
           style={{ cursor: 'pointer' }}
-          imageProps={{ referrerPolicy: 'no-referrer' }} />
+          imageProps={{ referrerPolicy: 'no-referrer' }}
+        />
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>

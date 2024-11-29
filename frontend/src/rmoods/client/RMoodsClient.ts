@@ -1,6 +1,5 @@
 import { FeedRequest } from './types.ts';
 import authFetch from './authFetch.ts';
-import Cookies from 'js-cookie';
 
 /**
  * Provides a simple interface to the RMoods Backend API.
@@ -20,12 +19,7 @@ export default class RMoodsClient {
    * @param request
    */
   static async requestReport(request: FeedRequest): Promise<Response> {
-    const jwt = Cookies.get('RMOODS_JWT');
-    if (!jwt) {
-      throw new Error('No JWT token found when trying to request a report');
-    }
-
-    return await authFetch(`${RMoodsClient.URL}/report`, jwt, {
+    return await authFetch(`${RMoodsClient.URL}/report`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
