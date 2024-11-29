@@ -1,3 +1,4 @@
+use crate::nlp::analysis::NlpAnalysisKind;
 use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::reddit::request::feed_sorting::FeedSorting;
 use axum::async_trait;
@@ -16,17 +17,6 @@ pub enum RedditFeedKind {
     SubredditPosts,
 }
 
-// TODO: Add more types
-/// What NLP reports do we want to generate?
-#[derive(Debug, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub enum RMoodsReportType {
-    Language,
-    Sentiment,
-    Sarcasm,
-    Etc,
-}
-
 /// Represents a data source for the Reddit API.
 /// It can be a user, a subreddit, or a post.
 ///
@@ -43,13 +33,13 @@ pub struct DataSource {
 }
 
 /// Represents a request to fetch a feed from Reddit.
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FetcherFeedRequest {
     /// Determines what kind of feed do we fetch and make a report on.
     pub resource_kind: RedditFeedKind,
     /// Determines what NLP reports do we want to generate.
-    pub report_types: Vec<RMoodsReportType>,
+    pub report_types: Vec<NlpAnalysisKind>,
     /// Determines the data sources for the feed.
     pub data_sources: Vec<DataSource>,
     /// Determines how many posts do we want to use to fulfill that report request.
@@ -194,8 +184,8 @@ mod tests {
         assert_eq!(
             feed_request.report_types,
             vec![
-                super::RMoodsReportType::Language,
-                super::RMoodsReportType::Sentiment
+                super::NlpAnalysisKind::Language,
+                super::NlpAnalysisKind::Sentiment
             ]
         );
         assert_eq!(feed_request.data_sources.len(), 2);
