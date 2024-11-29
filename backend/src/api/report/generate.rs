@@ -1,8 +1,9 @@
 use crate::api::auth::google::{GoogleId, JwtUserInfo};
 use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
+use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::report::{new_report_id, NlpAnalyses, RMoodsReport, ReportMetadata};
+use crate::nlp::report::{new_report_id, RMoodsReport, ReportMetadata};
 use crate::reddit_fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::reddit_fetcher::model::post_comments::PostComments;
@@ -14,6 +15,7 @@ use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
 use axum::extract::State;
 use jsonwebtoken::get_current_timestamp;
+use std::collections::HashMap;
 
 /// Create a report from the given data.
 ///
@@ -24,7 +26,9 @@ pub async fn nlp_analysis<T: RedditFeedData>(
     user_id: GoogleId,
 ) -> Result<RMoodsReport, AppError> {
     let texts = data.extract_texts();
-    let language_analysis = nlp_client.analyze_language(&texts).await?;
+    let language_analysis = nlp_client
+        .analyze(NlpAnalysisKind::Language, &texts)
+        .await?;
     let report = RMoodsReport {
         id: new_report_id(),
         metadata: ReportMetadata {
@@ -32,9 +36,7 @@ pub async fn nlp_analysis<T: RedditFeedData>(
             user_id,
             is_public: true,
         },
-        analyses: NlpAnalyses {
-            language: Some(language_analysis),
-        },
+        analyses: HashMap::from([(NlpAnalysisKind::Language, language_analysis)]),
     };
     Ok(report)
 }
