@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 /// Metadata for the NLP response.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct NlpMetadata {
     /// Time it took to generate the response in seconds.
     #[serde(rename(serialize = "generatedIn"))]
@@ -12,21 +12,24 @@ pub struct NlpMetadata {
 
 /// Response from the NLP service for some analysis.
 /// Preserves the order of the input texts.
-/// * `language` field contains the detected languages of the input texts.
-/// * `predicted` field contains the predicted languages of the input texts.
-///
 /// Iterate in lockstep over the two fields to get the corresponding values.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct NlpResponse {
+    /// Classification labels. Indicates the result of the analysis.
     pub labels: Vec<String>,
+    /// Confidence scores for each label. Higher is more confident.
     pub confidences: Vec<f64>,
 }
 
-/// Generic NLP response type.
-/// Contains metadata and a list of analysis results.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+/// Represents a full NLP analysis response.
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct NlpAnalysis {
+    /// Kind of analysis performed.
     pub kind: NlpAnalysisKind,
+    /// Metadata for the response.
     pub metadata: NlpMetadata,
+    /// Results of the analysis.
     pub results: Vec<NlpResponse>,
 }

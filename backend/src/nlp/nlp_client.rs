@@ -4,7 +4,6 @@ use crate::nlp::error::NlpError;
 use crate::nlp::nlp_response::NlpAnalysis;
 use log_derive::logfn;
 use serde_with::serde_derive::Serialize;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct NlpClient {
