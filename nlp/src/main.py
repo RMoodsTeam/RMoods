@@ -135,7 +135,7 @@ app = FastAPI(lifespan=lifespan)
 
 class TextRequest(BaseModel):
     """Request model for text"""
-    text: List[str] = []
+    text: List[str]
 
 
 class AnalysisResult(BaseModel):
