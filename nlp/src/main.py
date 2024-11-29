@@ -135,24 +135,47 @@ app = FastAPI(lifespan=lifespan)
 
 class TextRequest(BaseModel):
     """Request model for text"""
-    text: List[str]
+    text: List[str] = []
 
 
-class Result(BaseModel):
+class AnalysisResult(BaseModel):
     """Result model for text"""
-    label: List[str]
-    confidence: List[float]
+    labels: List[str] = []
+    confidences: List[float] = []
+
+    def __init__(self, labels: List[str], confidences: List[float]):
+        super().__init__()
+        self.labels = labels
+        self.confidences = confidences
 
 
 class Metadata(BaseModel):
     """Metadata model for text"""
-    generated_in: float
+    generated_in: float = 0.0
+
+    def __init__(self, generated_in: float):
+        super().__init__()
+        self.generated_in = generated_in
 
 
 class TextResponse(BaseModel):
     """Response model for text"""
-    metadata: Metadata
-    results: List[Result]
+    kind: str = ""
+    metadata: Metadata = Metadata(generated_in=-1.0)
+    results: List[AnalysisResult] = []
+
+    def __init__(self, kind: str, metadata: Metadata, results: List[AnalysisResult]):
+        super().__init__()
+        self.kind = kind
+        self.metadata = metadata
+        self.results = results
+
+    def json(self):
+        return {
+            "kind": self.kind,
+            "metadata": self.metadata,
+            "results": self.results
+        }
 
 
 @app.post("/sentiment", response_model=TextResponse)
@@ -185,12 +208,17 @@ async def get_sentiment(request: TextRequest):
         probs = output.logits.softmax(dim=-1).tolist()[0]
         confidence = max(probs)
         prediction = probs.index(confidence)
-        text_values = {
-            "label": [labels[prediction]],
-            "confidence": [confidence_output(confidence)]
-        }
-        results.append(text_values)
-    return {"metadata": {"generated_in": 0.0}, "results": results}
+        result = AnalysisResult(
+            labels=[labels[prediction]],
+            confidences=[confidence_output(confidence)]
+        )
+        results.append(result)
+
+    return TextResponse(
+        kind="sentiment",
+        metadata=Metadata(generated_in=0.0),
+        results=results
+    ).json()
 
 
 @app.post("/language", response_model=TextResponse)
@@ -219,14 +247,17 @@ async def get_language(request: TextRequest):
             else:
                 languages.append(lang_tag)
 
-        predictions = [confidence_output(y) for y in prediction[1]]
+        result = AnalysisResult(
+            labels=languages,
+            confidences=[confidence_output(y) for y in prediction[1]]
+        )
+        results.append(result)
 
-        text_values = {
-            "label": languages,
-            "confidence": predictions
-        }
-        results.append(text_values)
-    return {"metadata": {"generated_in": 0.0}, "results": results}
+    return TextResponse(
+        kind="language",
+        metadata=Metadata(generated_in=0.0),
+        results=results
+    ).json()
 
 
 @app.post("/sarcasm", response_model=TextResponse)
@@ -246,15 +277,20 @@ async def get_sarcasm(request: TextRequest):
         "1": "SARCASTIC"
     }
     results = []
+
     for text in request.text:
         predict = sarcastic_pipeline(text)
-        output = {
-            "label": [labels[predict[0]["label"].replace("LABEL_", "")]],
-            "confidence": [confidence_output(predict[0]["score"])]
-        }
-        results.append(output)
+        result = AnalysisResult(
+            labels=[labels[predict[0]["label"].replace("LABEL_", "")]],
+            confidences=[confidence_output(predict[0]["score"])]
+        )
+        results.append(result)
 
-    return {"metadata": {"generated_in": 0.0}, "results": results}
+    return TextResponse(
+        kind="sarcasm",
+        metadata=Metadata(generated_in=0.0),
+        results=results
+    ).json()
 
 
 @app.post("/keywords", response_model=TextResponse)
@@ -274,12 +310,17 @@ async def get_keywords(request: TextRequest):
     results = []
     for text in request.text:
         keywords = keyword_model.extract_keywords(text, top_n=5)
-        output = {
-            "label": [kw[0] for kw in keywords],
-            "confidence": [kw[1] for kw in keywords]
-        }
-        results.append(output)
-    return {"metadata": {"generated_in": 0.0}, "results": results}
+        result = AnalysisResult(
+            labels=[kw[0] for kw in keywords],
+            confidences=[kw[1] for kw in keywords]
+        )
+        results.append(result)
+
+    return TextResponse(
+        kind="keywords",
+        metadata=Metadata(generated_in=0.0),
+        results=results
+    ).json()
 
 
 @app.post("/spam", response_model=TextResponse)
@@ -302,13 +343,17 @@ async def get_spam(request: TextRequest):
     results = []
     for text in request.text:
         predict = spam_pipeline(text)
-        output = {
-            "label": [labels[predict[0]["label"].replace("LABEL_", "")]],
-            "confidence": [confidence_output(predict[0]["score"])]
-        }
-        results.append(output)
+        result = AnalysisResult(
+            labels=[labels[predict[0]["label"].replace("LABEL_", "")]],
+            confidences=[confidence_output(predict[0]["score"])]
+        )
+        results.append(result)
 
-    return {"metadata": {"generated_in": 0.0}, "results": results}
+    return TextResponse(
+        kind="spam",
+        metadata=Metadata(generated_in=0.0),
+        results=results
+    ).json()
 
 
 @app.post("/politics", response_model=TextResponse)
@@ -328,13 +373,17 @@ async def get_politics(request: TextRequest):
     results = []
     for text in request.text:
         predict = political_pipeline(text)
-        output = {
-            "label": [predict[0]["label"]],
-            "confidence": [confidence_output(predict[0]["score"])]
-        }
-        results.append(output)
+        result = AnalysisResult(
+            labels=[predict[0]["label"]],
+            confidences=[confidence_output(predict[0]["score"])]
+        )
+        results.append(result)
 
-    return {"metadata": {"generated_in": 0.0}, "results": results}
+    return TextResponse(
+        kind="politics",
+        metadata=Metadata(generated_in=0.0),
+        results=results
+    ).json()
 
 
 @app.post("/hate-speech", response_model=TextResponse)
@@ -355,13 +404,17 @@ async def get_hate_speech(request: TextRequest):
     results = []
     for text in request.text:
         predict = hate_speech_pipeline(text)
-        output = {
-            "label": [predict[0]["label"]],
-            "confidence": [confidence_output(predict[0]["score"])]
-        }
-        results.append(output)
+        result = AnalysisResult(
+            labels=[predict[0]["label"]],
+            confidences=[confidence_output(predict[0]["score"])]
+        )
+        results.append(result)
 
-    return {"metadata": {"generated_in": 0.0}, "results": results}
+    return TextResponse(
+        kind="hate-speech",
+        metadata=Metadata(generated_in=0.0),
+        results=results
+    ).json()
 
 
 @app.post("/clickbait", response_model=TextResponse)
@@ -379,14 +432,20 @@ async def get_clickbait(request: TextRequest):
     results = []
     for text in request.text:
         predict = clickbait_pipeline(text)
-        output = {
-            "label": [predict[0]["label"]],
-            "confidence": [confidence_output(predict[0]["score"])]
-        }
-        results.append(output)
-    return {"metadata": {"generated_in": 0.0}, "results": results}
+        result = AnalysisResult(
+            labels=[predict[0]["label"]],
+            confidences=[confidence_output(predict[0]["score"])]
+        )
+        results.append(result)
+
+    return TextResponse(
+        kind="clickbait",
+        metadata=Metadata(generated_in=0.0),
+        results=results
+    ).json()
 
 
+# TODO: Implement troll model
 @app.post("/troll")
 async def get_troll(request: TextRequest):
     """
