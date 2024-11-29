@@ -18,8 +18,8 @@ pub struct NlpMetadata {
 /// Iterate in lockstep over the two fields to get the corresponding values.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NlpResponse {
-    pub label: Vec<String>,
-    pub confidence: Vec<f64>,
+    pub labels: Vec<String>,
+    pub confidences: Vec<f64>,
 }
 
 /// Generic NLP response type.

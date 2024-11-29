@@ -411,7 +411,7 @@ async def get_hate_speech(request: TextRequest):
         results.append(result)
 
     return TextResponse(
-        kind="hate-speech",
+        kind="hate_speech",
         metadata=Metadata(generated_in=0.0),
         results=results
     ).json()

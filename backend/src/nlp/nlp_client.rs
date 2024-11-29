@@ -143,6 +143,51 @@ mod tests {
 
     #[ignore]
     #[tokio::test]
+    async fn test_get_hate_speech() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec!["I hate you!".to_string(), "I love you!".to_string()];
+        let res = client
+            .analyze(NlpAnalysisKind::HateSpeech, &input)
+            .await
+            .unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_get_clickbait() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec![
+            "You won't believe what happens next!".to_string(),
+            "Hello, world!".to_string(),
+        ];
+        let res = client
+            .analyze(NlpAnalysisKind::Clickbait, &input)
+            .await
+            .unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_get_keywords() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec![
+            "Hello, world!".to_string(),
+            "Bonjour, le monde!".to_string(),
+        ];
+        let res = client
+            .analyze(NlpAnalysisKind::Keywords, &input)
+            .await
+            .unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
     async fn test_get_politics() {
         setup();
         let client = NlpClient::new();
