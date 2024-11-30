@@ -1,15 +1,19 @@
 import os
 import string
-from contextlib import asynccontextmanager
-from typing import List
-
 import fasttext
+import src.authorization as auth
+
 from fastapi import FastAPI, HTTPException
+from fastapi.params import Depends
 from keybert import KeyBERT
 from langcodes import tag_is_valid, Language
 from pydantic import BaseModel
 from src.version_checker import update_model_versions
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+from contextlib import asynccontextmanager
+from typing import List
+from fastapi.security.api_key import APIKey
+
 
 language_model = None
 sentiment_tokenizer = None
@@ -27,7 +31,8 @@ def load_model(model_name: str):
     Load spam models function. It loads the model and tokenizer for the given
     model name.
 
-    :param model_name: Name of the model to load.
+    Args:
+         model_name (str): Name of the model to load.
     """
     global spam_pipeline, sarcastic_pipeline, political_pipeline, \
         hate_speech_pipeline, clickbait_pipeline, sentiment_model, \
@@ -73,12 +78,15 @@ def load_model(model_name: str):
                                       tokenizer=tokenizer)
 
 
-def preprocess_data(input_text):
+def preprocess_data(input_text :str):
     """
     Preprocess input text.
 
-    :param input_text: Input text to preprocess.
-    :return: Preprocessed text.
+    Args
+        input_text (str): Input text to preprocess.
+
+    Returns
+        str: Preprocessed text.
     """
     return input_text.lower().translate(str.maketrans('', '', string.punctuation))
 
@@ -87,45 +95,49 @@ def confidence_output(value: float | str):
     """
     Convert confidence value to float.
 
-    :param value: Confidence value.
-    :return: Float value of confidence.
+    Args
+        value (float | str): Confidence value.
+
+    Returns:
+         Float value of confidence.
     """
     return float(round(value, 2))
-
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     """
     Context manager for the lifespan of the application.
 
-    :param application: FastAPI application.
+    Args
+        application (FastAPI): FastAPI application.
     """
     print("Application is starting.")
-    update_model_versions()
+    print("Checking for model updates.")
+    #update_model_versions()
 
     print("Loading language model.")
     load_model("language")
 
-    print("Loading sentiment model.")
-    load_model("sentiment")
-
-    print("Loading sarcastic model.")
-    load_model("sarcasm")
-
-    print("Loading spam model.")
-    load_model("spam")
+    # print("Loading sentiment model.")
+    # load_model("sentiment")
     #
-    print("Loading politics model.")
-    load_model("political")
-
-    print("Loadaing hate_speech model.")
-    load_model("hate_speech")
-
-    print("Loading clickbait model.")
-    load_model("clickbait")
-
-    print("Loading keyword model.")
-    load_model("keywords")
+    # print("Loading sarcastic model.")
+    # load_model("sarcasm")
+    #
+    # print("Loading spam model.")
+    # load_model("spam")
+    # #
+    # print("Loading politics model.")
+    # load_model("political")
+    #
+    # print("Loadaing hate_speech model.")
+    # load_model("hate_speech")
+    #
+    # print("Loading clickbait model.")
+    # load_model("clickbait")
+    #
+    # print("Loading keyword model.")
+    # load_model("keywords")
     yield
     print("Application is shutting down.")
 
@@ -179,14 +191,17 @@ class TextResponse(BaseModel):
         }
 
 
-@app.post("/sentiment", response_model=TextResponse)
+@app.post("/sentiment", response_model=TextResponse,
+          dependencies=[Depends(auth.get_api_key)])
 async def get_sentiment(request: TextRequest):
     """
     Get sentiment of the text.
 
-    :param request: Request from server in json format
+    Args:
+        request (TextReques): Contains a list of text strings to analyze
 
-    :return: Dictionary with model output
+    Returns:
+        TextResponse: Sentiment analysis results with labels and confidence scores.
     """
     if sentiment_model is None or sentiment_tokenizer is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
@@ -222,15 +237,17 @@ async def get_sentiment(request: TextRequest):
     ).json()
 
 
-@app.post("/language", response_model=TextResponse)
+@app.post("/language", response_model=TextResponse,
+          dependencies=[Depends(auth.get_api_key)])
 async def get_language(request: TextRequest):
     """
     Get language of the texts from request.
 
-    :param request: Request from server in json format
+    Args:
+        request (TextReques): Contains a list of text strings to analyze
 
-    :return: Dictionary with language and predictions. Each of them is a list, with
-            list as many text as in the request array.
+    Returns:
+        TextResponse: Language detection results with labels and confidence scores.
     """
     if language_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
@@ -261,14 +278,17 @@ async def get_language(request: TextRequest):
     ).json()
 
 
-@app.post("/sarcasm", response_model=TextResponse)
+@app.post("/sarcasm", response_model=TextResponse,
+          dependencies=[Depends(auth.get_api_key)])
 async def get_sarcasm(request: TextRequest):
     """
     Get sarcasm of the text. 0 is not sarcastic, 1 is sarcastic.
 
-    :param request: Request from server in json format
+    Args:
+        request (TextReques): Contains a list of text strings to analyze
 
-    :return: Dictionary with model output
+    Returns:
+        TextResponse: Sarcasm detection results with labels and confidence scores.
     """
     if sarcastic_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
@@ -294,14 +314,17 @@ async def get_sarcasm(request: TextRequest):
     ).json()
 
 
-@app.post("/keywords", response_model=TextResponse)
+@app.post("/keywords", response_model=TextResponse,
+          dependencies=[Depends(auth.get_api_key)])
 async def get_keywords(request: TextRequest):
     """
     Get keywords of the text.
 
-    :param request: Request from server in json format
+    Args:
+        request (TextReques): Contains a list of text strings to analyze
 
-    :return: Dictionary with model output
+    Returns:
+        TextResponse: Keyword extraction results with labels and relevance scores.
     """
     # Rememeber add author if we wan to use this model
     # How keywords will work with long text?
@@ -324,14 +347,17 @@ async def get_keywords(request: TextRequest):
     ).json()
 
 
-@app.post("/spam", response_model=TextResponse)
+@app.post("/spam", response_model=TextResponse,
+          dependencies=[Depends(auth.get_api_key)])
 async def get_spam(request: TextRequest):
     """
     Get spam of the text. 0 is not spam, 1 is spam.
 
-    :param request: Request from server in json format
+    Args:
+        request (TextReques): Contains a list of text strings to analyze
 
-    :return: Dictionary with model output
+    Returns:
+        TextResponse: Spam detection results with labels and confidence scores.
     """
     if spam_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
@@ -357,14 +383,17 @@ async def get_spam(request: TextRequest):
     ).json()
 
 
-@app.post("/politics", response_model=TextResponse)
+@app.post("/politics", response_model=TextResponse,
+          dependencies=[Depends(auth.get_api_key)])
 async def get_politics(request: TextRequest):
     """
     Get politics of the text.
 
-    :param request: Request from server in json format
+    Args:
+        request (TextReques): Contains a list of text strings to analyze.
 
-    :return: Dictionary with model output
+    Returns:
+        TextResponse: Political content detection results with labels and confidence scores.
     """
     # Model accuracy may not hold up on pieces of text longer than a tweet.
     # Slice it to smaller pieces if needed?
@@ -387,14 +416,17 @@ async def get_politics(request: TextRequest):
     ).json()
 
 
-@app.post("/hate-speech", response_model=TextResponse)
+@app.post("/hate-speech", response_model=TextResponse,
+          dependencies=[Depends(auth.get_api_key)])
 async def get_hate_speech(request: TextRequest):
     """
     Get hate speech of the text.
 
-    :param request: Request from server in json format
+    Args:
+        request (TextReques): Contains a list of text strings to analyze.
 
-    :return: Dictionary with model output
+    Returns:
+        TextResponse: Hate speech detection results with labels and confidence scores.
     """
     # Do zamieszczenia bibliografie z linku
     # https: // huggingface.co / Hate - speech - CNERG / dehatebert - mono - english
@@ -418,14 +450,17 @@ async def get_hate_speech(request: TextRequest):
     ).json()
 
 
-@app.post("/clickbait", response_model=TextResponse)
+@app.post("/clickbait", response_model=TextResponse,
+          dependencies=[Depends(auth.get_api_key)])
 async def get_clickbait(request: TextRequest):
     """
     Get clickbait of the text.
 
-    :param request: Request from server in json format
+    Args:
+        request (TextReques): Contains a list of text strings to analyze.
 
-    :return: Dictionary with model output. Label is set to CLICKBAIT or NOT_CLICKBAIT.
+    Returns:
+        TextResponse: Clickbait detection results with labels and confidence scores.
     """
     if clickbait_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
@@ -450,11 +485,13 @@ async def get_clickbait(request: TextRequest):
 @app.post("/troll")
 async def get_troll(request: TextRequest):
     """
-    Get troll of the text.
+    Detect troll content in the provided text(s).
 
-    :param request: Request from server in json format
+    Args:
+        request (TextRequest): Contains a list of text strings to analyze.
 
-    :return: Dictionary with model output
+    Returns:
+        dict: Troll detection results.
     """
     text = request.text[0]
     return {"troll": text}

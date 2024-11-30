@@ -17,6 +17,7 @@ using_manager.md
 main.md
 google_service.md
 version_checker.md
+authorization.md
 ```
     
 ## Indices and tables
