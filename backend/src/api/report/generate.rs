@@ -31,10 +31,10 @@ pub async fn nlp_analysis<T: RedditFeedData>(
         .await?;
     let report = RMoodsReport {
         id: new_report_id(),
+        user_id,
+        is_public: true,
         metadata: ReportMetadata {
             created_at: get_current_timestamp(),
-            user_id,
-            is_public: true,
         },
         analyses: HashMap::from([(NlpAnalysisKind::Language, language_analysis)]),
     };

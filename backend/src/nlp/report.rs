@@ -11,10 +11,6 @@ use std::fmt::Debug;
 pub struct ReportMetadata {
     /// The UNIX timestamp of the report's creation.
     pub created_at: u64,
-    /// Information about the user that requested the report.
-    pub user_id: GoogleId,
-    /// Whether the report is public.
-    pub is_public: bool,
 }
 
 pub type ReportId = String;
@@ -30,6 +26,10 @@ pub fn new_report_id() -> ReportId {
 #[derive(Serialize)]
 pub struct RMoodsReport {
     pub id: ReportId,
+    /// Information about the user that requested the report.
+    pub user_id: GoogleId,
+    /// Whether the report is public.
+    pub is_public: bool,
     pub metadata: ReportMetadata,
     pub analyses: HashMap<NlpAnalysisKind, NlpAnalysis>,
 }

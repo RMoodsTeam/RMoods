@@ -20,6 +20,7 @@ use websocket::ws_service;
 
 mod api;
 mod app_error;
+mod db;
 mod env;
 mod logging;
 mod nlp;
