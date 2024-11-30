@@ -3,6 +3,7 @@ import { Box, Button, Center, Code, Title } from '@mantine/core';
 import { FeedRequest } from '../rmoods/client/types';
 import RMoodsClient from '../rmoods/client/RMoodsClient.ts';
 import LoremIpsum from './LoremIpsum';
+import { ScrollToTop } from '../components/ScrollToTop';
 
 const Demo: React.FC = () => {
   const [reportRes, setReportRes] = useState<object | null>(null);
@@ -40,7 +41,8 @@ const Demo: React.FC = () => {
           <Code>{JSON.stringify(reportRes, null, 2)}</Code>
         </Center>
       </Box>
-      <LoremIpsum n={3} />
+      <LoremIpsum n={20} />
+      <ScrollToTop />
     </>
   );
 };
