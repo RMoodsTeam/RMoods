@@ -11,6 +11,8 @@ use std::fmt::Debug;
 pub struct ReportMetadata {
     /// The UNIX timestamp of the report's creation.
     pub created_at: u64,
+    /// The UNIX timestamp of the report's last update.
+    pub updated_at: u64,
 }
 
 pub type ReportId = String;
@@ -28,6 +30,8 @@ pub struct Report {
     pub id: ReportId,
     /// Information about the user that requested the report.
     pub user_id: GoogleId,
+    pub title: String,
+    pub description: String,
     /// Whether the report is public.
     pub is_public: bool,
     pub metadata: ReportMetadata,
