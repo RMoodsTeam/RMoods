@@ -24,7 +24,7 @@ pub fn new_report_id() -> ReportId {
 /// Based off of NLP analysis of Reddit feeds.
 /// Contains metadata and a list of analyses.
 #[derive(Serialize)]
-pub struct RMoodsReport {
+pub struct Report {
     pub id: ReportId,
     /// Information about the user that requested the report.
     pub user_id: GoogleId,

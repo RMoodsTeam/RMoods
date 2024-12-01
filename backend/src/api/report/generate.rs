@@ -3,7 +3,7 @@ use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::report::{new_report_id, RMoodsReport, ReportMetadata};
+use crate::nlp::report::{new_report_id, Report, ReportMetadata};
 use crate::reddit_fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::reddit_fetcher::model::post_comments::PostComments;
@@ -24,12 +24,12 @@ pub async fn nlp_analysis<T: RedditFeedData>(
     nlp_client: &NlpClient,
     data: T,
     user_id: GoogleId,
-) -> Result<RMoodsReport, AppError> {
+) -> Result<Report, AppError> {
     let texts = data.extract_texts();
     let language_analysis = nlp_client
         .analyze(NlpAnalysisKind::Language, &texts)
         .await?;
-    let report = RMoodsReport {
+    let report = Report {
         id: new_report_id(),
         user_id,
         is_public: true,
@@ -50,7 +50,7 @@ async fn generate_report<T: RedditFeedData>(
     feed_request: FetcherFeedRequest,
     nlp: &NlpClient,
     user_info: &GoogleId,
-) -> Result<RMoodsReport, AppError> {
+) -> Result<Report, AppError> {
     let (data, _) = fetcher.fetch_feed::<T>(feed_request).await?;
     let report = nlp_analysis(nlp, data, user_info.clone()).await?;
     Ok(report)
