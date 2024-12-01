@@ -1,3 +1,4 @@
+use crate::db::db_client::DbClient;
 use crate::nlp::nlp_client::NlpClient;
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
@@ -35,7 +36,7 @@ mod websocket;
 #[derive(Clone, Debug)]
 pub struct AppState {
     pub fetcher: RMoodsFetcher,
-    pub pool: Pool<Postgres>,
+    pub db: DbClient,
     pub http: Client,
     pub nlp_client: NlpClient,
     pub system_tx: tokio::sync::mpsc::Sender<SystemMessage>,
@@ -49,6 +50,7 @@ async fn run() -> anyhow::Result<()> {
         .connect(&url)
         .await?;
     info!("Connected to the database");
+    let db = DbClient::new(pool);
 
     let http = reqwest::ClientBuilder::new()
         .user_agent("RMoods")
@@ -71,7 +73,7 @@ async fn run() -> anyhow::Result<()> {
 
     let state = AppState {
         fetcher,
-        pool,
+        db,
         http,
         nlp_client,
         system_tx,

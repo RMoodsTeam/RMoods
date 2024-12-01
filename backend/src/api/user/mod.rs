@@ -19,7 +19,7 @@ pub async fn get_user(
         "SELECT * FROM users WHERE id = $1",
         query.id
     )
-    .fetch_one(&state.pool)
+    .fetch_one(state.db.raw_db())
     .await?;
 
     Ok(Json(user))

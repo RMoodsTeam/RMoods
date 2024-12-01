@@ -45,7 +45,7 @@ pub async fn login(
         user_info.email,
         user_info.email_verified
     )
-    .execute(&state.pool)
+    .execute(state.db.raw_db())
     .await?;
 
     log::debug!("User logged in: {:?}", user_info);
