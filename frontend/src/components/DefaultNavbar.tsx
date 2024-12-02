@@ -1,12 +1,12 @@
 import { Anchor, Card, Flex, Grid } from '@mantine/core';
 import ThemeSwitch from './navbar/ThemeSwitch.tsx';
-import UserMenu from './navbar/UserMenu.tsx';
 
 const LeftNavItems = () => {
   return (
     <Flex gap={10}>
       <Anchor href="/">Main</Anchor>
       <Anchor href="/about">About</Anchor>
+      <Anchor href="/dashboard">Dashboard</Anchor>
     </Flex>
   );
 };
@@ -15,7 +15,6 @@ const RightNavItems = () => {
   return (
     <Flex gap={10} justify={'right'} align="center">
       <ThemeSwitch />
-      <UserMenu />
     </Flex>
   );
 };
