@@ -1,5 +1,5 @@
 import { Button, Center, NumberInput, Table, TextInput } from '@mantine/core';
-import InputRow from './inputRow.tsx';
+import InputRow from './InputRow.tsx';
 import { TbTrash } from 'react-icons/tb';
 import { DataSource } from '../../rmoods/client/types.ts';
 import { RowWrapper } from './types.ts';
@@ -24,7 +24,7 @@ interface TableProps {
 const getResourceTypeColumnName = (form: any) => {
   if (form.values.resourceType === 'subredditPosts') {
     return 'Subreddit';
-  } else if (form.values.resourceType === 'postComments') {
+  } else if (form.values.resourceKind === 'postComments') {
     return 'Subreddit';
   } else {
     return 'Username';

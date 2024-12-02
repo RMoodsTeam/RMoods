@@ -18,6 +18,7 @@ import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from './tables.tsx';
 import { ReportFormValidationSchema, ReportFormValues, RowWrapper } from './types.ts';
 import { transformJson } from './transformJson.ts';
+import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
 
 /**
  * Report component for creating a new report.
@@ -28,13 +29,13 @@ const Report = () => {
   const form = useForm({
     initialValues: {
       name: '',
-      resourceType: 'subredditPosts',
+      resourceKind: 'subredditPosts',
       isPublic: 'true',
       size: 'small',
       customSize: undefined,
       sortBy: 'hot',
       time: 'day',
-      dataSource: [] as DataSource[],
+      dataSources: [] as DataSource[],
       analyses: {
         language: false,
         sentiment: false,
@@ -53,7 +54,7 @@ const Report = () => {
 
   useEffect(() => {
     form.setFieldValue(
-      'dataSource',
+      'dataSources',
       rows.map((row) => row.dataSource)
     );
   }, [rows]);
@@ -99,7 +100,8 @@ const Report = () => {
       <Title order={1}>Create Report</Title>
 
       <form
-        onSubmit={form.onSubmit((values: any) => {
+        onSubmit={form.onSubmit((values) => {
+          void values;
           const validationResult = form.validate();
           if (!validationResult.hasErrors) {
             console.log('Form is valid');
@@ -110,6 +112,14 @@ const Report = () => {
             form.values as ReportFormValues
           );
           console.log(transformedValues);
+
+          RMoodsClient.requestReport(transformedValues)
+            .then((res: unknown) => {
+              console.log(res);
+            })
+            .catch((err: Error) => {
+              console.error(err);
+            });
         })}
       >
         <TextInput
@@ -127,7 +137,7 @@ const Report = () => {
         <Radio.Group
           name="sourceType"
           label="Select source type"
-          {...form.getInputProps('resourceType')}
+          {...form.getInputProps('resourceKind')}
           onClick={() => {
             setRows([]);
           }}
@@ -187,13 +197,13 @@ const Report = () => {
             makeRowEditHandler={makeRowEditHandler}
           />
         </Box>
-        {form.errors.dataSource && (
+        {form.errors.dataSources && (
           <Input.Error
             style={() => ({
               marginTop: '6px',
             })}
           >
-            {form.errors.dataSource}
+            {form.errors.dataSources}
           </Input.Error>
         )}
 

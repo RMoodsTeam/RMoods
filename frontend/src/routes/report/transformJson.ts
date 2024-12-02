@@ -13,7 +13,7 @@ export const transformJson = (
   // this variable will stay for a while as it help with debugging the new format
   const newJson = {
     name: oldJson.name,
-    resourceType: oldJson.resourceType,
+    resourceKind: oldJson.resourceKind,
     isPublic: oldJson.isPublic === 'true',
     size: Number.parseInt(oldJson.size),
     sorting:
@@ -25,7 +25,7 @@ export const transformJson = (
         : ({
             kind: oldJson.sortBy,
           } as FeedSorting),
-    dataSource: oldJson.dataSource.map((source: DataSource) => {
+    dataSources: oldJson.dataSources.map((source: DataSource) => {
       if (source.postId === '') {
         source.postId = undefined;
       }

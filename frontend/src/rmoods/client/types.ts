@@ -51,14 +51,6 @@ export const DataSourceSchema = z.object({
   share: z.number(),
 });
 
-const FeedRequestSchema = z.object({
-  resourceKind: FeedKindSchema,
-  reportTypes: z.array(AnalysisTypeSchema),
-  dataSources: z.array(DataSourceSchema),
-  size: z.number().min(1),
-  sorting: FeedSortingSchema,
-});
-
 const GoogleUserInfoSchema = z.object({
   sub: z.string(),
   name: z.string(),
@@ -100,7 +92,6 @@ export type AnalysisType = z.infer<typeof AnalysisTypeSchema>;
 export type FeedSorting = z.infer<typeof FeedSortingSchema>;
 export type FeedSortingTime = z.infer<typeof FeedSortingTimeSchema>;
 export type DataSource = z.infer<typeof DataSourceSchema>;
-export type FeedRequest = z.infer<typeof FeedRequestSchema>;
 export type GoogleUserInfo = z.infer<typeof GoogleUserInfoSchema>;
 export type LanguageResponse = z.infer<typeof LanguageResponseSchema>;
 export type NlpMetadata = z.infer<typeof NlpMetadataSchema>;

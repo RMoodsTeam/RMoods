@@ -10,11 +10,11 @@ import {
 
 const ReportFormAdaptedSchema = z.object({
   name: z.string(),
-  resourceType: FeedKindSchema,
+  resourceKind: FeedKindSchema,
   isPublic: z.boolean(),
   size: z.number().min(1).max(500),
   sorting: FeedSortingSchema,
-  dataSource: z.array(DataSourceSchema),
+  dataSources: z.array(DataSourceSchema),
   analyses: z.array(z.string()),
 });
 
@@ -25,12 +25,12 @@ export const RowWrapperSchema = z.object({
 
 export const ReportFormValidationSchema = z.object({
   name: z.string().min(1, { message: 'Name must be longer than 1 character' }),
-  resourceType: FeedKindSchema,
+  resourceKind: FeedKindSchema,
   isPublic: z.enum(['true', 'false']),
   size: z.string(), // string due to form api constraints
   sortBy: FeedSortingKindSchema,
   time: FeedSortingTimeSchema,
-  dataSource: z
+  dataSources: z
     .array(DataSourceSchema)
     .min(1, { message: 'At least 1 data source is required' }),
   analyses: AnalysisTypeSchema,
