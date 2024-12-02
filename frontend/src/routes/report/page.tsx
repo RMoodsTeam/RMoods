@@ -3,13 +3,13 @@ import {
   Button,
   Checkbox,
   Group,
+  Input,
+  NumberInput,
+  Radio,
+  SegmentedControl,
+  Stack,
   TextInput,
   Title,
-  NumberInput,
-  SegmentedControl,
-  Radio,
-  Stack,
-  Input,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
@@ -160,15 +160,7 @@ const Report = () => {
           </Stack>
         </Radio.Group>
 
-        <Box
-          style={(theme) => ({
-            border: form.errors.dataSource
-              ? `1px solid var(--mantine-color-error)`
-              : `1px solid ${theme.colors.gray[7]}`,
-            borderRadius: theme.radius.sm,
-            padding: theme.spacing.xs,
-          })}
-        >
+        <Box>
           <DataSourceTable
             form={form}
             rows={rows}

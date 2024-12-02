@@ -10,7 +10,7 @@ function generateId() {
   return ID++;
 }
 
-interface inputRowProps {
+interface InputRowProps {
   setRows: any;
   form: any;
 }
@@ -23,7 +23,7 @@ interface inputRowProps {
  * @param {any} props.form - The form object containing the values.
  * @returns {JSX.Element} - The rendered input row component.
  */
-const InputRow = ({ setRows, form }: inputRowProps) => {
+const InputRow = ({ setRows, form }: InputRowProps) => {
   const [inputRow, setInputRow] = useState<RowWrapper>({
     dataSource: {
       name: '',
