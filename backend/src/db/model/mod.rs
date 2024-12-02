@@ -25,7 +25,6 @@ struct DbReport {
 #[derive(sqlx::FromRow)]
 struct DbReportMetadata {
     id: Uuid,
-    report_id: Uuid,
     //
     report_created_at: DateTime<Utc>,
     report_updated_at: DateTime<Utc>,
@@ -38,7 +37,6 @@ struct DbReportMetadata {
 #[derive(sqlx::FromRow)]
 struct DbReportAnalyses {
     id: Uuid,
-    report_id: Uuid,
     //
     clickbait: Option<Uuid>,
     hate_speech: Option<Uuid>,
@@ -55,11 +53,11 @@ struct DbReportAnalyses {
 
 /// Represents a singular [NlpResponse](crate::nlp::nlp_response::NlpResponse) analysis of some kind.
 #[derive(sqlx::FromRow)]
-struct DbReportAnalysis {
+struct DbNlpAnalysis {
     id: Uuid,
+    //
     /// References [DbNlpMetadata]
     nlp_metadata_id: Uuid,
-    //
     kind: String,
     analysis: Json<Vec<NlpResponse>>,
     //
@@ -71,7 +69,6 @@ struct DbReportAnalysis {
 #[derive(sqlx::FromRow)]
 struct DbNlpMetadata {
     id: Uuid,
-    analysis_id: Uuid,
     //
     generated_in: f64,
     //
