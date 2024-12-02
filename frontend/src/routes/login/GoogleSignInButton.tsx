@@ -1,26 +1,34 @@
-import { Button, Image } from '@mantine/core';
+import {
+  Button,
+  Image,
+  Center,
+  Box,
+} from "@mantine/core";
 
-/**
- * @param params - onClick function
- * @returns Element
- */
-export default function GoogleSignInButton(params: { onClick: () => void }) {
+export default function GoogleSignInButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button
-      variant="outline"
-      onClick={params.onClick}
-      id="google-sign-in-button"
-      leftSection={
-        <Image
-          src="https://www.svgrepo.com/show/475656/google-color.svg"
-          loading="lazy"
-          alt="google logo"
-          width={30}
-          height={30}
-        />
-      }
-    >
-      <div id="google-sign-in-button-text">Continue with Google</div>
-    </Button>
+    <Center p="xl">
+          <Button
+            variant="default"
+            onClick={onClick}
+            size="lg"
+            radius="xl"
+            leftSection={
+              <Box
+                style={{
+                  width: 24,
+                  height: 24,
+                }}
+              >
+                <Image
+                  src="https://www.svgrepo.com/show/303108/google-icon-logo.svg"
+                  alt="google logo"
+                />
+              </Box>
+            }
+          >
+            Sign in with Google
+          </Button>
+    </Center>
   );
 }

@@ -1,6 +1,4 @@
-use crate::logging::response_logging_middleware;
 use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::report::SendableRMoodsReport;
 use crate::open_api::ApiDoc;
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::reddit_fetcher::reddit::connection::RedditConnection;
@@ -8,7 +6,6 @@ use crate::startup::{shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
 use api::auth;
 use axum::Router;
-use http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use log::{error, info, warn};
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
@@ -40,7 +37,7 @@ pub struct AppState {
     pub pool: Pool<Postgres>,
     pub http: Client,
     pub nlp_client: NlpClient,
-    pub system_tx: tokio::sync::mpsc::Sender<SystemMessage<Box<dyn SendableRMoodsReport>>>,
+    pub system_tx: tokio::sync::mpsc::Sender<SystemMessage>,
 }
 
 /// Run the server, assuming the environment has been already validated.

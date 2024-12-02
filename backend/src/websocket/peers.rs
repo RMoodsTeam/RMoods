@@ -1,5 +1,5 @@
-use crate::api::auth::google::GoogleUserInfo;
-use crate::websocket::{ConnectionId, ServiceToClientMessage, WsUserId};
+use crate::api::auth::google::{GoogleId, GoogleUserInfo};
+use crate::websocket::{ClientMessage, ConnectionId, WsUserId};
 use std::collections::HashMap;
 use tokio::sync::mpsc::Sender;
 
@@ -12,7 +12,7 @@ use tokio::sync::mpsc::Sender;
 /// multiple connections. We can identify a user and all their connections.
 #[derive(Debug)]
 pub struct PeersMap {
-    peers: HashMap<WsUserId, Sender<ServiceToClientMessage>>,
+    peers: HashMap<WsUserId, Sender<ClientMessage>>,
 }
 
 impl PeersMap {
@@ -22,7 +22,7 @@ impl PeersMap {
         }
     }
 
-    pub fn add_peer(&mut self, (user_id, sender): (WsUserId, Sender<ServiceToClientMessage>)) {
+    pub fn add_peer(&mut self, (user_id, sender): (WsUserId, Sender<ClientMessage>)) {
         self.peers.insert(user_id, sender);
     }
 
@@ -42,13 +42,10 @@ impl PeersMap {
         }
     }
 
-    pub fn user_connections(
-        &self,
-        google_user_info: &GoogleUserInfo,
-    ) -> Vec<&Sender<ServiceToClientMessage>> {
+    pub fn user_connections(&self, user_id: &GoogleId) -> Vec<&Sender<ClientMessage>> {
         self.peers
             .iter()
-            .filter(|((key_google_sub, _), _)| key_google_sub == google_user_info.sub())
+            .filter(|((key_google_sub, _), _)| key_google_sub == user_id)
             .map(|(_, sender)| sender)
             .collect()
     }

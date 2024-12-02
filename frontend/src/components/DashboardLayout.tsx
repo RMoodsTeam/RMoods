@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './navbar/Navbar.tsx';
 import Footer from './footer/Footer.tsx';
 import { Box, Flex } from '@mantine/core';
+import { ScrollToTop } from '../components/ScrollToTop';
 
 const dashboardFlex = {
   flex: 'auto',
@@ -16,20 +17,23 @@ const dashboardContainer = {
 
 const DashboardLayout = () => {
   return (
-    <Flex>
-      <Sidebar />
-      <Flex
-        // TODO: Cleanup
-        style={{ flex: 'auto', flexDirection: 'column' }}
-        // style={dashboardFlex}
-      >
-        <Navbar />
-        <Box style={dashboardContainer}>
-          <Outlet />
-        </Box>
-        <Footer />
+    <>
+      <Flex>
+        <Sidebar />
+        <Flex
+          // TODO: Cleanup
+          style={{ flex: 'auto', flexDirection: 'column' }}
+          // style={dashboardFlex}
+        >
+          <Navbar />
+          <Box style={dashboardContainer}>
+            <Outlet />
+          </Box>
+          <Footer />
+        </Flex>
       </Flex>
-    </Flex>
+      <ScrollToTop />
+    </>
   );
 };
 

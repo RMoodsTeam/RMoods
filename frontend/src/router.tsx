@@ -3,30 +3,36 @@ import About from './routes/about/page';
 import Dashboard from './routes/dashboard/page';
 import Login from './routes/login/page';
 import Root from './routes/page';
+import UserPage from './routes/user/page';
+import Report from './routes/report/page';
 import Layout from './Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout.tsx';
-import Report from './routes/report/page';
+import Settings from './routes/settings/page.tsx';
 
 const router = createBrowserRouter([
   {
-    element: <DashboardLayout />,
+    element: (
+      <ProtectedRoute>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         path: 'dashboard',
-        element: (
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        ),
+        element: <Dashboard />,
       },
       {
         path: 'report',
-        element: (
-          <ProtectedRoute>
-            <Report />
-          </ProtectedRoute>
-        ),
+        element: <Report />,
+      },
+      {
+        path: 'user',
+        element: <UserPage />,
+      },
+      {
+        path: 'settings',
+        element: <Settings />,
       },
     ],
   },

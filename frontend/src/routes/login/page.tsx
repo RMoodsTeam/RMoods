@@ -1,10 +1,11 @@
 import { useGoogleLogin } from '@react-oauth/google';
 import GoogleSignInButton from './GoogleSignInButton';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import Cookies from 'js-cookie';
 import { userInfoAtom } from '../../atoms';
 import { useNavigate } from 'react-router-dom';
-import { Card, Center, Title } from '@mantine/core';
+import { Center, Paper, Stack, Title, Box } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 
 /**
  * Login card with Google sign in button
@@ -20,29 +21,54 @@ const LoginCard = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: codeResponse.code }),
     });
-    const answer: { jwt: string; user_info: Object } = await response.json();
-    console.log(answer);
-    return answer;
+
+    if (response.status !== 200) {
+      throw new Error(
+        'Authentication failed. Received status code: ' + response.status
+      );
+    }
+
+    const responseJson = await response.json();
+    if (!responseJson?.jwt) {
+      throw new Error('Authentication failed. No JWT token received.');
+    }
+
+    return responseJson;
   };
 
-  const [, setUserInfo] = useAtom(userInfoAtom);
+  const setUserInfo = useSetAtom(userInfoAtom);
   const googleLogin = useGoogleLogin({
     onSuccess: async (codeResponse) => {
-      const res = await postGoogleCode(codeResponse);
-      setUserInfo(res.user_info);
-      Cookies.set('RMOODS_JWT', res.jwt, { expires: 30 });
-      navigate('/dashboard');
+      try {
+        const res = await postGoogleCode(codeResponse);
+        setUserInfo(res.user_info);
+        Cookies.set('RMOODS_JWT', res.jwt, { expires: 30 });
+        navigate('/dashboard');
+      } catch (error) {
+        notifications.show({
+          title: 'Login Failed',
+          message: 'Authentication failed. Please try again.',
+          color: 'red',
+        });
+        console.error('Login error:', error);
+      }
     },
     flow: 'auth-code',
   });
 
   return (
-    <Card>
-      <Title order={1} id="login-title">
-        Sign in to RMoods
-      </Title>
-      <GoogleSignInButton onClick={googleLogin} />
-    </Card>
+    <Center p="xl" h="70vh">
+      <Paper radius="md" w="540" p="xl" withBorder shadow="md">
+        <Stack gap="md" align="center">
+          <Box>
+            <Title order={1} ta="center">
+              Welcome to RMoods!
+            </Title>
+          </Box>
+          <GoogleSignInButton onClick={googleLogin} />
+        </Stack>
+      </Paper>
+    </Center>
   );
 };
 
