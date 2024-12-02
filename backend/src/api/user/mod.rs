@@ -3,6 +3,7 @@ use crate::app_error::AppError;
 use crate::AppState;
 use axum::extract::{Query, State};
 use axum::Json;
+use http::StatusCode;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -19,8 +20,11 @@ pub async fn get_user(
         "SELECT * FROM users WHERE id = $1",
         query.id
     )
-    .fetch_one(&state.pool)
+    .fetch_optional(&state.pool)
     .await?;
 
-    Ok(Json(user))
+    match user {
+        None => Err(AppError::new(StatusCode::NOT_FOUND, "User not found")),
+        Some(user) => Ok(Json(user)),
+    }
 }

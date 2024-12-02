@@ -58,8 +58,8 @@ export default function Sidebar() {
       className={classes.navbar}
       style={{
         margin: 0,
-        minWidth: '300px',
-        maxWidth: '300px',
+        minWidth: '180px',
+        maxWidth: '180px',
         height: '100vh',
         zIndex: 1,
         overflow: 'hidden',
