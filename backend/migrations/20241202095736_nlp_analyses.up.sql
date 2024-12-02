@@ -23,7 +23,9 @@ CREATE TABLE IF NOT EXISTS nlp_analyses (
     analysis        jsonb             NOT NULL,
     --
     created_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (nlp_metadata_id) REFERENCES nlp_metadata (id)
 );
 
 -- Create a trigger that calls the function before any update
