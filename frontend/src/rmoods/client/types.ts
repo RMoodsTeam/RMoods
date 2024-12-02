@@ -33,15 +33,22 @@ export const FeedSortingTimeSchema = z.enum([
   'all',
 ]);
 
-export const FeedSortingSchema = z.object({
-  kind: FeedSortingKindSchema,
-  time: FeedSortingTimeSchema,
-});
+export const FeedSortingSchema = z
+  .object({
+    kind: FeedSortingKindSchema,
+    time: FeedSortingTimeSchema,
+  })
+  .refine((value) => {
+    if (value.kind === 'top' || value.kind === 'controversial') {
+      return value.time !== undefined;
+    }
+    return true;
+  });
 
 export const DataSourceSchema = z.object({
   name: z.string(),
   postId: z.string().optional(),
-  share: z.number().min(0).max(100),
+  share: z.number(),
 });
 
 const FeedRequestSchema = z.object({

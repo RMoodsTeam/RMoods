@@ -8,15 +8,11 @@ import {
   FeedSortingTimeSchema,
 } from '../../rmoods/client/types.ts';
 
-const transformedJsonSchema = z.object({
+const ReportFormAdaptedSchema = z.object({
   name: z.string(),
   resourceType: FeedKindSchema,
   isPublic: z.boolean(),
-  size: z.object({
-    kind: z.string(),
-    customSize: z.number().optional(),
-  }),
-  customSize: z.number().optional(),
+  size: z.number().min(1).max(500),
   sorting: FeedSortingSchema,
   dataSource: z.array(DataSourceSchema),
   analyses: z.array(z.string()),
@@ -27,12 +23,11 @@ export const RowWrapperSchema = z.object({
   id: z.number(),
 });
 
-export const formValidationSchema = z.object({
+export const ReportFormValidationSchema = z.object({
   name: z.string().min(1, { message: 'Name must be longer than 1 character' }),
   resourceType: FeedKindSchema,
   isPublic: z.enum(['true', 'false']),
-  size: z.enum(['small', 'medium', 'large', 'custom']),
-  customSize: z.number().optional(),
+  size: z.string(), // string due to form api constraints
   sortBy: FeedSortingKindSchema,
   time: FeedSortingTimeSchema,
   dataSource: z
@@ -41,6 +36,6 @@ export const formValidationSchema = z.object({
   analyses: AnalysisTypeSchema,
 });
 
-export type formValues = z.infer<typeof formValidationSchema>;
+export type ReportFormValues = z.infer<typeof ReportFormValidationSchema>;
 export type RowWrapper = z.infer<typeof RowWrapperSchema>;
-export type transformedJson = z.infer<typeof transformedJsonSchema>;
+export type ReportFormAdaptedValues = z.infer<typeof ReportFormAdaptedSchema>;

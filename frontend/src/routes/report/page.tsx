@@ -16,8 +16,8 @@ import { useEffect, useState } from 'react';
 import { DataSource } from '../../rmoods/client/types.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from './tables.tsx';
+import { ReportFormValidationSchema, ReportFormValues, RowWrapper } from './types.ts';
 import { transformJson } from './transformJson.ts';
-import { formValidationSchema, formValues, RowWrapper } from './types.ts';
 
 /**
  * Report component for creating a new report.
@@ -46,7 +46,7 @@ const Report = () => {
         trolling: false,
       },
     },
-    validate: zodResolver(formValidationSchema),
+    validate: zodResolver(ReportFormValidationSchema),
   });
 
   const [rows, setRows] = useState<RowWrapper[]>([]); // Array to store all rows
@@ -98,7 +98,20 @@ const Report = () => {
     <Box>
       <Title order={1}>Create Report</Title>
 
-      <form onSubmit={form.onSubmit(() => {})}>
+      <form
+        onSubmit={form.onSubmit((values: any) => {
+          const validationResult = form.validate();
+          if (!validationResult.hasErrors) {
+            console.log('Form is valid');
+          } else {
+            console.log('Form is invalid');
+          }
+          const transformedValues = transformJson(
+            form.values as ReportFormValues
+          );
+          console.log(transformedValues);
+        })}
+      >
         <TextInput
           label="Report Name"
           placeholder="Enter report name"
@@ -190,9 +203,9 @@ const Report = () => {
           {...form.getInputProps('size')}
         >
           <Stack>
-            <Radio value="small" label="Small (30)" />
-            <Radio value="medium" label="Medium (70)" />
-            <Radio value="large" label="Large (100)" />
+            <Radio value="30" label="Small (30)" />
+            <Radio value="70" label="Medium (70)" />
+            <Radio value="100" label="Large (100)" />
             <Radio value="custom" label="Custom" />
           </Stack>
         </Radio.Group>
@@ -200,7 +213,8 @@ const Report = () => {
           <NumberInput
             label="Custom Size"
             min={0}
-            {...form.getInputProps('customSize')}
+            max={500}
+            {...form.getInputProps('size')}
           />
         )}
         <Title order={3}>Analyses</Title>
@@ -247,9 +261,9 @@ const Report = () => {
         <Group justify="flex-end">
           <Button
             type="submit"
-            onClick={() => {
-              console.log(transformJson(form.values as formValues));
-            }}
+            // onClick={() => {
+            //   console.log(transformJson(form.values as ReportFormValues));
+            // }}
           >
             Create Report
           </Button>

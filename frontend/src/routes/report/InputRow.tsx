@@ -96,7 +96,7 @@ const InputRow = ({ setRows, form }: InputRowProps) => {
       <Table.Th>
         <Center>
           <Button variant="transparent" onClick={() => handleAddRow()}>
-            <TbPlus color={'white'} size={24} />
+            <TbPlus size={24} />
           </Button>
         </Center>
       </Table.Th>

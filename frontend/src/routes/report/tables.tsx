@@ -98,7 +98,6 @@ export const DataSourceTable = ({
             <Table.Td>
               <Center>
                 <Button
-                  color={'white'}
                   variant="transparent"
                   onClick={() => {
                     deleteRow(row.id);

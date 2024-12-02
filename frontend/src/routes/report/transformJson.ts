@@ -1,28 +1,34 @@
-import { formValues, transformedJson } from './types.ts';
+import { ReportFormAdaptedValues, ReportFormValues } from './types.ts';
+import { DataSource, FeedSorting } from '../../rmoods/client/types.ts';
 
 /**
  * Transforms the old JSON format from form to the new JSON format that backend expects.
  *
- * @param {formValues} oldJson - The old JSON format.
- * @returns {transformedJson} - The new JSON format.
+ * @param {ReportFormValues} oldJson - The old JSON format.
+ * @returns {ReportFormAdaptedValues} - The new JSON format.
  */
-export const transformJson = (oldJson: formValues): transformedJson => {
+export const transformJson = (
+  oldJson: ReportFormValues
+): ReportFormAdaptedValues => {
   // this variable will stay for a while as it help with debugging the new format
   const newJson = {
     name: oldJson.name,
     resourceType: oldJson.resourceType,
     isPublic: oldJson.isPublic === 'true',
-    size: {
-      kind: oldJson.size,
-      customSize: oldJson.customSize,
-    },
-    customSize: oldJson.customSize,
-    sorting: {
-      kind: oldJson.sortBy,
-      time: oldJson.time,
-    },
-    dataSource: oldJson.dataSource.map((source: any) => {
-      source.postId === '' ? (source.postId = null) : source.postId;
+    size: Number.parseInt(oldJson.size),
+    sorting:
+      oldJson.sortBy === 'top' || oldJson.sortBy === 'controversial'
+        ? ({
+            kind: oldJson.sortBy,
+            time: oldJson.time,
+          } as FeedSorting)
+        : ({
+            kind: oldJson.sortBy,
+          } as FeedSorting),
+    dataSource: oldJson.dataSource.map((source: DataSource) => {
+      if (source.postId === '') {
+        source.postId = undefined;
+      }
       return source;
     }),
     analyses: Object.entries(oldJson.analyses)
