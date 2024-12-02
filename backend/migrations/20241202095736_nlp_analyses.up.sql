@@ -1,15 +1,22 @@
-CREATE TYPE nlp_analysis_kind AS ENUM (
-    'clickbait',
-    'hate_speech',
-    'keywords',
-    'language',
-    'politics',
-    'sarcasm',
-    'sentiment',
-    'spam'
-    );
+DO
+$$
+    BEGIN
+        CREATE TYPE nlp_analysis_kind AS ENUM (
+            'clickbait',
+            'hate_speech',
+            'keywords',
+            'language',
+            'politics',
+            'sarcasm',
+            'sentiment',
+            'spam'
+            );
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END
+$$;
 
-CREATE TABLE IF NOT EXISTS nlp_analysis (
+CREATE TABLE IF NOT EXISTS nlp_analyses (
     id              uuid PRIMARY KEY           DEFAULT uuid_generate_v4(),
     nlp_metadata_id uuid              NOT NULL,
     kind            nlp_analysis_kind NOT NULL,
@@ -20,8 +27,8 @@ CREATE TABLE IF NOT EXISTS nlp_analysis (
 );
 
 -- Create a trigger that calls the function before any update
-CREATE OR REPLACE TRIGGER update_nlp_analysis_updated_at
+CREATE OR REPLACE TRIGGER update_nlp_analyses_updated_at
     BEFORE UPDATE
-    ON nlp_analysis
+    ON nlp_analyses
     FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();

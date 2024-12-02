@@ -3,7 +3,7 @@ use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::report::{new_report_id, Report, ReportMetadata};
+use crate::nlp::report::{new_report_id, Report, ReportAnalysesMap, ReportMetadata};
 use crate::reddit_fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
 use crate::reddit_fetcher::fetcher::RMoodsFetcher;
 use crate::reddit_fetcher::model::post_comments::PostComments;
@@ -40,7 +40,9 @@ pub async fn nlp_analysis<T: RedditFeedData>(
             created_at: timestamp,
             updated_at: timestamp,
         },
-        analyses: HashMap::from([(NlpAnalysisKind::Language, language_analysis)]),
+        analyses_map: ReportAnalysesMap {
+            analyses: HashMap::from([(NlpAnalysisKind::Language, language_analysis)]),
+        },
     };
     Ok(report)
 }

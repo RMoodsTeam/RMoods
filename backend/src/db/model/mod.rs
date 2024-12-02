@@ -39,14 +39,14 @@ pub struct DbReportMetadata {
 pub struct DbReportAnalysesMap {
     id: Uuid,
     //
-    clickbait: Option<Uuid>,
-    hate_speech: Option<Uuid>,
-    keywords: Option<Uuid>,
-    language: Option<Uuid>,
-    politics: Option<Uuid>,
-    sarcasm: Option<Uuid>,
-    sentiment: Option<Uuid>,
-    spam: Option<Uuid>,
+    clickbait_id: Option<Uuid>,
+    hate_speech_id: Option<Uuid>,
+    keywords_id: Option<Uuid>,
+    language_id: Option<Uuid>,
+    politics_id: Option<Uuid>,
+    sarcasm_id: Option<Uuid>,
+    sentiment_id: Option<Uuid>,
+    spam_id: Option<Uuid>,
     //
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,

@@ -15,6 +15,11 @@ pub struct ReportMetadata {
     pub updated_at: u64,
 }
 
+#[derive(Serialize)]
+pub struct ReportAnalysesMap {
+    pub analyses: HashMap<NlpAnalysisKind, NlpAnalysis>,
+}
+
 pub type ReportId = String;
 
 pub fn new_report_id() -> ReportId {
@@ -35,5 +40,5 @@ pub struct Report {
     /// Whether the report is public.
     pub is_public: bool,
     pub metadata: ReportMetadata,
-    pub analyses: HashMap<NlpAnalysisKind, NlpAnalysis>,
+    pub analyses_map: ReportAnalysesMap,
 }

@@ -1,7 +1,10 @@
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
+use crate::nlp::report::ReportAnalysesMap;
 use axum::async_trait;
+use futures_util::StreamExt;
 use sqlx::{Error, PgPool};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 /// Implemented for structs that can be saved to our database
@@ -42,13 +45,58 @@ impl DbStoredDependently for NlpAnalysis {
         let metadata_uuid = self.metadata.save(db).await?;
         let id = sqlx::query!(
             r#"
-            INSERT INTO nlp_analysis (nlp_metadata_id, kind, analysis)
+            INSERT INTO nlp_analyses (nlp_metadata_id, kind, analysis)
             VALUES ($1, $2, $3)
             RETURNING id as "id: Uuid";
             "#,
             metadata_uuid,
             &self.kind as &NlpAnalysisKind,
             serde_json::to_value(&self.results).unwrap()
+        )
+        .fetch_one(db)
+        .await?
+        .id;
+        Ok(id)
+    }
+}
+
+#[async_trait]
+impl DbStoredDependently for ReportAnalysesMap {
+    async fn save(&self, db: &PgPool) -> Result<Uuid, Error> {
+        let save_futures = self
+            .analyses
+            .iter()
+            .map(|(kind, analysis)| async move {
+                let id = analysis.save(db).await?;
+                Ok::<(NlpAnalysisKind, Uuid), Error>((kind.clone(), id))
+            })
+            .collect::<Vec<_>>();
+
+        // Await all futures concurrently, then collect them into a hashmap.
+        // If any one of them fails, return the error
+        let map: HashMap<NlpAnalysisKind, Uuid> = futures::future::join_all(save_futures)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .map(|(kind, id): (NlpAnalysisKind, Uuid)| (kind.clone(), id))
+            .collect();
+
+        type A = NlpAnalysisKind;
+        let id = sqlx::query!(
+            r#"
+            INSERT INTO report_analyses_maps (clickbait_id, hate_speech_id, keywords_id, language_id, politics_id, sarcasm_id, sentiment_id, spam_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id as "id: Uuid";
+            "#,
+            map.get(&A::Clickbait).copied(),
+            map.get(&A::HateSpeech).copied(),
+            map.get(&A::Keywords).copied(),
+            map.get(&A::Language).copied(),
+            map.get(&A::Politics).copied(),
+            map.get(&A::Sarcasm).copied(),
+            map.get(&A::Sentiment).copied(),
+            map.get(&A::Spam).copied(),
         )
         .fetch_one(db)
         .await?
