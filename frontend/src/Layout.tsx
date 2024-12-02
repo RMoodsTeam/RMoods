@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
-import Navbar from './components/navbar/Navbar';
 import Footer from './components/footer/Footer';
 import { Flex } from '@mantine/core';
+import DefaultNavbar from './components/DefaultNavbar.tsx';
 
 const Layout = () => {
   return (
@@ -12,7 +12,7 @@ const Layout = () => {
         transition: 'background-color 0.5s ease',
       }}
     >
-      <Navbar />
+      <DefaultNavbar />
       <Outlet />
       <Footer />
     </Flex>
