@@ -22,7 +22,7 @@ async def lifespan(application: FastAPI):
     """
     print("Application is starting.")
     print("Checking for model updates.")
-    # update_model_versions()
+    update_model_versions()
 
     print("Loading language model.")
     load_model("language")

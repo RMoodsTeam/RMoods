@@ -27,7 +27,7 @@ jobs:
           pip install -r requirements.txt
       
       - name: Set environment variables
-        run: echo "FASTAPI_KEY=valid_api_key" >> $GITHUB_ENV
+        run: echo "NLP_API_KEY=valid_api_key" >> $GITHUB_ENV
 
       - name: Run tests
         run: pytest
