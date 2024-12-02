@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 /// Each analysis uses a different NLP model to analyze the text.
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Hash, Eq, sqlx::Type)]
 #[serde(rename_all = "snake_case")]
+#[sqlx(type_name = "nlp_analysis_kind", rename_all = "snake_case")]
 pub enum NlpAnalysisKind {
     Clickbait,
     HateSpeech,
