@@ -38,3 +38,4 @@ typetag = "0.2.18"
 dyn-clone = "1.0.17"
 rand = "0.8.5"
 nanoid = "0.4.0"
+uuid = { version = "1.11.0", features = ["v4"] }

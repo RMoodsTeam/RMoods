@@ -1,4 +1,5 @@
 use crate::api::auth::google::GoogleId;
+use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::NlpResponse;
 use crate::nlp::report::ReportId;
 use chrono::{DateTime, Utc};
@@ -6,7 +7,7 @@ use sqlx::types::{Json, Uuid};
 
 /// Represents a [Report](crate::nlp::report::Report)
 #[derive(sqlx::FromRow)]
-struct DbReport {
+pub struct DbReport {
     id: Uuid,
     //
     display_id: ReportId,
@@ -23,7 +24,7 @@ struct DbReport {
 
 /// Represents [ReportMetadata](crate::nlp::report::ReportMetadata) of a report.
 #[derive(sqlx::FromRow)]
-struct DbReportMetadata {
+pub struct DbReportMetadata {
     id: Uuid,
     //
     report_created_at: DateTime<Utc>,
@@ -35,7 +36,7 @@ struct DbReportMetadata {
 
 /// Represents the hashmap of analyses from a [Report](crate::nlp::report::Report).
 #[derive(sqlx::FromRow)]
-struct DbReportAnalyses {
+pub struct DbReportAnalysesMap {
     id: Uuid,
     //
     clickbait: Option<Uuid>,
@@ -53,12 +54,12 @@ struct DbReportAnalyses {
 
 /// Represents a singular [NlpResponse](crate::nlp::nlp_response::NlpResponse) analysis of some kind.
 #[derive(sqlx::FromRow)]
-struct DbNlpAnalysis {
+pub struct DbNlpAnalysis {
     id: Uuid,
     //
     /// References [DbNlpMetadata]
     nlp_metadata_id: Uuid,
-    kind: String,
+    kind: NlpAnalysisKind,
     analysis: Json<Vec<NlpResponse>>,
     //
     created_at: DateTime<Utc>,
@@ -67,7 +68,7 @@ struct DbNlpAnalysis {
 
 /// Represents [NlpMetadata](crate::nlp::nlp_response::NlpMetadata) of an analysis.
 #[derive(sqlx::FromRow)]
-struct DbNlpMetadata {
+pub struct DbNlpMetadata {
     id: Uuid,
     //
     generated_in: f64,

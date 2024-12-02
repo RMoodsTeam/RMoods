@@ -1972,6 +1972,7 @@ dependencies = [
  "typetag",
  "utoipa",
  "utoipa-swagger-ui",
+ "uuid",
 ]
 
 [[package]]
