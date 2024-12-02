@@ -4,7 +4,7 @@ import { TbTrash } from 'react-icons/tb';
 import { DataSource } from '../../rmoods/client/types.ts';
 import { RowWrapper } from './types.ts';
 
-interface tableProps {
+interface TableProps {
   rows: RowWrapper[];
   setRows: any;
   makeRowEditHandler: (
@@ -14,6 +14,7 @@ interface tableProps {
   deleteRow: (id: number) => void;
   form: any;
 }
+
 /**
  * Returns the column name based on the resource type in the form values.
  *
@@ -22,11 +23,11 @@ interface tableProps {
  */
 const getResourceTypeColumnName = (form: any) => {
   if (form.values.resourceType === 'subredditPosts') {
-    return 'Post';
+    return 'Subreddit';
   } else if (form.values.resourceType === 'postComments') {
-    return 'Comment';
+    return 'Subreddit';
   } else {
-    return 'Name';
+    return 'Username';
   }
 };
 
@@ -47,7 +48,7 @@ export const DataSourceTable = ({
   makeRowEditHandler,
   deleteRow,
   form,
-}: tableProps) => {
+}: TableProps) => {
   return (
     <Table striped highlightOnHover>
       <Table.Thead>
@@ -55,7 +56,7 @@ export const DataSourceTable = ({
           <Table.Th>
             <Center>{getResourceTypeColumnName(form)}</Center>
           </Table.Th>
-          {form.values.resourceType !== 'postComments' && (
+          {form.values.resourceType == 'postComments' && (
             <Table.Th>
               <Center>Post ID</Center>
             </Table.Th>
@@ -67,6 +68,7 @@ export const DataSourceTable = ({
         </Table.Tr>
         <InputRow form={form} setRows={setRows} />
       </Table.Thead>
+
       <Table.Tbody>
         {rows.map((row, index) => (
           <Table.Tr key={row.id}>
@@ -77,7 +79,7 @@ export const DataSourceTable = ({
                 defaultValue={row.dataSource.name}
               />
             </Table.Td>
-            {form.values.resourceType !== 'postComments' && (
+            {form.values.resourceType == 'postComments' && (
               <Table.Td>
                 <TextInput
                   onChange={makeRowEditHandler(index, 'postId')}

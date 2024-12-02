@@ -143,22 +143,27 @@ const Report = () => {
           </Stack>
         </Radio.Group>
 
-        <Radio.Group
-          name="time"
-          label="Select time"
-          {...form.getInputProps('time')}
-          onClick={() => {
-            setRows([]);
-          }}
-        >
-          <Stack>
-            <Radio value="day" label="Day" />
-            <Radio value="week" label="Week" />
-            <Radio value="month" label="Month" />
-            <Radio value="year" label="Year" />
-            <Radio value="all" label="All" />
-          </Stack>
-        </Radio.Group>
+        {form.getInputProps('sortBy').value === 'top' ||
+        form.getInputProps('sortBy').value === 'controversial' ? (
+          <Radio.Group
+            name="time"
+            label="Select time"
+            {...form.getInputProps('time')}
+            onClick={() => {
+              setRows([]);
+            }}
+          >
+            <Stack>
+              <Radio value="day" label="Day" />
+              <Radio value="week" label="Week" />
+              <Radio value="month" label="Month" />
+              <Radio value="year" label="Year" />
+              <Radio value="all" label="All" />
+            </Stack>
+          </Radio.Group>
+        ) : (
+          <></>
+        )}
 
         <Box>
           <DataSourceTable

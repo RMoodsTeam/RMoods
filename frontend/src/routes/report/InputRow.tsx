@@ -73,7 +73,7 @@ const InputRow = ({ setRows, form }: InputRowProps) => {
           />
         </Center>
       </Table.Th>
-      {form.values.resourceType !== 'postComments' && (
+      {form.values.resourceType == 'postComments' && (
         <Table.Th>
           <Center>
             <TextInput
