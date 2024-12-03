@@ -5,7 +5,7 @@ use super::{
     ratelimit_headers,
     request::RedditRequest,
 };
-use crate::reddit_fetcher::reddit::ratelimit_headers::RatelimitHeaders;
+use crate::fetcher::reddit::ratelimit_headers::RatelimitHeaders;
 use http::StatusCode;
 use log_derive::logfn;
 use serde_json::Value;

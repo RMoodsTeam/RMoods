@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::reddit_fetcher::reddit::connection::RedditConnection;
+    use crate::fetcher::reddit::connection::RedditConnection;
     use lazy_static::lazy_static;
     use reqwest::{Client, ClientBuilder};
 

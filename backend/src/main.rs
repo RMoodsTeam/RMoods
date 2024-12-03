@@ -1,10 +1,9 @@
+use crate::fetcher::fetcher::RMoodsFetcher;
+use crate::fetcher::reddit::connection::RedditConnection;
 use crate::nlp::nlp_client::NlpClient;
 use crate::open_api::ApiDoc;
-use crate::reddit_fetcher::fetcher::RMoodsFetcher;
-use crate::reddit_fetcher::reddit::connection::RedditConnection;
 use crate::startup::{shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
-use api::auth;
 use axum::Router;
 use log::{error, info, warn};
 use reqwest::Client;
@@ -20,11 +19,12 @@ use websocket::ws_service;
 
 mod api;
 mod app_error;
+mod auth;
 mod env;
+mod fetcher;
 mod logging;
 mod nlp;
 mod open_api;
-mod reddit_fetcher;
 mod startup;
 mod websocket;
 
@@ -90,7 +90,7 @@ async fn run() -> anyhow::Result<()> {
         .nest("/api", api::router())
         .nest("/ws", websocket::router())
         .layer(authorization)
-        .nest("/auth", auth::router())
+        .nest("/auth", api::auth::router())
         .with_state(state)
         .layer(tracing)
         .layer(cors)

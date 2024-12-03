@@ -1,8 +1,8 @@
 use crate::cast;
-use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::model::reddit_data::RedditAboutData;
-use crate::reddit_fetcher::reddit::model::{RawContainer, RawUserAbout};
-use crate::reddit_fetcher::reddit::request::UserAboutRequest;
+use crate::fetcher::fetcher_error::FetcherError;
+use crate::fetcher::model::reddit_data::RedditAboutData;
+use crate::fetcher::reddit::model::{RawContainer, RawUserAbout};
+use crate::fetcher::reddit::request::UserAboutRequest;
 use serde::{Deserialize, Serialize};
 
 /// Contains information about a Reddit user.

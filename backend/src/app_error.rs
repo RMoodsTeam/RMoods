@@ -4,10 +4,10 @@ use reqwest::StatusCode;
 use serde::Serialize;
 use serde_json::json;
 
-use crate::api::auth::error::AuthError;
+use crate::auth::error::AuthError;
+use crate::fetcher::fetcher_error::FetcherError;
+use crate::fetcher::reddit::error::RedditError;
 use crate::nlp::error::NlpError;
-use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::reddit::error::RedditError;
 
 /// Public-facing error kind. Contains an HTTP status code and a message describing the error.
 #[derive(Debug, Getters, Clone, Serialize)]

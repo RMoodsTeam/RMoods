@@ -1,4 +1,4 @@
-use crate::api::auth::google::GoogleId;
+use crate::auth::google::GoogleId;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::NlpAnalysis;
 use nanoid::nanoid;

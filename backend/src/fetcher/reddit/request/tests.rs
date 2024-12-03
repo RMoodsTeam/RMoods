@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::reddit_fetcher::reddit::request::{
+    use crate::fetcher::reddit::request::{
         feed_sorting::{FeedSorting, FeedSortingTime},
         PostCommentsRequest, RedditRequest, SubredditAboutRequest, SubredditPostsRequest,
         UserAboutRequest, UserPostsRequest,

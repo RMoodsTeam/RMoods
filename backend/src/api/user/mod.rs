@@ -1,5 +1,5 @@
-use crate::api::auth::google::GoogleUserInfo;
 use crate::app_error::AppError;
+use crate::auth::google::GoogleUserInfo;
 use crate::AppState;
 use axum::extract::{Query, State};
 use axum::Json;

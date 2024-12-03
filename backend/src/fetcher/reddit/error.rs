@@ -1,4 +1,4 @@
-use crate::reddit_fetcher::reddit::connection::InnerFetchError;
+use crate::fetcher::reddit::connection::InnerFetchError;
 use thiserror::Error;
 
 /// Represents any kind of error that can occur when dealing with the Reddit API.
