@@ -1,6 +1,6 @@
-use super::error::AuthError;
-use crate::api::auth::jwt::decode_jwt;
-use crate::api::auth::middleware::jwt_from_header_or_uri;
+use crate::auth::error::AuthError;
+use crate::auth::jwt::decode_jwt;
+use crate::auth::middleware::jwt_from_header_or_uri;
 use axum::async_trait;
 use axum::extract::FromRequestParts;
 use derive_getters::Getters;

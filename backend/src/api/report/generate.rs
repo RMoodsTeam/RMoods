@@ -1,6 +1,6 @@
-use crate::api::auth::google::{GoogleId, JwtUserInfo};
 use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
+use crate::auth::google::{GoogleId, JwtUserInfo};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_client::NlpClient;
 use crate::nlp::report::{new_report_id, RMoodsReport, ReportMetadata};

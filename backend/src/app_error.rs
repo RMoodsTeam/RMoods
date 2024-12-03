@@ -4,7 +4,7 @@ use reqwest::StatusCode;
 use serde::Serialize;
 use serde_json::json;
 
-use crate::api::auth::error::AuthError;
+use crate::auth::error::AuthError;
 use crate::nlp::error::NlpError;
 use crate::reddit_fetcher::fetcher_error::FetcherError;
 use crate::reddit_fetcher::reddit::error::RedditError;
