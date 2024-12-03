@@ -1,6 +1,6 @@
+use crate::fetcher::fetcher_error::FetcherError;
+use crate::fetcher::reddit::request::feed_sorting::FeedSorting;
 use crate::nlp::analysis::NlpAnalysisKind;
-use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::reddit::request::feed_sorting::FeedSorting;
 use axum::async_trait;
 use axum::body::Bytes;
 use axum::extract::{FromRequest, Request};
@@ -194,7 +194,7 @@ mod tests {
         assert_eq!(feed_request.size, 10);
         assert_eq!(
             feed_request.sorting,
-            crate::reddit_fetcher::reddit::request::feed_sorting::FeedSorting::Hot
+            crate::fetcher::reddit::request::feed_sorting::FeedSorting::Hot
         );
     }
 

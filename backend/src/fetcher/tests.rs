@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::reddit_fetcher::fetcher::RMoodsFetcher;
-    use crate::reddit_fetcher::model::subreddit_info::SubredditAbout;
-    use crate::reddit_fetcher::model::user_info::UserAbout;
-    use crate::reddit_fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
+    use crate::fetcher::fetcher::RMoodsFetcher;
+    use crate::fetcher::model::subreddit_info::SubredditAbout;
+    use crate::fetcher::model::user_info::UserAbout;
+    use crate::fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
     use lazy_static::lazy_static;
     use reqwest::{Client, ClientBuilder};
     use std::sync::LazyLock;

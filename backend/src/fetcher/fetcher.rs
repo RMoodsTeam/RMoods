@@ -1,8 +1,8 @@
-use crate::reddit_fetcher::feed_request::FetcherFeedRequest;
-use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::model::reddit_data::{RedditAboutData, RedditFeedData};
-use crate::reddit_fetcher::reddit::ratelimit_headers::RatelimitHeaders;
-use crate::reddit_fetcher::reddit::{
+use crate::fetcher::feed_request::FetcherFeedRequest;
+use crate::fetcher::fetcher_error::FetcherError;
+use crate::fetcher::model::reddit_data::{RedditAboutData, RedditFeedData};
+use crate::fetcher::reddit::ratelimit_headers::RatelimitHeaders;
+use crate::fetcher::reddit::{
     connection::RedditConnection,
     error::RedditError,
     model::{MoreComments, RawComment},
