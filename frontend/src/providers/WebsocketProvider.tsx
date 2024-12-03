@@ -5,11 +5,8 @@ import { useEffect, useRef } from 'react';
 import { wsConnectionStatusAtom } from '../atoms.ts';
 
 const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
-  console.log('WebsocketProvider: rendering');
-
   const connection = useRef<WebSocket | null>(null);
   const [, setWsConnectionStatus] = useAtom(wsConnectionStatusAtom);
-
   useEffect(() => {
     const ws = new WebSocket(
       `ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
@@ -34,12 +31,15 @@ const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     ws.onerror = (event) => {
       console.error(event);
-      notifications.show({
-        title: 'WebSocket Error',
-        message: 'An error occurred with the WebSocket connection.',
-        color: 'red',
-        icon: '',
-      });
+      // WARNING: this is only commented out for development purposes,
+      // this should be uncommented when deploying
+
+      // notifications.show({
+      //   title: 'WebSocket Error',
+      //   message: 'An error occurred with the WebSocket connection.',
+      //   color: 'red',
+      //   icon: '',
+      // });
       setWsConnectionStatus(false);
     };
 
