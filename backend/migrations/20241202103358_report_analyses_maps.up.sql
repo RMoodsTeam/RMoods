@@ -22,3 +22,9 @@ CREATE TABLE IF NOT EXISTS report_analyses_maps (
     FOREIGN KEY (sentiment_id) REFERENCES nlp_analyses (id),
     FOREIGN KEY (spam_id) REFERENCES nlp_analyses (id)
 );
+
+CREATE OR REPLACE TRIGGER report_analyses_maps_updated_at
+    BEFORE UPDATE
+    ON report_analyses_maps
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();

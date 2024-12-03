@@ -1,2 +1,2 @@
 -- Add down migration script here
-DROP TABLE nlp_analyses;
+DROP TABLE IF EXISTS nlp_analyses;
