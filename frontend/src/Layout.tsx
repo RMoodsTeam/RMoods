@@ -15,7 +15,7 @@ const Layout = () => {
       <DefaultNavbar />
       <Box
         style={{
-          padding: '2rem 2rem',
+          padding: '2rem 15%',
         }}
       >
         <Outlet />

@@ -13,7 +13,7 @@ const dashboardFlex = {
 const dashboardContainer = {
   marginX: '5%',
   marginY: '2em',
-  padding: '2rem 2rem',
+  padding: '2rem 12%',
 };
 
 const DashboardLayout = () => {
