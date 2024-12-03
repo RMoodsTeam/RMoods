@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Footer from './components/footer/Footer';
-import { Flex } from '@mantine/core';
+import { Box, Flex } from '@mantine/core';
 import DefaultNavbar from './components/DefaultNavbar.tsx';
 
 const Layout = () => {
@@ -13,7 +13,13 @@ const Layout = () => {
       }}
     >
       <DefaultNavbar />
-      <Outlet />
+      <Box
+        style={{
+          padding: '2rem 2rem',
+        }}
+      >
+        <Outlet />
+      </Box>
       <Footer />
     </Flex>
   );

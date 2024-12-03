@@ -13,6 +13,7 @@ const dashboardFlex = {
 const dashboardContainer = {
   marginX: '5%',
   marginY: '2em',
+  padding: '2rem 2rem',
 };
 
 const DashboardLayout = () => {
@@ -22,8 +23,10 @@ const DashboardLayout = () => {
         <Sidebar />
         <Flex
           // TODO: Cleanup
-          style={{ flex: 'auto', flexDirection: 'column' }}
-          // style={dashboardFlex}
+          style={{
+            flex: 'auto',
+            flexDirection: 'column',
+          }}
         >
           <Navbar />
           <Box style={dashboardContainer}>
