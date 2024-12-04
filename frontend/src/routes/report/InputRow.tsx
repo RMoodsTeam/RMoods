@@ -24,7 +24,7 @@ interface InputRowProps {
  * @param {any} props.form - The form object containing the values.
  * @returns {JSX.Element} - The rendered input row component.
  */
-const InputRow = ({ setRows, form }: InputRowProps): JSX.Element => {
+const InputRow = ({ setRows, form }: InputRowProps) => {
   const [inputRow, setInputRow] = useState<RowWrapper>({
     dataSource: {
       name: '',

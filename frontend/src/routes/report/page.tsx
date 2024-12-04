@@ -17,6 +17,7 @@ import { DataSource } from '../../rmoods/client/types.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from './tables.tsx';
 import {
+  MantineReportForm,
   ReportFormValidationSchema,
   ReportFormValues,
   RowWrapper,
@@ -36,10 +37,9 @@ const Report = () => {
       resourceKind: 'subredditPosts',
       isPublic: 'true',
       size: '30',
-      customSize: undefined,
       sortBy: 'hot',
       time: 'day',
-      dataSources: [] as DataSource[],
+      dataSources: [],
       analyses: {
         language: false,
         sentiment: false,
@@ -194,7 +194,7 @@ const Report = () => {
 
         <Box>
           <DataSourceTable
-            form={form as unknown as UseFormReturnType<ReportFormValues>}
+            form={form}
             rows={rows}
             setRows={setRows}
             deleteRow={deleteRow}

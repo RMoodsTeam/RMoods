@@ -7,6 +7,7 @@ import {
   FeedSortingSchema,
   FeedSortingTimeSchema,
 } from '../../rmoods/client/types.ts';
+import { UseFormReturnType } from '@mantine/form';
 
 const ReportFormAdaptedSchema = z.object({
   name: z.string(),
@@ -23,12 +24,13 @@ export const RowWrapperSchema = z.object({
   id: z.number(),
 });
 
+export const FetchSizeSchema = z.enum(['30', '70', '100', 'custom']);
+
 export const ReportFormValidationSchema = z.object({
   name: z.string().min(1, { message: 'Name must be longer than 1 character' }),
   resourceKind: FeedKindSchema,
   isPublic: z.enum(['true', 'false']),
-  size: z.string(), // string due to form api constraints
-  customSize: z.number().optional(), // for validation in form, not in the final JSON
+  size: FetchSizeSchema, // string due to form api constraints
   sortBy: FeedSortingKindSchema,
   time: FeedSortingTimeSchema,
   dataSources: z
@@ -37,12 +39,13 @@ export const ReportFormValidationSchema = z.object({
   analyses: AnalysisTypeSchema,
 });
 
-const reportResponseSchema = z.object({
+const ReportResponseSchema = z.object({
   status: z.enum(['ReportDone', 'ReportError']),
   data: z.object({ code: z.number(), message: z.string() }),
 });
 
-export type reportResponse = z.infer<typeof reportResponseSchema>;
+export type MantineReportForm = UseFormReturnType<ReportFormValues>;
+export type ReportResponse = z.infer<typeof ReportResponseSchema>;
 export type ReportFormValues = z.infer<typeof ReportFormValidationSchema>;
 export type RowWrapper = z.infer<typeof RowWrapperSchema>;
 export type ReportFormAdaptedValues = z.infer<typeof ReportFormAdaptedSchema>;

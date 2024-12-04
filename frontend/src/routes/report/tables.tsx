@@ -2,7 +2,7 @@ import { Button, Center, NumberInput, Table, TextInput } from '@mantine/core';
 import InputRow from './InputRow.tsx';
 import { TbTrash } from 'react-icons/tb';
 import { DataSource } from '../../rmoods/client/types.ts';
-import { ReportFormValues, RowWrapper } from './types.ts';
+import { MantineReportForm, ReportFormValues, RowWrapper } from './types.ts';
 import { UseFormReturnType } from '@mantine/form';
 
 interface TableProps {
@@ -13,7 +13,7 @@ interface TableProps {
     property: keyof DataSource
   ) => (event: any) => void;
   deleteRow: (id: number) => void;
-  form: UseFormReturnType<ReportFormValues>;
+  form: MantineReportForm;
 }
 
 /**
@@ -22,15 +22,11 @@ interface TableProps {
  * @param {UseFormReturnType<ReportFormValues>} form - The form object containing the values.
  * @returns {string} - The column name ('Post', 'Comment', or 'Name').
  */
-const getResourceKindColumnName = (
-  form: UseFormReturnType<ReportFormValues>
-): string => {
-  if (form.values.resourceKind === 'subredditPosts') {
-    return 'Subreddit';
-  } else if (form.values.resourceKind === 'postComments') {
-    return 'Comment';
-  } else {
+const getResourceKindColumnName = (form: MantineReportForm): string => {
+  if (form.values.resourceKind === 'userPosts') {
     return 'Username';
+  } else {
+    return 'Subreddit';
   }
 };
 

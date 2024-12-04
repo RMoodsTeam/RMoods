@@ -2,7 +2,7 @@ import Cookies from 'js-cookie';
 import { useAtom } from 'jotai';
 import { useEffect, useRef } from 'react';
 import { wsConnectionStatusAtom } from '../atoms.ts';
-import { receiveMessage } from '../routes/report/websocketMethods.tsx';
+import { handleMessage } from '../routes/report/websocketMethods.tsx';
 
 const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   const connection = useRef<WebSocket | null>(null);
@@ -12,7 +12,7 @@ const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
       `ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
     );
 
-    ws.onmessage = receiveMessage;
+    ws.onmessage = handleMessage;
 
     ws.onopen = () => {
       console.log('WebSocket connection opened.');
