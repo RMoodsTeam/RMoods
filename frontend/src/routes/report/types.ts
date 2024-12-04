@@ -37,6 +37,12 @@ export const ReportFormValidationSchema = z.object({
   analyses: AnalysisTypeSchema,
 });
 
+const reportResponseSchema = z.object({
+  status: z.enum(['ReportDone', 'ReportError']),
+  data: z.object({ code: z.number(), message: z.string() }),
+});
+
+export type reportResponse = z.infer<typeof reportResponseSchema>;
 export type ReportFormValues = z.infer<typeof ReportFormValidationSchema>;
 export type RowWrapper = z.infer<typeof RowWrapperSchema>;
 export type ReportFormAdaptedValues = z.infer<typeof ReportFormAdaptedSchema>;

@@ -1,25 +1,8 @@
 import Cookies from 'js-cookie';
 import { useAtom } from 'jotai';
-import { notifications } from '@mantine/notifications';
 import { useEffect, useRef } from 'react';
 import { wsConnectionStatusAtom } from '../atoms.ts';
-import { z } from 'zod';
-
-const reportSchema = z.object({
-  status: z.enum(['ReportDone', 'ReportError']),
-  data: z.string(),
-});
-
-const receiveMessage = (event: MessageEvent) => {
-  console.log(event.data);
-  notifications.show({
-    title: 'WebSocket Message',
-    message:
-      'Received a message from the WebSocket connection. Logged in console',
-    color: 'blue',
-    icon: '',
-  });
-};
+import { receiveMessage } from '../routes/report/websocketMethods.tsx';
 
 const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   const connection = useRef<WebSocket | null>(null);

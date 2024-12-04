@@ -35,7 +35,7 @@ const Report = () => {
       name: '',
       resourceKind: 'subredditPosts',
       isPublic: 'true',
-      size: 'small',
+      size: '30',
       customSize: undefined,
       sortBy: 'hot',
       time: 'day',
