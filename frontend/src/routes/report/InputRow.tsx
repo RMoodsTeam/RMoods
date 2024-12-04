@@ -1,7 +1,7 @@
 import { Button, Center, NumberInput, Table, TextInput } from '@mantine/core';
 import { TbPlus } from 'react-icons/tb';
 import { DataSource } from '../../rmoods/client/types.ts';
-import { ChangeEventHandler, useState } from 'react';
+import { useState } from 'react';
 import { ReportFormValues, RowWrapper } from './types.ts';
 import { UseFormReturnType } from '@mantine/form';
 

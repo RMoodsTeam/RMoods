@@ -1,6 +1,11 @@
 import { reportResponse } from './types.ts';
 import { notifications } from '@mantine/notifications';
 
+/**
+ * Handles incoming WebSocket messages and displays notifications based on the message status.
+ *
+ * @param {MessageEvent} event - The WebSocket message event.
+ */
 export const receiveMessage = (event: MessageEvent) => {
   const response: reportResponse = JSON.parse(event.data);
 
