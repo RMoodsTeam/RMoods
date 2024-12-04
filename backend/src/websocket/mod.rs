@@ -24,8 +24,8 @@ fn generate_user_id() -> String {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(tag = "status", content = "data")]
 pub enum ClientMessage {
-    RemainingRequestsUpdate(u16),
     ReportDone(ReportId),
     ReportError(AppError),
 }

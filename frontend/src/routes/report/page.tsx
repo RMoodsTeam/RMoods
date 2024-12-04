@@ -11,12 +11,16 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import { useForm } from '@mantine/form';
+import { useForm, UseFormReturnType } from '@mantine/form';
 import { useEffect, useState } from 'react';
 import { DataSource } from '../../rmoods/client/types.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from './tables.tsx';
-import { ReportFormValidationSchema, ReportFormValues, RowWrapper } from './types.ts';
+import {
+  ReportFormValidationSchema,
+  ReportFormValues,
+  RowWrapper,
+} from './types.ts';
 import { transformJson } from './transformJson.ts';
 import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
 
@@ -26,7 +30,7 @@ import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
  * @returns {JSX.Element} - The rendered report creation form.
  */
 const Report = () => {
-  const form = useForm({
+  const form = useForm<ReportFormValues>({
     initialValues: {
       name: '',
       resourceKind: 'subredditPosts',
@@ -90,7 +94,7 @@ const Report = () => {
    * @param {number} id - The ID of the row to be deleted.
    * @returns {void}
    */
-  const deleteRow = (id: number) => {
+  const deleteRow = (id: number): void => {
     const newRows = rows.filter((row) => row.id !== id);
     setRows(newRows);
   };
@@ -190,7 +194,7 @@ const Report = () => {
 
         <Box>
           <DataSourceTable
-            form={form}
+            form={form as unknown as UseFormReturnType<ReportFormValues>}
             rows={rows}
             setRows={setRows}
             deleteRow={deleteRow}

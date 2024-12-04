@@ -3,6 +3,23 @@ import { useAtom } from 'jotai';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useRef } from 'react';
 import { wsConnectionStatusAtom } from '../atoms.ts';
+import { z } from 'zod';
+
+const reportSchema = z.object({
+  status: z.enum(['ReportDone', 'ReportError']),
+  data: z.string(),
+});
+
+const receiveMessage = (event: MessageEvent) => {
+  console.log(event.data);
+  notifications.show({
+    title: 'WebSocket Message',
+    message:
+      'Received a message from the WebSocket connection. Logged in console',
+    color: 'blue',
+    icon: '',
+  });
+};
 
 const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   const connection = useRef<WebSocket | null>(null);
@@ -12,17 +29,7 @@ const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
       `ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
     );
 
-    ws.onmessage = (event) => {
-      console.log('Received WebSocket message');
-      console.log(JSON.stringify(event.data));
-      notifications.show({
-        title: 'WebSocket Message',
-        message:
-          'Received a message from the WebSocket connection. Logged in console',
-        color: 'blue',
-        icon: '',
-      });
-    };
+    ws.onmessage = receiveMessage;
 
     ws.onopen = () => {
       console.log('WebSocket connection opened.');

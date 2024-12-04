@@ -28,6 +28,7 @@ export const ReportFormValidationSchema = z.object({
   resourceKind: FeedKindSchema,
   isPublic: z.enum(['true', 'false']),
   size: z.string(), // string due to form api constraints
+  customSize: z.number().optional(), // for validation in form, not in the final JSON
   sortBy: FeedSortingKindSchema,
   time: FeedSortingTimeSchema,
   dataSources: z
