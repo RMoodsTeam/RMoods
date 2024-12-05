@@ -2,7 +2,8 @@ import { Button, Center, NumberInput, Table, TextInput } from '@mantine/core';
 import InputRow from './InputRow.tsx';
 import { TbTrash } from 'react-icons/tb';
 import { DataSource } from '../../rmoods/client/types.ts';
-import { RowWrapper } from './types.ts';
+import { MantineReportForm, ReportFormValues, RowWrapper } from './types.ts';
+import { UseFormReturnType } from '@mantine/form';
 
 interface TableProps {
   rows: RowWrapper[];
@@ -12,22 +13,20 @@ interface TableProps {
     property: keyof DataSource
   ) => (event: any) => void;
   deleteRow: (id: number) => void;
-  form: any;
+  form: MantineReportForm;
 }
 
 /**
  * Returns the column name based on the resource type in the form values.
  *
- * @param {any} form - The form object containing the values.
+ * @param {UseFormReturnType<ReportFormValues>} form - The form object containing the values.
  * @returns {string} - The column name ('Post', 'Comment', or 'Name').
  */
-const getResourceTypeColumnName = (form: any) => {
-  if (form.values.resourceType === 'subredditPosts') {
-    return 'Subreddit';
-  } else if (form.values.resourceKind === 'postComments') {
-    return 'Subreddit';
-  } else {
+const getResourceKindColumnName = (form: MantineReportForm): string => {
+  if (form.values.resourceKind === 'userPosts') {
     return 'Username';
+  } else {
+    return 'Subreddit';
   }
 };
 
@@ -54,9 +53,9 @@ export const DataSourceTable = ({
       <Table.Thead>
         <Table.Tr>
           <Table.Th>
-            <Center>{getResourceTypeColumnName(form)}</Center>
+            <Center>{getResourceKindColumnName(form)}</Center>
           </Table.Th>
-          {form.values.resourceType == 'postComments' && (
+          {form.values.resourceKind == 'postComments' && (
             <Table.Th>
               <Center>Post ID</Center>
             </Table.Th>
@@ -79,7 +78,7 @@ export const DataSourceTable = ({
                 defaultValue={row.dataSource.name}
               />
             </Table.Td>
-            {form.values.resourceType == 'postComments' && (
+            {form.values.resourceKind == 'postComments' && (
               <Table.Td>
                 <TextInput
                   onChange={makeRowEditHandler(index, 'postId')}

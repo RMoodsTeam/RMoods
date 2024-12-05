@@ -2,7 +2,8 @@ import { Button, Center, NumberInput, Table, TextInput } from '@mantine/core';
 import { TbPlus } from 'react-icons/tb';
 import { DataSource } from '../../rmoods/client/types.ts';
 import { useState } from 'react';
-import { RowWrapper } from './types.ts';
+import { ReportFormValues, RowWrapper } from './types.ts';
+import { UseFormReturnType } from '@mantine/form';
 
 let ID = 1;
 
@@ -12,7 +13,7 @@ function generateId() {
 
 interface InputRowProps {
   setRows: any;
-  form: any;
+  form: UseFormReturnType<ReportFormValues>;
 }
 
 /**
@@ -37,7 +38,7 @@ const InputRow = ({ setRows, form }: InputRowProps) => {
    * Creates a change handler for the input fields in the data source.
    *
    * @param {keyof DataSource} field - The field of the data source to be updated.
-   * @returns {Function} - A function that handles the change event for the specified field.
+   * @returns {ChangeEventHandler<HTMLInputElement>} - A function that handles the change event for the specified field.
    */
   const makeInputChangeHandler = (field: keyof DataSource) => (event: any) => {
     setInputRow((prev) => ({
@@ -54,7 +55,7 @@ const InputRow = ({ setRows, form }: InputRowProps) => {
    *
    * @returns {void}
    */
-  const handleAddRow = () => {
+  const handleAddRow = (): void => {
     setRows((prevRows: RowWrapper[]) => [...prevRows, inputRow]);
     setInputRow({
       dataSource: { name: '', postId: '', share: 0 },
@@ -73,7 +74,7 @@ const InputRow = ({ setRows, form }: InputRowProps) => {
           />
         </Center>
       </Table.Th>
-      {form.values.resourceType == 'postComments' && (
+      {form.values.resourceKind == 'postComments' && (
         <Table.Th>
           <Center>
             <TextInput
