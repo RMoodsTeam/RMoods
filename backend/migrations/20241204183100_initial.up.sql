@@ -1,0 +1,150 @@
+-- Create a function to automatically update the updated_at column
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    new.updated_at = CURRENT_TIMESTAMP;
+    RETURN new;
+END;
+$$ LANGUAGE 'plpgsql';
+
+-- Enable uuid_generate_v4() function
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS users (
+    id             TEXT PRIMARY KEY,
+    name           TEXT    NOT NULL,
+    given_name     TEXT    NOT NULL,
+    family_name    TEXT,
+    picture        TEXT    NOT NULL,
+    email          TEXT    NOT NULL,
+    email_verified BOOLEAN NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS nlp_metadata (
+    id           uuid PRIMARY KEY   DEFAULT uuid_generate_v4(),
+    --
+    generated_in FLOAT     NOT NULL,
+    --
+    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create a trigger that calls the function before any update
+CREATE OR REPLACE TRIGGER update_nlp_metadata_updated_at
+    BEFORE UPDATE
+    ON nlp_metadata
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+DO
+$$
+    BEGIN
+        CREATE TYPE nlp_analysis_kind AS ENUM (
+            'clickbait',
+            'hate_speech',
+            'keywords',
+            'language',
+            'politics',
+            'sarcasm',
+            'sentiment',
+            'spam'
+            );
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    END
+$$;
+
+CREATE TABLE IF NOT EXISTS nlp_analyses (
+    id              uuid PRIMARY KEY           DEFAULT uuid_generate_v4(),
+    nlp_metadata_id uuid              NOT NULL,
+    kind            nlp_analysis_kind NOT NULL,
+    analysis        jsonb             NOT NULL,
+    --
+    created_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (nlp_metadata_id) REFERENCES nlp_metadata (id)
+);
+
+-- Create a trigger that calls the function before any update
+CREATE OR REPLACE TRIGGER update_nlp_analyses_updated_at
+    BEFORE UPDATE
+    ON nlp_analyses
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+
+CREATE TABLE IF NOT EXISTS report_analyses_maps (
+    id             uuid PRIMARY KEY   DEFAULT uuid_generate_v4(),
+    --
+    clickbait_id   uuid,
+    hate_speech_id uuid,
+    keywords_id    uuid,
+    language_id    uuid,
+    politics_id    uuid,
+    sarcasm_id     uuid,
+    sentiment_id   uuid,
+    spam_id        uuid,
+    --
+    created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (clickbait_id) REFERENCES nlp_analyses (id),
+    FOREIGN KEY (hate_speech_id) REFERENCES nlp_analyses (id),
+    FOREIGN KEY (keywords_id) REFERENCES nlp_analyses (id),
+    FOREIGN KEY (language_id) REFERENCES nlp_analyses (id),
+    FOREIGN KEY (politics_id) REFERENCES nlp_analyses (id),
+    FOREIGN KEY (sarcasm_id) REFERENCES nlp_analyses (id),
+    FOREIGN KEY (sentiment_id) REFERENCES nlp_analyses (id),
+    FOREIGN KEY (spam_id) REFERENCES nlp_analyses (id)
+);
+
+CREATE OR REPLACE TRIGGER report_analyses_maps_updated_at
+    BEFORE UPDATE
+    ON report_analyses_maps
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+
+CREATE TABLE IF NOT EXISTS report_metadata (
+    id                uuid PRIMARY KEY   DEFAULT uuid_generate_v4(),
+    --
+    report_created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    report_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    --
+    created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE OR REPLACE TRIGGER update_report_metadata_updated_at
+    BEFORE UPDATE
+    ON report_metadata
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+
+CREATE TABLE IF NOT EXISTS reports (
+    id              uuid PRIMARY KEY      DEFAULT uuid_generate_v4(),
+    --
+    display_id      VARCHAR(32)  NOT NULL UNIQUE,
+    user_id         VARCHAR(255) NOT NULL,
+    title           VARCHAR(255) NOT NULL,
+    description     TEXT         NOT NULL,
+    is_public       BOOLEAN      NOT NULL,
+    metadata_id     uuid         NOT NULL UNIQUE,
+    analyses_map_id uuid         NOT NULL UNIQUE,
+    --
+    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (metadata_id) REFERENCES nlp_metadata (id),
+    FOREIGN KEY (analyses_map_id) REFERENCES report_analyses_maps (id)
+);
+
+-- Create a trigger that calls the function before any update
+CREATE OR REPLACE TRIGGER update_reports_updated_at
+    BEFORE UPDATE
+    ON reports
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
