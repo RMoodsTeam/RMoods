@@ -1,7 +1,7 @@
 import Sidebar from './sidebar/Sidebar.tsx';
 import { Outlet } from 'react-router-dom';
 import Navbar from './navbar/Navbar.tsx';
-import Footer from './footer/Footer.tsx';
+import DashboardFooter from './dashboardFooter/DashboardFooter.tsx';
 import { Box, Flex } from '@mantine/core';
 import { ScrollToTop } from '../components/ScrollToTop';
 
@@ -32,7 +32,7 @@ const DashboardLayout = () => {
           <Box style={dashboardContainer}>
             <Outlet />
           </Box>
-          <Footer />
+          <DashboardFooter />
         </Flex>
       </Flex>
       <ScrollToTop />

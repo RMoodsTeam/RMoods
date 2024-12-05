@@ -69,8 +69,7 @@ const UserPage = () => {
       style={{
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        margin: '50px 200px 0 200px',
+        alignItems: 'flex-start'
       }}
     >
       <Box style={{ flex: '0 0 350px', marginRight: '20px' }}>
