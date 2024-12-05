@@ -12,22 +12,33 @@ $$ LANGUAGE 'plpgsql';
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS users (
-    id             TEXT PRIMARY KEY,
-    name           TEXT    NOT NULL,
-    given_name     TEXT    NOT NULL,
+    id             uuid PRIMARY KEY,
+    --
+    google_id      TEXT        NOT NULL,
+    name           TEXT        NOT NULL,
+    given_name     TEXT        NOT NULL,
     family_name    TEXT,
-    picture        TEXT    NOT NULL,
-    email          TEXT    NOT NULL,
-    email_verified BOOLEAN NOT NULL
+    picture        TEXT        NOT NULL,
+    email          TEXT        NOT NULL,
+    email_verified BOOLEAN     NOT NULL,
+    --
+    created_at     timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE OR REPLACE TRIGGER update_users_updated_at
+    BEFORE UPDATE
+    ON users
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TABLE IF NOT EXISTS nlp_metadata (
-    id           uuid PRIMARY KEY   DEFAULT uuid_generate_v4(),
+    id           uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     --
-    generated_in FLOAT     NOT NULL,
+    generated_in FLOAT       NOT NULL,
     --
-    created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at   timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create a trigger that calls the function before any update
@@ -57,12 +68,13 @@ $$;
 
 CREATE TABLE IF NOT EXISTS nlp_analyses (
     id              uuid PRIMARY KEY           DEFAULT uuid_generate_v4(),
+    --
     nlp_metadata_id uuid              NOT NULL,
     kind            nlp_analysis_kind NOT NULL,
     analysis        jsonb             NOT NULL,
     --
-    created_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at      timestamptz       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      timestamptz       NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (nlp_metadata_id) REFERENCES nlp_metadata (id)
 );
@@ -76,7 +88,7 @@ EXECUTE FUNCTION update_updated_at_column();
 
 
 CREATE TABLE IF NOT EXISTS report_analyses_maps (
-    id             uuid PRIMARY KEY   DEFAULT uuid_generate_v4(),
+    id             uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     --
     clickbait_id   uuid,
     hate_speech_id uuid,
@@ -87,8 +99,8 @@ CREATE TABLE IF NOT EXISTS report_analyses_maps (
     sentiment_id   uuid,
     spam_id        uuid,
     --
-    created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at     timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (clickbait_id) REFERENCES nlp_analyses (id),
     FOREIGN KEY (hate_speech_id) REFERENCES nlp_analyses (id),
@@ -108,13 +120,13 @@ EXECUTE FUNCTION update_updated_at_column();
 
 
 CREATE TABLE IF NOT EXISTS report_metadata (
-    id                uuid PRIMARY KEY   DEFAULT uuid_generate_v4(),
+    id                uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     --
-    report_created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    report_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    report_created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    report_updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     --
-    created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at        timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE OR REPLACE TRIGGER update_report_metadata_updated_at
@@ -125,18 +137,18 @@ EXECUTE FUNCTION update_updated_at_column();
 
 
 CREATE TABLE IF NOT EXISTS reports (
-    id              uuid PRIMARY KEY      DEFAULT uuid_generate_v4(),
+    id              uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     --
-    display_id      VARCHAR(32)  NOT NULL UNIQUE,
-    user_id         VARCHAR(255) NOT NULL,
-    title           VARCHAR(255) NOT NULL,
-    description     TEXT         NOT NULL,
-    is_public       BOOLEAN      NOT NULL,
-    metadata_id     uuid         NOT NULL UNIQUE,
-    analyses_map_id uuid         NOT NULL UNIQUE,
+    display_id      TEXT        NOT NULL UNIQUE,
+    user_id         TEXT        NOT NULL,
+    title           TEXT        NOT NULL,
+    description     TEXT        NOT NULL,
+    is_public       BOOLEAN     NOT NULL,
+    metadata_id     uuid        NOT NULL UNIQUE,
+    analyses_map_id uuid        NOT NULL UNIQUE,
     --
-    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (metadata_id) REFERENCES nlp_metadata (id),
     FOREIGN KEY (analyses_map_id) REFERENCES report_analyses_maps (id)
