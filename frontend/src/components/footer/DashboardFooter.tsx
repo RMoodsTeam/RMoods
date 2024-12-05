@@ -4,7 +4,7 @@ import {
   IconBrandTwitter,
   IconBrandYoutube,
 } from '@tabler/icons-react';
-import classes from './DashboardFooterCentered.module.css';
+import classes from './FooterCentered.module.css';
 import { useNavigate } from 'react-router-dom';
 
 const links = [
@@ -32,7 +32,7 @@ export default function DashboardFooterCentered() {
   return (
     <footer className={classes.footer}>
       <div className={classes.inner}>
-        <Group></Group>
+        <Group />
 
         <Group className={classes.links}>{items}</Group>
 
