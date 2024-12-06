@@ -61,7 +61,7 @@ const UserMenu = () => {
     navigate('/login');
   };
 
-  const size = 55;
+  const size = 45;
   const resizedPicture = user
     ? changeDefaultGoogleProfilePictureSize(user.picture, size)
     : '';
