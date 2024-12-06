@@ -1,4 +1,4 @@
-use crate::api::auth::google::{GoogleId, GoogleUserInfo, JwtUserInfo};
+use crate::api::auth::google::{GoogleId, JwtUserInfo, User};
 use crate::app_error::AppError;
 use crate::nlp::report::ReportId;
 use crate::AppState;

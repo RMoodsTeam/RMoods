@@ -1,6 +1,6 @@
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
-use crate::nlp::report::ReportAnalysesMap;
+use crate::nlp::report::{ReportAnalysesMap, ReportMetadata};
 use axum::async_trait;
 use futures_util::StreamExt;
 use sqlx::{Error, PgPool};
@@ -97,6 +97,25 @@ impl DbStoredDependently for ReportAnalysesMap {
             map.get(&A::Sarcasm).copied(),
             map.get(&A::Sentiment).copied(),
             map.get(&A::Spam).copied(),
+        )
+        .fetch_one(db)
+        .await?
+        .id;
+        Ok(id)
+    }
+}
+
+#[async_trait]
+impl DbStoredDependently for ReportMetadata {
+    async fn save(&self, db: &PgPool) -> Result<Uuid, Error> {
+        let id = sqlx::query!(
+            r#"
+            INSERT INTO report_metadata (report_created_at, report_updated_at)
+            VALUES ($1, $2)
+            RETURNING id as "id: Uuid";
+            "#,
+            self.created_at,
+            self.updated_at
         )
         .fetch_one(db)
         .await?

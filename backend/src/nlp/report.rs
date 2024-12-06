@@ -1,6 +1,7 @@
 use crate::api::auth::google::GoogleId;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::NlpAnalysis;
+use chrono::{DateTime, Utc};
 use nanoid::nanoid;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -10,9 +11,9 @@ use std::fmt::Debug;
 #[derive(Debug, Clone, Serialize)]
 pub struct ReportMetadata {
     /// The UNIX timestamp of the report's creation.
-    pub created_at: u64,
+    pub created_at: DateTime<Utc>,
     /// The UNIX timestamp of the report's last update.
-    pub updated_at: u64,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Serialize)]

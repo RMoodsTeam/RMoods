@@ -32,7 +32,7 @@ pub async fn login(
 
     sqlx::query!(
         r#"INSERT INTO users (
-    id, name, given_name, family_name, picture, email, email_verified)
+    google_id, name, given_name, family_name, picture, email, email_verified)
     VALUES ($1, $2, $3, $4, $5, $6, $7)
     ON CONFLICT (id) DO UPDATE
     SET name = $2, given_name = $3, family_name = $4, picture = $5, email = $6, email_verified = $7

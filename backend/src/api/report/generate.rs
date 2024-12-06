@@ -14,6 +14,7 @@ use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
 use axum::extract::State;
+use chrono::Utc;
 use jsonwebtoken::get_current_timestamp;
 use std::collections::HashMap;
 
@@ -29,7 +30,6 @@ pub async fn nlp_analysis<T: RedditFeedData>(
     let language_analysis = nlp_client
         .analyze(NlpAnalysisKind::Language, &texts)
         .await?;
-    let timestamp = get_current_timestamp();
     let report = Report {
         id: new_report_id(),
         user_id,
@@ -37,8 +37,8 @@ pub async fn nlp_analysis<T: RedditFeedData>(
         description: "An RMoods report generated from Reddit data.".to_string(),
         is_public: true,
         metadata: ReportMetadata {
-            created_at: timestamp,
-            updated_at: timestamp,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
         },
         analyses_map: ReportAnalysesMap {
             analyses: HashMap::from([(NlpAnalysisKind::Language, language_analysis)]),

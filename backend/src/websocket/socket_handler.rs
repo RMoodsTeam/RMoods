@@ -1,4 +1,4 @@
-use crate::api::auth::google::{GoogleId, GoogleUserInfo, JwtUserInfo};
+use crate::api::auth::google::{GoogleId, JwtUserInfo, User};
 use crate::websocket;
 use crate::websocket::{ClientMessage, SystemMessage};
 use axum::extract::ws::{Message, WebSocket};
