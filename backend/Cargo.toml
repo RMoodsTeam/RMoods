@@ -20,7 +20,6 @@ lazy_static = "1.5.0"
 anyhow = "1.0.86"
 reqwest = { version = "0.12.5", features = ["json", "multipart"] }
 derive-getters = "0.4.0"
-lipsum = "0.9.1"
 thiserror = "1.0.62"
 serde_with = "3.8.3"
 log-derive = "0.4.1"
@@ -29,13 +28,10 @@ sqlx = { version = "0.7", features = ["runtime-tokio", "postgres", "macros", "js
 jsonwebtoken = "9.3.0"
 chrono = { version = "0.4.38", features = ["serde"] }
 http = "1.1.0"
-tokio-tungstenite = "0.24.0"
 futures-util = "0.3.31"
 tokio-util = "0.7.12"
 futures = "0.3.31"
 http-serde = "2.1.1"
-typetag = "0.2.18"
-dyn-clone = "1.0.17"
 rand = "0.8.5"
 nanoid = "0.4.0"
 uuid = { version = "1.11.0", features = ["v4"] }
