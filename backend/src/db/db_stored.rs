@@ -1,10 +1,11 @@
 use crate::api::auth::google::User;
+use crate::db::db_client::DbClient;
 use crate::db::model::{DbReport, DbUser};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
 use crate::nlp::report::{Report, ReportAnalysesMap, ReportMetadata};
 use axum::async_trait;
-use sqlx::{Error, PgPool};
+use sqlx::Error;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -12,19 +13,19 @@ use uuid::Uuid;
 #[async_trait]
 pub trait DbStored {
     type DbStruct;
-    async fn save(&self, db: &PgPool) -> Result<(), sqlx::Error>;
-    async fn update(&self, db: &PgPool) -> Result<(), sqlx::Error>;
-    async fn delete(&self, db: &PgPool) -> Result<(), sqlx::Error>;
+    async fn save(&self, db: &DbClient) -> Result<(), Error>;
+    async fn update(&self, db: &DbClient) -> Result<(), Error>;
+    async fn delete(&self, db: &DbClient) -> Result<(), Error>;
 }
 
 #[async_trait]
 pub trait DbStoredDependently {
-    async fn save(&self, db: &PgPool) -> Result<Uuid, sqlx::Error>;
+    async fn save(&self, db: &DbClient) -> Result<Uuid, Error>;
 }
 
 #[async_trait]
 impl DbStoredDependently for NlpMetadata {
-    async fn save(&self, db: &PgPool) -> Result<Uuid, Error> {
+    async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
         let id = sqlx::query!(
             r#"
             INSERT INTO nlp_metadata (generated_in)
@@ -33,7 +34,7 @@ impl DbStoredDependently for NlpMetadata {
             "#,
             self.generated_in
         )
-        .fetch_one(db)
+        .fetch_one(db.raw_db())
         .await?
         .id;
         Ok(id)
@@ -42,7 +43,7 @@ impl DbStoredDependently for NlpMetadata {
 
 #[async_trait]
 impl DbStoredDependently for NlpAnalysis {
-    async fn save(&self, db: &PgPool) -> Result<Uuid, Error> {
+    async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
         let metadata_uuid = self.metadata.save(db).await?;
         let id = sqlx::query!(
             r#"
@@ -54,7 +55,7 @@ impl DbStoredDependently for NlpAnalysis {
             &self.kind as &NlpAnalysisKind,
             serde_json::to_value(&self.results).unwrap()
         )
-        .fetch_one(db)
+        .fetch_one(db.raw_db())
         .await?
         .id;
         Ok(id)
@@ -63,7 +64,7 @@ impl DbStoredDependently for NlpAnalysis {
 
 #[async_trait]
 impl DbStoredDependently for ReportAnalysesMap {
-    async fn save(&self, db: &PgPool) -> Result<Uuid, Error> {
+    async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
         let save_futures = self
             .analyses
             .iter()
@@ -99,7 +100,7 @@ impl DbStoredDependently for ReportAnalysesMap {
             map.get(&A::Sentiment).copied(),
             map.get(&A::Spam).copied(),
         )
-        .fetch_one(db)
+        .fetch_one(db.raw_db())
         .await?
         .id;
         Ok(id)
@@ -108,7 +109,7 @@ impl DbStoredDependently for ReportAnalysesMap {
 
 #[async_trait]
 impl DbStoredDependently for ReportMetadata {
-    async fn save(&self, db: &PgPool) -> Result<Uuid, Error> {
+    async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
         let id = sqlx::query!(
             r#"
             INSERT INTO report_metadata (report_created_at, report_updated_at)
@@ -118,7 +119,7 @@ impl DbStoredDependently for ReportMetadata {
             self.created_at,
             self.updated_at
         )
-        .fetch_one(db)
+        .fetch_one(db.raw_db())
         .await?
         .id;
         Ok(id)
@@ -128,7 +129,7 @@ impl DbStoredDependently for ReportMetadata {
 #[async_trait]
 impl DbStored for Report {
     type DbStruct = DbReport;
-    async fn save(&self, db: &PgPool) -> Result<(), Error> {
+    async fn save(&self, db: &DbClient) -> Result<(), Error> {
         let metadata_uuid = self.metadata.save(db).await?;
         let analyses_uuid = self.analyses_map.save(db).await?;
         let user_uuid = sqlx::query!(
@@ -137,7 +138,7 @@ impl DbStored for Report {
             "#,
             self.user_id
         )
-        .fetch_one(db)
+        .fetch_one(db.raw_db())
         .await?
         .id;
 
@@ -155,12 +156,12 @@ impl DbStored for Report {
             metadata_uuid,
             analyses_uuid
         )
-        .execute(db)
+        .execute(db.raw_db())
         .await?;
 
         Ok(())
     }
-    async fn update(&self, db: &PgPool) -> Result<(), Error> {
+    async fn update(&self, db: &DbClient) -> Result<(), Error> {
         sqlx::query!(
             r#"
             UPDATE reports
@@ -172,18 +173,18 @@ impl DbStored for Report {
             self.is_public,
             self.id
         )
-        .execute(db)
+        .execute(db.raw_db())
         .await?;
         Ok(())
     }
-    async fn delete(&self, db: &PgPool) -> Result<(), Error> {
+    async fn delete(&self, db: &DbClient) -> Result<(), Error> {
         sqlx::query!(
             r#"
             DELETE FROM reports WHERE display_id = $1
             "#,
             self.id
         )
-        .execute(db)
+        .execute(db.raw_db())
         .await?;
         Ok(())
     }
@@ -192,7 +193,7 @@ impl DbStored for Report {
 #[async_trait]
 impl DbStored for User {
     type DbStruct = DbUser;
-    async fn save(&self, db: &PgPool) -> Result<(), Error> {
+    async fn save(&self, db: &DbClient) -> Result<(), Error> {
         sqlx::query!(
             r#"
             INSERT INTO users (
@@ -210,21 +211,21 @@ impl DbStored for User {
             self.email,
             self.email_verified
         )
-        .execute(db)
+        .execute(db.raw_db())
         .await?;
         Ok(())
     }
-    async fn update(&self, db: &PgPool) -> Result<(), Error> {
+    async fn update(&self, db: &DbClient) -> Result<(), Error> {
         unimplemented!()
     }
-    async fn delete(&self, db: &PgPool) -> Result<(), Error> {
+    async fn delete(&self, db: &DbClient) -> Result<(), Error> {
         sqlx::query!(
             r#"
             DELETE FROM users WHERE google_sub = $1
             "#,
             self.id
         )
-        .execute(db)
+        .execute(db.raw_db())
         .await?;
         Ok(())
     }

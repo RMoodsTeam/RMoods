@@ -1,3 +1,4 @@
+use crate::db::db_stored::DbStored;
 use axum::{extract::State, Json};
 use log_derive::logfn;
 use serde::{Deserialize, Serialize};
@@ -29,7 +30,7 @@ pub async fn login(
 
     let user = fetch_google_user_info(auth_data.access_token().to_string(), &state.http).await?;
 
-    state.db.save(&user).await?;
+    user.save(&state.db).await?;
 
     log::debug!("User logged in: {:?}", user);
 

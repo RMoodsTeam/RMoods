@@ -1,3 +1,3 @@
 pub mod db_client;
-mod db_stored;
+pub(crate) mod db_stored;
 mod model;
