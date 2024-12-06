@@ -14,7 +14,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS users (
     id             uuid PRIMARY KEY,
     --
-    google_id      TEXT        NOT NULL,
+    google_sub     TEXT        NOT NULL,
     name           TEXT        NOT NULL,
     given_name     TEXT        NOT NULL,
     family_name    TEXT,
@@ -41,7 +41,6 @@ CREATE TABLE IF NOT EXISTS nlp_metadata (
     updated_at   timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create a trigger that calls the function before any update
 CREATE OR REPLACE TRIGGER update_nlp_metadata_updated_at
     BEFORE UPDATE
     ON nlp_metadata
@@ -76,10 +75,9 @@ CREATE TABLE IF NOT EXISTS nlp_analyses (
     created_at      timestamptz       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamptz       NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (nlp_metadata_id) REFERENCES nlp_metadata (id)
+    FOREIGN KEY (nlp_metadata_id) REFERENCES nlp_metadata (id) ON DELETE CASCADE
 );
 
--- Create a trigger that calls the function before any update
 CREATE OR REPLACE TRIGGER update_nlp_analyses_updated_at
     BEFORE UPDATE
     ON nlp_analyses
@@ -102,14 +100,14 @@ CREATE TABLE IF NOT EXISTS report_analyses_maps (
     created_at     timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at     timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (clickbait_id) REFERENCES nlp_analyses (id),
-    FOREIGN KEY (hate_speech_id) REFERENCES nlp_analyses (id),
-    FOREIGN KEY (keywords_id) REFERENCES nlp_analyses (id),
-    FOREIGN KEY (language_id) REFERENCES nlp_analyses (id),
-    FOREIGN KEY (politics_id) REFERENCES nlp_analyses (id),
-    FOREIGN KEY (sarcasm_id) REFERENCES nlp_analyses (id),
-    FOREIGN KEY (sentiment_id) REFERENCES nlp_analyses (id),
-    FOREIGN KEY (spam_id) REFERENCES nlp_analyses (id)
+    FOREIGN KEY (clickbait_id) REFERENCES nlp_analyses (id) ON DELETE CASCADE,
+    FOREIGN KEY (hate_speech_id) REFERENCES nlp_analyses (id) ON DELETE CASCADE,
+    FOREIGN KEY (keywords_id) REFERENCES nlp_analyses (id) ON DELETE CASCADE,
+    FOREIGN KEY (language_id) REFERENCES nlp_analyses (id) ON DELETE CASCADE,
+    FOREIGN KEY (politics_id) REFERENCES nlp_analyses (id) ON DELETE CASCADE,
+    FOREIGN KEY (sarcasm_id) REFERENCES nlp_analyses (id) ON DELETE CASCADE,
+    FOREIGN KEY (sentiment_id) REFERENCES nlp_analyses (id) ON DELETE CASCADE,
+    FOREIGN KEY (spam_id) REFERENCES nlp_analyses (id) ON DELETE CASCADE
 );
 
 CREATE OR REPLACE TRIGGER report_analyses_maps_updated_at
@@ -140,7 +138,7 @@ CREATE TABLE IF NOT EXISTS reports (
     id              uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     --
     display_id      TEXT        NOT NULL UNIQUE,
-    user_id         TEXT        NOT NULL,
+    user_id         uuid        NOT NULL,
     title           TEXT        NOT NULL,
     description     TEXT        NOT NULL,
     is_public       BOOLEAN     NOT NULL,
@@ -150,11 +148,11 @@ CREATE TABLE IF NOT EXISTS reports (
     created_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (metadata_id) REFERENCES nlp_metadata (id),
-    FOREIGN KEY (analyses_map_id) REFERENCES report_analyses_maps (id)
+    FOREIGN KEY (user_id) REFERENCES users (id), -- DO NOT CASCADE
+    FOREIGN KEY (metadata_id) REFERENCES nlp_metadata (id) ON DELETE CASCADE,
+    FOREIGN KEY (analyses_map_id) REFERENCES report_analyses_maps (id) ON DELETE CASCADE
 );
 
--- Create a trigger that calls the function before any update
 CREATE OR REPLACE TRIGGER update_reports_updated_at
     BEFORE UPDATE
     ON reports

@@ -1,6 +1,7 @@
+use crate::db::model::DbReport;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
-use crate::nlp::report::{ReportAnalysesMap, ReportMetadata};
+use crate::nlp::report::{Report, ReportAnalysesMap, ReportMetadata};
 use axum::async_trait;
 use futures_util::StreamExt;
 use sqlx::{Error, PgPool};
@@ -121,5 +122,48 @@ impl DbStoredDependently for ReportMetadata {
         .await?
         .id;
         Ok(id)
+    }
+}
+
+#[async_trait]
+impl DbStored for Report {
+    type DbStruct = DbReport;
+    async fn save(&self, db: &PgPool) -> Result<(), Error> {
+        let metadata_uuid = self.metadata.save(db).await?;
+        let analyses_uuid = self.analyses_map.save(db).await?;
+        let user_uuid = sqlx::query!(
+            r#"
+            SELECT id as "id: Uuid" FROM users WHERE google_sub = $1
+            "#,
+            self.user_id
+        )
+        .fetch_one(db)
+        .await?
+        .id;
+
+        sqlx::query!(
+            r#"
+            INSERT INTO reports (
+            user_id, title, description, is_public, metadata_id, analyses_map_id
+            )
+            VALUES ($1, $2, $3, $4, $5, $6)
+            "#,
+            user_uuid,
+            self.title,
+            self.description,
+            self.is_public,
+            metadata_uuid,
+            analyses_uuid
+        )
+        .execute(db)
+        .await?;
+
+        Ok(())
+    }
+    async fn delete(&self, db: &PgPool) -> Result<(), Error> {
+        todo!()
+    }
+    async fn update(&self, db: &PgPool) -> Result<(), Error> {
+        todo!()
     }
 }

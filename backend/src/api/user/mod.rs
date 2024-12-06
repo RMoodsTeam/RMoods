@@ -17,9 +17,9 @@ pub async fn get_user(
     let user = sqlx::query_as!(
         User,
         r#"
-        SELECT google_id as "id: String", name, given_name, family_name, picture, email, email_verified
+        SELECT google_sub as "id: String", name, given_name, family_name, picture, email, email_verified
         FROM users
-        WHERE google_id = $1
+        WHERE google_sub = $1
         "#,
         query.id
     )
