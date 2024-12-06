@@ -27,30 +27,13 @@ pub async fn login(
 ) -> Result<Json<LoginResponse>, AppError> {
     let auth_data = fetch_google_access_token(body.code, &state.http).await?;
 
-    let user_info =
-        fetch_google_user_info(auth_data.access_token().to_string(), &state.http).await?;
+    let user = fetch_google_user_info(auth_data.access_token().to_string(), &state.http).await?;
 
-    sqlx::query!(
-        r#"INSERT INTO users (
-    google_sub, name, given_name, family_name, picture, email, email_verified)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-    ON CONFLICT (id) DO UPDATE
-    SET name = $2, given_name = $3, family_name = $4, picture = $5, email = $6, email_verified = $7
-    "#,
-        user_info.id,
-        user_info.name,
-        user_info.given_name,
-        user_info.family_name,
-        user_info.picture,
-        user_info.email,
-        user_info.email_verified
-    )
-    .execute(state.db.raw_db())
-    .await?;
+    state.db.save(&user).await?;
 
-    log::debug!("User logged in: {:?}", user_info);
+    log::debug!("User logged in: {:?}", user);
 
-    let jwt = create_jwt(user_info);
+    let jwt = create_jwt(user);
 
     Ok(Json(LoginResponse { jwt }))
 }

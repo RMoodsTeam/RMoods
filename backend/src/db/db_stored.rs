@@ -1,9 +1,9 @@
-use crate::db::model::DbReport;
+use crate::api::auth::google::User;
+use crate::db::model::{DbReport, DbUser};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
 use crate::nlp::report::{Report, ReportAnalysesMap, ReportMetadata};
 use axum::async_trait;
-use futures_util::StreamExt;
 use sqlx::{Error, PgPool};
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -13,8 +13,8 @@ use uuid::Uuid;
 pub trait DbStored {
     type DbStruct;
     async fn save(&self, db: &PgPool) -> Result<(), sqlx::Error>;
-    async fn delete(&self, db: &PgPool) -> Result<(), sqlx::Error>;
     async fn update(&self, db: &PgPool) -> Result<(), sqlx::Error>;
+    async fn delete(&self, db: &PgPool) -> Result<(), sqlx::Error>;
 }
 
 #[async_trait]
@@ -160,10 +160,72 @@ impl DbStored for Report {
 
         Ok(())
     }
+    async fn update(&self, db: &PgPool) -> Result<(), Error> {
+        sqlx::query!(
+            r#"
+            UPDATE reports
+            SET title = $1, description = $2, is_public = $3
+            WHERE display_id = $4
+            "#,
+            self.title,
+            self.description,
+            self.is_public,
+            self.id
+        )
+        .execute(db)
+        .await?;
+        Ok(())
+    }
     async fn delete(&self, db: &PgPool) -> Result<(), Error> {
-        todo!()
+        sqlx::query!(
+            r#"
+            DELETE FROM reports WHERE display_id = $1
+            "#,
+            self.id
+        )
+        .execute(db)
+        .await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl DbStored for User {
+    type DbStruct = DbUser;
+    async fn save(&self, db: &PgPool) -> Result<(), Error> {
+        sqlx::query!(
+            r#"
+            INSERT INTO users (
+            google_sub, name, given_name, family_name, picture, email, email_verified
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (google_sub) DO UPDATE
+            SET name = $2, given_name = $3, family_name = $4, picture = $5, email = $6, email_verified = $7
+            "#,
+            self.id,
+            self.name,
+            self.given_name,
+            self.family_name,
+            self.picture,
+            self.email,
+            self.email_verified
+        )
+        .execute(db)
+        .await?;
+        Ok(())
     }
     async fn update(&self, db: &PgPool) -> Result<(), Error> {
-        todo!()
+        unimplemented!()
+    }
+    async fn delete(&self, db: &PgPool) -> Result<(), Error> {
+        sqlx::query!(
+            r#"
+            DELETE FROM users WHERE google_sub = $1
+            "#,
+            self.id
+        )
+        .execute(db)
+        .await?;
+        Ok(())
     }
 }
