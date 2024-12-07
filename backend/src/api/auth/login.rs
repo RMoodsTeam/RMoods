@@ -2,7 +2,6 @@ use crate::db::db_stored::DbStored;
 use axum::{extract::State, Json};
 use log_derive::logfn;
 use serde::{Deserialize, Serialize};
-use sqlx::Executor;
 use utoipa::ToSchema;
 
 use super::{google::fetch_google_access_token, jwt::create_jwt};

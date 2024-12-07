@@ -7,7 +7,7 @@ use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
 use crate::nlp::report::{Report, ReportAnalysesMap, ReportMetadata};
 use axum::async_trait;
-use sqlx::Error;
+use sqlx::{Error, Postgres, Transaction};
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -16,40 +16,94 @@ pub struct DbPagination {
     per_page: u32,
 }
 
+pub trait DbStored: DbStoredInner {
+    async fn save(&self, db: &DbClient) -> Result<(), Error> {
+        let mut tx = db.raw_db().begin().await?;
+        self.inner_save(&mut tx).await?;
+        tx.commit().await?;
+        Ok(())
+    }
+    async fn update(&self, db: &DbClient) -> Result<(), Error> {
+        let mut tx = db.raw_db().begin().await?;
+        self.inner_update(&mut tx).await?;
+        tx.commit().await?;
+        Ok(())
+    }
+    async fn delete(&self, db: &DbClient) -> Result<(), Error> {
+        let mut tx = db.raw_db().begin().await?;
+        self.inner_delete(&mut tx).await?;
+        tx.commit().await?;
+        Ok(())
+    }
+    async fn get_by_id(id: &str, db: &DbClient) -> Result<Option<Self>, Error> {
+        let mut tx = db.raw_db().begin().await?;
+        let result = Self::inner_get_by_id(id, &mut tx).await?;
+        tx.commit().await?;
+        Ok(result)
+    }
+    async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error> {
+        let mut tx = db.raw_db().begin().await?;
+        let result = Self::inner_get_all(pagination, &mut tx).await?;
+        tx.commit().await?;
+        Ok(result)
+    }
+}
+impl<T> DbStored for T where T: DbStoredInner {}
+
+pub trait DbStoredDependently: DbStoredDependentlyInner {
+    async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
+        let mut tx = db.raw_db().begin().await?;
+        let id = self.inner_save(&mut tx).await?;
+        tx.commit().await?;
+        Ok(id)
+    }
+}
+impl<T> DbStoredDependently for T where T: DbStoredDependentlyInner {}
+
 /// Implemented for structs that can be saved to our database
 #[async_trait]
-pub trait DbStored: Sized {
-    async fn save(&self, db: &DbClient) -> Result<(), Error>;
-    async fn update(&self, db: &DbClient) -> Result<(), Error>;
-    async fn delete(&self, db: &DbClient) -> Result<(), Error>;
+trait DbStoredInner: Sized {
+    async fn inner_save(&self, db: &mut Transaction<Postgres>) -> Result<(), Error>;
+    async fn inner_update(&self, db: &mut Transaction<Postgres>) -> Result<(), Error>;
+    async fn inner_delete(&self, db: &mut Transaction<Postgres>) -> Result<(), Error>;
 
-    async fn get_by_id(id: &str, db: &DbClient) -> Result<Option<Self>, Error>;
-    async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error>;
+    async fn inner_get_by_id(
+        id: &str,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Option<Self>, Error>;
+
+    async fn inner_get_all(
+        pagination: DbPagination,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Vec<Self>, Error>;
 }
 
 #[async_trait]
-pub trait DbStoredDependently: Sized {
-    async fn save(&self, db: &DbClient) -> Result<Uuid, Error>;
+trait DbStoredDependentlyInner: Sized {
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<Uuid, Error>;
 }
 
 #[async_trait]
 pub(super) trait FromDb: Sized {
     type DbModel;
-    async fn from_db_model(model: Self::DbModel, db: &DbClient) -> Result<Self, Error>;
+    async fn from_db_model(
+        model: Self::DbModel,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Self, Error>;
 }
 
 #[async_trait]
-impl DbStoredDependently for NlpMetadata {
-    async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
+impl DbStoredDependentlyInner for NlpMetadata {
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<Uuid, Error> {
         let id = sqlx::query!(
             r#"
-            INSERT INTO nlp_metadata (generated_in)
-            VALUES ($1)
-            RETURNING id as "id: Uuid";
-            "#,
+        INSERT INTO nlp_metadata (generated_in)
+        VALUES ($1)
+        RETURNING id as "id: Uuid";
+        "#,
             self.generated_in
         )
-        .fetch_one(db.raw_db())
+        .fetch_one(&mut **tx)
         .await?
         .id;
         Ok(id)
@@ -59,17 +113,20 @@ impl DbStoredDependently for NlpMetadata {
 #[async_trait]
 impl FromDb for NlpMetadata {
     type DbModel = DbNlpMetadata;
-    async fn from_db_model(db_nlp_metadata: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+    async fn from_db_model(
+        model: Self::DbModel,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Self, Error> {
         Ok(NlpMetadata {
-            generated_in: db_nlp_metadata.generated_in,
+            generated_in: model.generated_in,
         })
     }
 }
 
 #[async_trait]
-impl DbStoredDependently for NlpAnalysis {
-    async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
-        let metadata_uuid = self.metadata.save(db).await?;
+impl DbStoredDependentlyInner for NlpAnalysis {
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<Uuid, Error> {
+        let metadata_uuid = self.metadata.inner_save(tx).await?;
         let id = sqlx::query!(
             r#"
             INSERT INTO nlp_analyses (nlp_metadata_id, kind, analysis)
@@ -80,7 +137,7 @@ impl DbStoredDependently for NlpAnalysis {
             &self.kind.to_snake_case(),
             serde_json::to_value(&self.results).unwrap() // TODO HANDLE ERROR
         )
-        .fetch_one(db.raw_db())
+        .fetch_one(&mut **tx)
         .await?
         .id;
         Ok(id)
@@ -90,17 +147,20 @@ impl DbStoredDependently for NlpAnalysis {
 #[async_trait]
 impl FromDb for NlpAnalysis {
     type DbModel = DbNlpAnalysis;
-    async fn from_db_model(db_analysis: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+    async fn from_db_model(
+        model: Self::DbModel,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Self, Error> {
         let nlp_metadata = sqlx::query_as!(
             DbNlpMetadata,
             r#"SELECT * FROM nlp_metadata WHERE id = $1"#,
-            db_analysis.nlp_metadata_id
+            model.nlp_metadata_id
         )
-        .fetch_one(db.raw_db())
+        .fetch_one(&mut **db)
         .await?;
         Ok(NlpAnalysis {
-            kind: NlpAnalysisKind::from_snake_case(&db_analysis.kind).unwrap(),
-            results: serde_json::from_value(db_analysis.analysis.clone()).unwrap(),
+            kind: NlpAnalysisKind::from_snake_case(&model.kind).unwrap(),
+            results: serde_json::from_value(model.analysis.clone()).unwrap(),
             metadata: NlpMetadata {
                 generated_in: nlp_metadata.generated_in,
             },
@@ -109,46 +169,36 @@ impl FromDb for NlpAnalysis {
 }
 
 #[async_trait]
-impl DbStoredDependently for ReportAnalysesMap {
-    async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
-        let save_futures = self
-            .analyses
-            .iter()
-            .map(|(kind, analysis)| async move {
-                let id = analysis.save(db).await?;
-                Ok::<(NlpAnalysisKind, Uuid), Error>((kind.clone(), id))
-            })
-            .collect::<Vec<_>>();
+impl DbStoredDependentlyInner for ReportAnalysesMap {
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<Uuid, Error> {
+        let mut map = HashMap::new();
 
-        // Await all futures concurrently, then collect them into a hashmap.
-        // If any one of them fails, return the error
-        let map: HashMap<NlpAnalysisKind, Uuid> = futures::future::join_all(save_futures)
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?
-            .into_iter()
-            .map(|(kind, id): (NlpAnalysisKind, Uuid)| (kind.clone(), id))
-            .collect();
+        // Process analyses sequentially to avoid problems with escaping references to `tx`
+        for (kind, analysis) in &self.analyses {
+            let id = analysis.inner_save(tx).await?;
+            map.insert(kind.clone(), id);
+        }
 
         type A = NlpAnalysisKind;
         let id = sqlx::query!(
-            r#"
-            INSERT INTO report_analyses_maps (clickbait_id, hate_speech_id, keywords_id, language_id, politics_id, sarcasm_id, sentiment_id, spam_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING id as "id: Uuid";
-            "#,
-            map.get(&A::Clickbait),
-            map.get(&A::HateSpeech),
-            map.get(&A::Keywords),
-            map.get(&A::Language),
-            map.get(&A::Politics),
-            map.get(&A::Sarcasm),
-            map.get(&A::Sentiment),
-            map.get(&A::Spam)
-        )
-        .fetch_one(db.raw_db())
-        .await?
-        .id;
+        r#"
+        INSERT INTO report_analyses_maps (clickbait_id, hate_speech_id, keywords_id, language_id, politics_id, sarcasm_id, sentiment_id, spam_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id as "id: Uuid";
+        "#,
+        map.get(&A::Clickbait),
+        map.get(&A::HateSpeech),
+        map.get(&A::Keywords),
+        map.get(&A::Language),
+        map.get(&A::Politics),
+        map.get(&A::Sarcasm),
+        map.get(&A::Sentiment),
+        map.get(&A::Spam)
+    )
+            .fetch_one(&mut **tx)
+            .await?
+            .id;
+
         Ok(id)
     }
 }
@@ -156,7 +206,10 @@ impl DbStoredDependently for ReportAnalysesMap {
 #[async_trait]
 impl FromDb for ReportAnalysesMap {
     type DbModel = DbReportAnalysesMap;
-    async fn from_db_model(db_analyses_map: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+    async fn from_db_model(
+        model: Self::DbModel,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Self, Error> {
         let analyses = sqlx::query_as!(
             DbNlpAnalysis,
             r#"
@@ -166,29 +219,23 @@ impl FromDb for ReportAnalysesMap {
                 $1, $2, $3, $4, $5, $6, $7, $8
             )
             "#,
-            db_analyses_map.clickbait_id,
-            db_analyses_map.hate_speech_id,
-            db_analyses_map.keywords_id,
-            db_analyses_map.language_id,
-            db_analyses_map.politics_id,
-            db_analyses_map.sarcasm_id,
-            db_analyses_map.sentiment_id,
-            db_analyses_map.spam_id
+            model.clickbait_id,
+            model.hate_speech_id,
+            model.keywords_id,
+            model.language_id,
+            model.politics_id,
+            model.sarcasm_id,
+            model.sentiment_id,
+            model.spam_id
         )
-        .fetch_all(db.raw_db())
+        .fetch_all(&mut **db)
         .await?;
 
-        let mapped_analyses_fut = analyses
-            .into_iter()
-            .map(|db_analysis| NlpAnalysis::from_db_model(db_analysis, db));
-
-        let analyses_map: HashMap<_, _> = futures::future::join_all(mapped_analyses_fut)
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?
-            .into_iter()
-            .map(|analysis| (analysis.kind.clone(), analysis))
-            .collect();
+        let mut analyses_map = HashMap::new();
+        for db_analysis in analyses {
+            let analysis = NlpAnalysis::from_db_model(db_analysis, db).await?;
+            analyses_map.insert(analysis.kind.clone(), analysis);
+        }
 
         Ok(ReportAnalysesMap {
             analyses: analyses_map,
@@ -197,8 +244,8 @@ impl FromDb for ReportAnalysesMap {
 }
 
 #[async_trait]
-impl DbStoredDependently for ReportMetadata {
-    async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
+impl DbStoredDependentlyInner for ReportMetadata {
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<Uuid, Error> {
         let id = sqlx::query!(
             r#"
             INSERT INTO report_metadata (report_created_at, report_updated_at)
@@ -208,7 +255,7 @@ impl DbStoredDependently for ReportMetadata {
             self.created_at,
             self.updated_at
         )
-        .fetch_one(db.raw_db())
+        .fetch_one(&mut **tx)
         .await?
         .id;
         Ok(id)
@@ -219,28 +266,28 @@ impl DbStoredDependently for ReportMetadata {
 impl FromDb for ReportMetadata {
     type DbModel = DbReportMetadata;
     async fn from_db_model(
-        db_report_metadata: Self::DbModel,
-        db: &DbClient,
+        model: Self::DbModel,
+        db: &mut Transaction<Postgres>,
     ) -> Result<Self, Error> {
         Ok(ReportMetadata {
-            created_at: db_report_metadata.report_created_at,
-            updated_at: db_report_metadata.report_updated_at,
+            created_at: model.report_created_at,
+            updated_at: model.report_updated_at,
         })
     }
 }
 
 #[async_trait]
-impl DbStored for Report {
-    async fn save(&self, db: &DbClient) -> Result<(), Error> {
-        let metadata_uuid = self.metadata.save(db).await?;
-        let analyses_uuid = self.analyses_map.save(db).await?;
+impl DbStoredInner for Report {
+    async fn inner_save(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
+        let metadata_uuid = self.metadata.inner_save(db).await?;
+        let analyses_uuid = self.analyses_map.inner_save(db).await?;
         let user_uuid = sqlx::query!(
             r#"
             SELECT id as "id: Uuid" FROM users WHERE google_sub = $1
             "#,
             self.user_id
         )
-        .fetch_one(db.raw_db())
+        .fetch_one(&mut **db)
         .await?
         .id;
 
@@ -258,12 +305,12 @@ impl DbStored for Report {
             metadata_uuid,
             analyses_uuid
         )
-        .execute(db.raw_db())
+        .execute(&mut **db)
         .await?;
 
         Ok(())
     }
-    async fn update(&self, db: &DbClient) -> Result<(), Error> {
+    async fn inner_update(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
         sqlx::query!(
             r#"
             UPDATE reports
@@ -275,23 +322,26 @@ impl DbStored for Report {
             self.is_public,
             self.id
         )
-        .execute(db.raw_db())
+        .execute(&mut **db)
         .await?;
         Ok(())
     }
-    async fn delete(&self, db: &DbClient) -> Result<(), Error> {
+    async fn inner_delete(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
         sqlx::query!(
             r#"
             DELETE FROM reports WHERE display_id = $1
             "#,
             self.id
         )
-        .execute(db.raw_db())
+        .execute(&mut **db)
         .await?;
         Ok(())
     }
 
-    async fn get_by_id(id: &str, db: &DbClient) -> Result<Option<Self>, Error> {
+    async fn inner_get_by_id(
+        id: &str,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Option<Self>, Error> {
         let report = sqlx::query_as!(
             DbReport,
             r#"
@@ -301,7 +351,7 @@ impl DbStored for Report {
             "#,
             id
         )
-        .fetch_optional(db.raw_db())
+        .fetch_optional(&mut **db)
         .await?;
 
         let report = match report {
@@ -319,7 +369,7 @@ impl DbStored for Report {
             "#,
                 report.metadata_id
             )
-            .fetch_one(db.raw_db())
+            .fetch_one(&mut **db)
             .await?;
 
             ReportMetadata::from_db_model(db_metadata, db).await?
@@ -335,7 +385,7 @@ impl DbStored for Report {
             "#,
                 report.analyses_map_id
             )
-            .fetch_one(db.raw_db())
+            .fetch_one(&mut **db)
             .await?;
 
             ReportAnalysesMap::from_db_model(map, db).await?
@@ -351,14 +401,17 @@ impl DbStored for Report {
             analyses_map,
         }))
     }
-    async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error> {
+    async fn inner_get_all(
+        pagination: DbPagination,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Vec<Self>, Error> {
         todo!()
     }
 }
 
 #[async_trait]
-impl DbStored for User {
-    async fn save(&self, db: &DbClient) -> Result<(), Error> {
+impl DbStoredInner for User {
+    async fn inner_save(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
         sqlx::query!(
             r#"
             INSERT INTO users (
@@ -376,26 +429,29 @@ impl DbStored for User {
             self.email,
             self.email_verified
         )
-        .execute(db.raw_db())
+        .execute(&mut **db)
         .await?;
         Ok(())
     }
-    async fn update(&self, db: &DbClient) -> Result<(), Error> {
+    async fn inner_update(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
         unimplemented!()
     }
-    async fn delete(&self, db: &DbClient) -> Result<(), Error> {
+    async fn inner_delete(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
         sqlx::query!(
             r#"
             DELETE FROM users WHERE google_sub = $1
             "#,
             self.id
         )
-        .execute(db.raw_db())
+        .execute(&mut **db)
         .await?;
         Ok(())
     }
 
-    async fn get_by_id(id: &str, db: &DbClient) -> Result<Option<Self>, Error> {
+    async fn inner_get_by_id(
+        id: &str,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Option<Self>, Error> {
         let user = sqlx::query_as!(
             User,
             r#"
@@ -405,12 +461,15 @@ impl DbStored for User {
             "#,
             id
         )
-        .fetch_optional(db.raw_db())
+        .fetch_optional(&mut **db)
         .await?;
         Ok(user)
     }
 
-    async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error> {
+    async fn inner_get_all(
+        pagination: DbPagination,
+        db: &mut Transaction<Postgres>,
+    ) -> Result<Vec<Self>, Error> {
         todo!()
     }
 }

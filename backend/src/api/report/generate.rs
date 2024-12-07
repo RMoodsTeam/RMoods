@@ -1,6 +1,7 @@
 use crate::api::auth::google::{GoogleId, JwtUserInfo};
 use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
+use crate::db::db_stored::DbStored;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_client::NlpClient;
 use crate::nlp::report::{new_report_id, Report, ReportAnalysesMap, ReportMetadata};
@@ -15,7 +16,6 @@ use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
 use axum::extract::State;
 use chrono::Utc;
-use jsonwebtoken::get_current_timestamp;
 use std::collections::HashMap;
 
 /// Create a report from the given data.
@@ -95,6 +95,8 @@ pub async fn generate_report_handler(
 
         match report_res {
             Ok(report) => {
+                log::warn!("Saving the report");
+                report.save(&state.db).await.expect("Failed to save report");
                 state
                     .system_tx
                     .send(SystemMessage::ReportDone((report.id, user_info.id)))
