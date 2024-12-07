@@ -6,7 +6,7 @@ use sqlx::{Error, Postgres, Transaction};
 
 #[async_trait]
 impl DbStoredInner for User {
-    async fn inner_save(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
         sqlx::query!(
             r#"
             INSERT INTO users (
@@ -24,28 +24,28 @@ impl DbStoredInner for User {
             self.email,
             self.email_verified
         )
-        .execute(&mut **db)
+        .execute(&mut **tx)
         .await?;
         Ok(())
     }
-    async fn inner_update(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
         unimplemented!()
     }
-    async fn inner_delete(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
         sqlx::query!(
             r#"
             DELETE FROM users WHERE google_sub = $1
             "#,
             self.id
         )
-        .execute(&mut **db)
+        .execute(&mut **tx)
         .await?;
         Ok(())
     }
 
     async fn inner_get_by_id(
         id: &str,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Option<Self>, Error> {
         let user = sqlx::query_as!(
             User,
@@ -56,15 +56,15 @@ impl DbStoredInner for User {
             "#,
             id
         )
-        .fetch_optional(&mut **db)
+        .fetch_optional(&mut **tx)
         .await?;
         Ok(user)
     }
 
     async fn inner_get_all(
         pagination: DbPagination,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Vec<Self>, Error> {
-        todo!()
+        unimplemented!()
     }
 }

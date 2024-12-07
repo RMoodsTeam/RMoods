@@ -88,22 +88,22 @@ impl<T> DbStored for T where T: DbStoredInner {}
 #[async_trait]
 pub(super) trait DbStoredInner: Sized {
     /// Saves the object to the database using the provided transaction.
-    async fn inner_save(&self, db: &mut Transaction<Postgres>) -> Result<(), Error>;
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error>;
     /// Updates the object in the database using the provided transaction.
-    async fn inner_update(&self, db: &mut Transaction<Postgres>) -> Result<(), Error>;
+    async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error>;
     /// Deletes the object from the database using the provided transaction.
-    async fn inner_delete(&self, db: &mut Transaction<Postgres>) -> Result<(), Error>;
+    async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error>;
 
     /// Fetches the object by its ID using the provided transaction.
     async fn inner_get_by_id(
         id: &str,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Option<Self>, Error>;
 
     /// Fetches all objects of this type using the provided transaction.
     async fn inner_get_all(
         pagination: DbPagination,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Vec<Self>, Error>;
 }
 

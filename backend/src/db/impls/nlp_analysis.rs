@@ -33,14 +33,14 @@ impl FromDb for NlpAnalysis {
     type DbModel = DbNlpAnalysis;
     async fn from_db_model(
         model: Self::DbModel,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Self, Error> {
         let nlp_metadata = sqlx::query_as!(
             DbNlpMetadata,
             r#"SELECT * FROM nlp_metadata WHERE id = $1"#,
             model.nlp_metadata_id
         )
-        .fetch_one(&mut **db)
+        .fetch_one(&mut **tx)
         .await?;
         Ok(NlpAnalysis {
             kind: NlpAnalysisKind::from_snake_case(&model.kind).unwrap(),

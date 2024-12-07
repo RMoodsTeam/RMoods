@@ -30,7 +30,7 @@ impl FromDb for ReportMetadata {
     type DbModel = DbReportMetadata;
     async fn from_db_model(
         model: Self::DbModel,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Self, Error> {
         Ok(ReportMetadata {
             created_at: model.report_created_at,

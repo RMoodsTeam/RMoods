@@ -29,7 +29,7 @@ impl FromDb for NlpMetadata {
     type DbModel = DbNlpMetadata;
     async fn from_db_model(
         model: Self::DbModel,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Self, Error> {
         Ok(NlpMetadata {
             generated_in: model.generated_in,

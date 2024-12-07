@@ -49,7 +49,7 @@ impl FromDb for ReportAnalysesMap {
     type DbModel = DbReportAnalysesMap;
     async fn from_db_model(
         model: Self::DbModel,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Self, Error> {
         let analyses = sqlx::query_as!(
             DbNlpAnalysis,
@@ -69,12 +69,12 @@ impl FromDb for ReportAnalysesMap {
             model.sentiment_id,
             model.spam_id
         )
-        .fetch_all(&mut **db)
+        .fetch_all(&mut **tx)
         .await?;
 
         let mut analyses_map = HashMap::new();
         for db_analysis in analyses {
-            let analysis = NlpAnalysis::from_db_model(db_analysis, db).await?;
+            let analysis = NlpAnalysis::from_db_model(db_analysis, tx).await?;
             analyses_map.insert(analysis.kind.clone(), analysis);
         }
 

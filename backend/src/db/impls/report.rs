@@ -9,16 +9,16 @@ use uuid::Uuid;
 
 #[async_trait]
 impl DbStoredInner for Report {
-    async fn inner_save(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
-        let metadata_uuid = self.metadata.inner_save(db).await?;
-        let analyses_uuid = self.analyses_map.inner_save(db).await?;
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
+        let metadata_uuid = self.metadata.inner_save(tx).await?;
+        let analyses_uuid = self.analyses_map.inner_save(tx).await?;
         let user_uuid = sqlx::query!(
             r#"
             SELECT id as "id: Uuid" FROM users WHERE google_sub = $1
             "#,
             self.user_id
         )
-        .fetch_one(&mut **db)
+        .fetch_one(&mut **tx)
         .await?
         .id;
 
@@ -36,12 +36,12 @@ impl DbStoredInner for Report {
             metadata_uuid,
             analyses_uuid
         )
-        .execute(&mut **db)
+        .execute(&mut **tx)
         .await?;
 
         Ok(())
     }
-    async fn inner_update(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
         sqlx::query!(
             r#"
             UPDATE reports
@@ -53,25 +53,25 @@ impl DbStoredInner for Report {
             self.is_public,
             self.id
         )
-        .execute(&mut **db)
+        .execute(&mut **tx)
         .await?;
         Ok(())
     }
-    async fn inner_delete(&self, db: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
         sqlx::query!(
             r#"
             DELETE FROM reports WHERE display_id = $1
             "#,
             self.id
         )
-        .execute(&mut **db)
+        .execute(&mut **tx)
         .await?;
         Ok(())
     }
 
     async fn inner_get_by_id(
         id: &str,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Option<Self>, Error> {
         let report = sqlx::query_as!(
             DbReport,
@@ -82,7 +82,7 @@ impl DbStoredInner for Report {
             "#,
             id
         )
-        .fetch_optional(&mut **db)
+        .fetch_optional(&mut **tx)
         .await?;
 
         let report = match report {
@@ -100,10 +100,10 @@ impl DbStoredInner for Report {
             "#,
                 report.metadata_id
             )
-            .fetch_one(&mut **db)
+            .fetch_one(&mut **tx)
             .await?;
 
-            ReportMetadata::from_db_model(db_metadata, db).await?
+            ReportMetadata::from_db_model(db_metadata, tx).await?
         };
 
         let analyses_map = {
@@ -116,10 +116,10 @@ impl DbStoredInner for Report {
             "#,
                 report.analyses_map_id
             )
-            .fetch_one(&mut **db)
+            .fetch_one(&mut **tx)
             .await?;
 
-            ReportAnalysesMap::from_db_model(map, db).await?
+            ReportAnalysesMap::from_db_model(map, tx).await?
         };
 
         Ok(Some(Report {
@@ -134,8 +134,8 @@ impl DbStoredInner for Report {
     }
     async fn inner_get_all(
         pagination: DbPagination,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Vec<Self>, Error> {
-        todo!()
+        unimplemented!()
     }
 }

@@ -7,6 +7,6 @@ pub(in crate::db) trait FromDb: Sized {
     type DbModel;
     async fn from_db_model(
         model: Self::DbModel,
-        db: &mut Transaction<Postgres>,
+        tx: &mut Transaction<Postgres>,
     ) -> Result<Self, Error>;
 }
