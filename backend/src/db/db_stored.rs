@@ -1,6 +1,8 @@
 use crate::api::auth::google::User;
 use crate::db::db_client::DbClient;
-use crate::db::model::{DbReport, DbUser};
+use crate::db::model::{
+    DbNlpAnalysis, DbNlpMetadata, DbReport, DbReportAnalysesMap, DbReportMetadata,
+};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
 use crate::nlp::report::{Report, ReportAnalysesMap, ReportMetadata};
@@ -9,18 +11,31 @@ use sqlx::Error;
 use std::collections::HashMap;
 use uuid::Uuid;
 
+pub struct DbPagination {
+    page: u32,
+    per_page: u32,
+}
+
 /// Implemented for structs that can be saved to our database
 #[async_trait]
-pub trait DbStored {
-    type DbStruct;
+pub trait DbStored: Sized {
     async fn save(&self, db: &DbClient) -> Result<(), Error>;
     async fn update(&self, db: &DbClient) -> Result<(), Error>;
     async fn delete(&self, db: &DbClient) -> Result<(), Error>;
+
+    async fn get_by_id(id: &str, db: &DbClient) -> Result<Option<Self>, Error>;
+    async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error>;
 }
 
 #[async_trait]
-pub trait DbStoredDependently {
+pub trait DbStoredDependently: Sized {
     async fn save(&self, db: &DbClient) -> Result<Uuid, Error>;
+}
+
+#[async_trait]
+pub(super) trait FromDb: Sized {
+    type DbModel;
+    async fn from_db(model: Self::DbModel, db: &DbClient) -> Result<Self, Error>;
 }
 
 #[async_trait]
@@ -42,6 +57,14 @@ impl DbStoredDependently for NlpMetadata {
 }
 
 #[async_trait]
+impl FromDb for NlpMetadata {
+    type DbModel = DbNlpMetadata;
+    async fn from_db(db_nlp_metadata: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+        todo!()
+    }
+}
+
+#[async_trait]
 impl DbStoredDependently for NlpAnalysis {
     async fn save(&self, db: &DbClient) -> Result<Uuid, Error> {
         let metadata_uuid = self.metadata.save(db).await?;
@@ -52,13 +75,34 @@ impl DbStoredDependently for NlpAnalysis {
             RETURNING id as "id: Uuid";
             "#,
             metadata_uuid,
-            &self.kind as &NlpAnalysisKind,
-            serde_json::to_value(&self.results).unwrap()
+            &self.kind.to_snake_case(),
+            serde_json::to_value(&self.results).unwrap() // TODO HANDLE ERROR
         )
         .fetch_one(db.raw_db())
         .await?
         .id;
         Ok(id)
+    }
+}
+
+#[async_trait]
+impl FromDb for NlpAnalysis {
+    type DbModel = DbNlpAnalysis;
+    async fn from_db(db_analysis: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+        let nlp_metadata = sqlx::query_as!(
+            DbNlpMetadata,
+            r#"SELECT * FROM nlp_metadata WHERE id = $1"#,
+            db_analysis.nlp_metadata_id
+        )
+        .fetch_one(db.raw_db())
+        .await?;
+        Ok(NlpAnalysis {
+            kind: NlpAnalysisKind::from_snake_case(&db_analysis.kind).unwrap(),
+            results: serde_json::from_value(db_analysis.analysis.clone()).unwrap(),
+            metadata: NlpMetadata {
+                generated_in: nlp_metadata.generated_in,
+            },
+        })
     }
 }
 
@@ -91,19 +135,27 @@ impl DbStoredDependently for ReportAnalysesMap {
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING id as "id: Uuid";
             "#,
-            map.get(&A::Clickbait).copied(),
-            map.get(&A::HateSpeech).copied(),
-            map.get(&A::Keywords).copied(),
-            map.get(&A::Language).copied(),
-            map.get(&A::Politics).copied(),
-            map.get(&A::Sarcasm).copied(),
-            map.get(&A::Sentiment).copied(),
-            map.get(&A::Spam).copied(),
+            map.get(&A::Clickbait),
+            map.get(&A::HateSpeech),
+            map.get(&A::Keywords),
+            map.get(&A::Language),
+            map.get(&A::Politics),
+            map.get(&A::Sarcasm),
+            map.get(&A::Sentiment),
+            map.get(&A::Spam)
         )
         .fetch_one(db.raw_db())
         .await?
         .id;
         Ok(id)
+    }
+}
+
+#[async_trait]
+impl FromDb for ReportAnalysesMap {
+    type DbModel = DbReportAnalysesMap;
+    async fn from_db(db_analyses_map: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+        todo!()
     }
 }
 
@@ -127,8 +179,15 @@ impl DbStoredDependently for ReportMetadata {
 }
 
 #[async_trait]
+impl FromDb for ReportMetadata {
+    type DbModel = DbReportMetadata;
+    async fn from_db(db_report_metadata: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+        todo!()
+    }
+}
+
+#[async_trait]
 impl DbStored for Report {
-    type DbStruct = DbReport;
     async fn save(&self, db: &DbClient) -> Result<(), Error> {
         let metadata_uuid = self.metadata.save(db).await?;
         let analyses_uuid = self.analyses_map.save(db).await?;
@@ -188,11 +247,104 @@ impl DbStored for Report {
         .await?;
         Ok(())
     }
+
+    async fn get_by_id(id: &str, db: &DbClient) -> Result<Option<Self>, Error> {
+        let report = sqlx::query_as!(
+            DbReport,
+            r#"
+            SELECT *
+            FROM reports
+            WHERE display_id = $1
+            "#,
+            id
+        )
+        .fetch_optional(db.raw_db())
+        .await?;
+
+        let report = match report {
+            Some(report) => report,
+            None => return Ok(None),
+        };
+
+        let metadata = sqlx::query_as!(
+            DbReportMetadata,
+            r#"
+            SELECT *
+            FROM report_metadata
+            WHERE id = $1
+            "#,
+            report.metadata_id
+        )
+        .fetch_one(db.raw_db())
+        .await?;
+
+        let map = sqlx::query_as!(
+            DbReportAnalysesMap,
+            r#"
+            SELECT *
+            FROM report_analyses_maps
+            WHERE id = $1
+            "#,
+            report.analyses_map_id
+        )
+        .fetch_one(db.raw_db())
+        .await?;
+
+        let analyses = sqlx::query_as!(
+            DbNlpAnalysis,
+            r#"
+            SELECT *
+            FROM nlp_analyses
+            WHERE nlp_metadata_id IN (
+                $1, $2, $3, $4, $5, $6, $7, $8
+            )
+            "#,
+            map.clickbait_id,
+            map.hate_speech_id,
+            map.keywords_id,
+            map.language_id,
+            map.politics_id,
+            map.sarcasm_id,
+            map.sentiment_id,
+            map.spam_id
+        )
+        .fetch_all(db.raw_db())
+        .await?;
+
+        let mapped_analyses_fut = analyses
+            .into_iter()
+            .map(|db_analysis| NlpAnalysis::from_db(db_analysis, db));
+
+        let analyses_map: HashMap<_, _> = futures::future::join_all(mapped_analyses_fut)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .map(|analysis| (analysis.kind.clone(), analysis))
+            .collect();
+
+        Ok(Some(Report {
+            id: report.display_id,
+            user_id: report.user_id,
+            title: report.title,
+            description: report.description,
+            is_public: report.is_public,
+            metadata: ReportMetadata {
+                created_at: metadata.report_created_at,
+                updated_at: metadata.report_updated_at,
+            },
+            analyses_map: ReportAnalysesMap {
+                analyses: analyses_map,
+            },
+        }))
+    }
+    async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error> {
+        todo!()
+    }
 }
 
 #[async_trait]
 impl DbStored for User {
-    type DbStruct = DbUser;
     async fn save(&self, db: &DbClient) -> Result<(), Error> {
         sqlx::query!(
             r#"
@@ -228,5 +380,13 @@ impl DbStored for User {
         .execute(db.raw_db())
         .await?;
         Ok(())
+    }
+
+    async fn get_by_id(id: &str, db: &DbClient) -> Result<Option<Self>, Error> {
+        todo!()
+    }
+
+    async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error> {
+        todo!()
     }
 }

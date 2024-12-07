@@ -1,9 +1,8 @@
 use crate::api::auth::google::GoogleId;
-use crate::nlp::analysis::NlpAnalysisKind;
-use crate::nlp::nlp_response::NlpResponse;
 use crate::nlp::report::ReportId;
 use chrono::{DateTime, Utc};
-use sqlx::types::{Json, Uuid};
+use serde_json::Value;
+use sqlx::types::Uuid;
 
 /// Represents a [User](crate::api::auth::google::User)
 #[derive(sqlx::FromRow)]
@@ -25,71 +24,71 @@ pub struct DbUser {
 /// Represents a [Report](crate::nlp::report::Report)
 #[derive(sqlx::FromRow)]
 pub struct DbReport {
-    id: Uuid,
+    pub(super) id: Uuid,
     //
-    display_id: ReportId,
-    user_id: GoogleId,
-    title: String,
-    description: String,
-    is_public: bool,
-    metadata_id: Uuid,
-    analyses_id: Uuid,
+    pub(super) display_id: ReportId,
+    pub(super) user_id: GoogleId,
+    pub(super) title: String,
+    pub(super) description: String,
+    pub(super) is_public: bool,
+    pub(super) metadata_id: Uuid,
+    pub(super) analyses_map_id: Uuid,
     //
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    pub(super) created_at: DateTime<Utc>,
+    pub(super) updated_at: DateTime<Utc>,
 }
 
 /// Represents [ReportMetadata](crate::nlp::report::ReportMetadata) of a report.
 #[derive(sqlx::FromRow)]
 pub struct DbReportMetadata {
-    id: Uuid,
+    pub(super) id: Uuid,
     //
-    report_created_at: DateTime<Utc>,
-    report_updated_at: DateTime<Utc>,
+    pub(super) report_created_at: DateTime<Utc>,
+    pub(super) report_updated_at: DateTime<Utc>,
     //
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    pub(super) created_at: DateTime<Utc>,
+    pub(super) updated_at: DateTime<Utc>,
 }
 
 /// Represents the hashmap of analyses from a [Report](crate::nlp::report::Report).
 #[derive(sqlx::FromRow)]
 pub struct DbReportAnalysesMap {
-    id: Uuid,
+    pub(super) id: Uuid,
     //
-    clickbait_id: Option<Uuid>,
-    hate_speech_id: Option<Uuid>,
-    keywords_id: Option<Uuid>,
-    language_id: Option<Uuid>,
-    politics_id: Option<Uuid>,
-    sarcasm_id: Option<Uuid>,
-    sentiment_id: Option<Uuid>,
-    spam_id: Option<Uuid>,
+    pub(super) clickbait_id: Option<Uuid>,
+    pub(super) hate_speech_id: Option<Uuid>,
+    pub(super) keywords_id: Option<Uuid>,
+    pub(super) language_id: Option<Uuid>,
+    pub(super) politics_id: Option<Uuid>,
+    pub(super) sarcasm_id: Option<Uuid>,
+    pub(super) sentiment_id: Option<Uuid>,
+    pub(super) spam_id: Option<Uuid>,
     //
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    pub(super) created_at: DateTime<Utc>,
+    pub(super) updated_at: DateTime<Utc>,
 }
 
 /// Represents a singular [NlpResponse](crate::nlp::nlp_response::NlpResponse) analysis of some kind.
 #[derive(sqlx::FromRow)]
-pub struct DbNlpAnalysis {
-    id: Uuid,
+pub(super) struct DbNlpAnalysis {
+    pub(super) id: Uuid,
     //
     /// References [DbNlpMetadata]
-    nlp_metadata_id: Uuid,
-    kind: NlpAnalysisKind,
-    analysis: Json<Vec<NlpResponse>>,
+    pub(super) nlp_metadata_id: Uuid,
+    pub(super) kind: String,
+    pub(super) analysis: Value,
     //
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    pub(super) created_at: DateTime<Utc>,
+    pub(super) updated_at: DateTime<Utc>,
 }
 
 /// Represents [NlpMetadata](crate::nlp::nlp_response::NlpMetadata) of an analysis.
 #[derive(sqlx::FromRow)]
-pub struct DbNlpMetadata {
-    id: Uuid,
+pub(super) struct DbNlpMetadata {
+    pub(super) id: Uuid,
     //
-    generated_in: f64,
+    pub(super) generated_in: f64,
     //
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    pub(super) created_at: DateTime<Utc>,
+    pub(super) updated_at: DateTime<Utc>,
 }

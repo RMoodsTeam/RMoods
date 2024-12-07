@@ -47,33 +47,15 @@ CREATE OR REPLACE TRIGGER update_nlp_metadata_updated_at
     FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
-DO
-$$
-    BEGIN
-        CREATE TYPE nlp_analysis_kind AS ENUM (
-            'clickbait',
-            'hate_speech',
-            'keywords',
-            'language',
-            'politics',
-            'sarcasm',
-            'sentiment',
-            'spam'
-            );
-    EXCEPTION
-        WHEN duplicate_object THEN NULL;
-    END
-$$;
-
 CREATE TABLE IF NOT EXISTS nlp_analyses (
-    id              uuid PRIMARY KEY           DEFAULT uuid_generate_v4(),
+    id              uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     --
-    nlp_metadata_id uuid              NOT NULL,
-    kind            nlp_analysis_kind NOT NULL,
-    analysis        jsonb             NOT NULL,
+    nlp_metadata_id uuid        NOT NULL,
+    kind            TEXT        NOT NULL,
+    analysis        jsonb       NOT NULL,
     --
-    created_at      timestamptz       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      timestamptz       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (nlp_metadata_id) REFERENCES nlp_metadata (id) ON DELETE CASCADE
 );

@@ -3,6 +3,7 @@ use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::error::NlpError;
 use crate::nlp::nlp_response::NlpAnalysis;
 use log_derive::logfn;
+use serde_json::Value;
 use serde_with::serde_derive::Serialize;
 
 #[derive(Debug, Clone)]

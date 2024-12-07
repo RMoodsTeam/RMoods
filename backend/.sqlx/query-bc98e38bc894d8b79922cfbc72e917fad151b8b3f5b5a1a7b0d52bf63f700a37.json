@@ -12,23 +12,7 @@
     "parameters": {
       "Left": [
         "Uuid",
-        {
-          "Custom": {
-            "name": "nlp_analysis_kind",
-            "kind": {
-              "Enum": [
-                "clickbait",
-                "hate_speech",
-                "keywords",
-                "language",
-                "politics",
-                "sarcasm",
-                "sentiment",
-                "spam"
-              ]
-            }
-          }
-        },
+        "Text",
         "Jsonb"
       ]
     },
