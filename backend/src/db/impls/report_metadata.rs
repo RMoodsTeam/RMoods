@@ -1,5 +1,5 @@
 use crate::db::db_stored::DbStoredDependentlyInner;
-use crate::db::impls::report::FromDb;
+use crate::db::from_db::FromDb;
 use crate::db::model::DbReportMetadata;
 use crate::nlp::report::ReportMetadata;
 use axum::async_trait;

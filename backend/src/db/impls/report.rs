@@ -1,19 +1,11 @@
 use crate::db::db_stored::{DbStoredDependentlyInner, DbStoredInner};
+use crate::db::from_db::FromDb;
 use crate::db::model::{DbReport, DbReportAnalysesMap, DbReportMetadata};
 use crate::db::pagination::DbPagination;
 use crate::nlp::report::{Report, ReportAnalysesMap, ReportMetadata};
 use axum::async_trait;
 use sqlx::{Error, Postgres, Transaction};
 use uuid::Uuid;
-
-#[async_trait]
-pub(in crate::db) trait FromDb: Sized {
-    type DbModel;
-    async fn from_db_model(
-        model: Self::DbModel,
-        db: &mut Transaction<Postgres>,
-    ) -> Result<Self, Error>;
-}
 
 #[async_trait]
 impl DbStoredInner for Report {

@@ -6,7 +6,7 @@ use sqlx::types::Uuid;
 
 /// Represents a [User](crate::api::auth::google::User)
 #[derive(sqlx::FromRow)]
-pub struct DbUser {
+pub(super) struct DbUser {
     id: Uuid,
     //
     google_id: GoogleId,
@@ -23,7 +23,7 @@ pub struct DbUser {
 
 /// Represents a [Report](crate::nlp::report::Report)
 #[derive(sqlx::FromRow)]
-pub struct DbReport {
+pub(super) struct DbReport {
     pub(super) id: Uuid,
     //
     pub(super) display_id: ReportId,
@@ -40,7 +40,7 @@ pub struct DbReport {
 
 /// Represents [ReportMetadata](crate::nlp::report::ReportMetadata) of a report.
 #[derive(sqlx::FromRow)]
-pub struct DbReportMetadata {
+pub(super) struct DbReportMetadata {
     pub(super) id: Uuid,
     //
     pub(super) report_created_at: DateTime<Utc>,
@@ -52,7 +52,7 @@ pub struct DbReportMetadata {
 
 /// Represents the hashmap of analyses from a [Report](crate::nlp::report::Report).
 #[derive(sqlx::FromRow)]
-pub struct DbReportAnalysesMap {
+pub(super) struct DbReportAnalysesMap {
     pub(super) id: Uuid,
     //
     pub(super) clickbait_id: Option<Uuid>,
