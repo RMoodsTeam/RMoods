@@ -17,6 +17,10 @@ using_manager.md
 main.md
 google_service.md
 version_checker.md
+authorization.md
+base_models.md
+models_loading.md
+utils.md
 ```
     
 ## Indices and tables

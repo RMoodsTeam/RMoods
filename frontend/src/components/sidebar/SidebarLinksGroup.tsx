@@ -10,6 +10,7 @@ import {
 } from '@mantine/core';
 import { IconCalendarStats, IconChevronRight } from '@tabler/icons-react';
 import classes from './SidebarLinksGroup.module.css';
+import { Link } from 'react-router-dom';
 
 interface LinksGroupProps {
   icon: React.FC<any>;
@@ -27,12 +28,11 @@ export function LinksGroup({
   const hasLinks = Array.isArray(links);
   const [opened, setOpened] = useState(initiallyOpened || false);
   const items = (hasLinks ? links : []).map((link) => (
-    <Text<'a'>
-      component="a"
+    <Text
+      component={Link}
       className={classes.link}
-      href={link.link}
+      to={link.link}
       key={link.label}
-      onClick={(event) => event.preventDefault()}
     >
       {link.label}
     </Text>

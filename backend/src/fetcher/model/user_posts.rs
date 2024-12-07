@@ -1,9 +1,9 @@
 use crate::cast;
-use crate::reddit_fetcher::feed_request::{DataSource, FetcherFeedRequest};
-use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::model::reddit_data::RedditFeedData;
-use crate::reddit_fetcher::reddit::model::{RawComment, RawContainer, RawPost};
-use crate::reddit_fetcher::reddit::request::UserPostsRequest;
+use crate::fetcher::feed_request::{DataSource, FetcherFeedRequest};
+use crate::fetcher::fetcher_error::FetcherError;
+use crate::fetcher::model::reddit_data::RedditFeedData;
+use crate::fetcher::reddit::model::{RawComment, RawContainer, RawPost};
+use crate::fetcher::reddit::request::UserPostsRequest;
 use log_derive::logfn;
 use serde::Serialize;
 

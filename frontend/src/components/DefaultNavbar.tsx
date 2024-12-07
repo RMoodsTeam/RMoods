@@ -1,15 +1,12 @@
-import UserMenu from './UserMenu';
-import ThemeSwitch from './ThemeSwitch';
 import { Anchor, Card, Flex, Grid } from '@mantine/core';
-import StatusIndicator from './StatusIndicator';
-import RateLimitStatus from './RateLimitStatus.tsx';
+import ThemeSwitch from './navbar/ThemeSwitch.tsx';
 
 const LeftNavItems = () => {
   return (
     <Flex gap={10}>
       <Anchor href="/">Main</Anchor>
       <Anchor href="/about">About</Anchor>
-      <Anchor href="/report">Report</Anchor>
+      <Anchor href="/dashboard">Dashboard</Anchor>
     </Flex>
   );
 };
@@ -17,10 +14,7 @@ const LeftNavItems = () => {
 const RightNavItems = () => {
   return (
     <Flex gap={10} justify={'right'} align="center">
-      <RateLimitStatus />
-      <StatusIndicator />
       <ThemeSwitch />
-      <UserMenu />
     </Flex>
   );
 };
@@ -28,7 +22,7 @@ const RightNavItems = () => {
 /**
  * Navbar contains components to navigate the website
  */
-const Navbar = () => {
+const DefaultNavbar = () => {
   return (
     <Card
       style={{ margin: 0, borderRadius: 0, marginBottom: 0, height: '10vh' }}
@@ -50,4 +44,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default DefaultNavbar;

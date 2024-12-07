@@ -1,5 +1,8 @@
 use super::{error::AuthError, google::User};
 use crate::api::auth::google::JwtUserInfo;
+use crate::auth::error::AuthError;
+use crate::auth::google::GoogleUserInfo;
+use crate::auth::google::JwtUserInfo;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, DecodingKey, Header, TokenData, Validation};
 use log_derive::logfn;

@@ -1,10 +1,11 @@
+use crate::fetcher::fetcher_error::FetcherError;
+use crate::fetcher::reddit::request::feed_sorting::FeedSorting;
 use crate::nlp::analysis::NlpAnalysisKind;
-use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::reddit::request::feed_sorting::FeedSorting;
 use axum::async_trait;
 use axum::body::Bytes;
 use axum::extract::{FromRequest, Request};
 use http::StatusCode;
+use log_derive::logfn;
 use serde::Deserialize;
 use std::fmt::Debug;
 
@@ -39,7 +40,7 @@ pub struct FetcherFeedRequest {
     /// Determines what kind of feed do we fetch and make a report on.
     pub resource_kind: RedditFeedKind,
     /// Determines what NLP reports do we want to generate.
-    pub report_types: Vec<NlpAnalysisKind>,
+    pub analyses: Vec<NlpAnalysisKind>,
     /// Determines the data sources for the feed.
     pub data_sources: Vec<DataSource>,
     /// Determines how many posts do we want to use to fulfill that report request.
@@ -58,6 +59,7 @@ impl FetcherFeedRequest {
     /// * Post IDs should only contain alphanumeric characters.
     /// * All data sources for PostComments should have a `post_id`.
     /// * No data sources for UserPosts and SubredditPosts should have a `post_id`.
+    #[logfn(err = "ERROR", fmt = "Failed to validate feed request: {0}")]
     pub fn validate(&self) -> Result<(), FetcherError> {
         // Check if there are any data sources
         if self.data_sources.is_empty() {
@@ -159,7 +161,7 @@ mod tests {
     const JSON: &str = r#"
         {
             "resourceKind": "userPosts",
-            "reportTypes": ["language", "sentiment"],
+            "analyses": ["language", "sentiment"],
             "dataSources": [
                 {
                     "name": "username",
@@ -182,7 +184,7 @@ mod tests {
         let feed_request: super::FetcherFeedRequest = serde_json::from_str(JSON).unwrap();
         assert_eq!(feed_request.resource_kind, super::RedditFeedKind::UserPosts);
         assert_eq!(
-            feed_request.report_types,
+            feed_request.analyses,
             vec![
                 super::NlpAnalysisKind::Language,
                 super::NlpAnalysisKind::Sentiment
@@ -192,7 +194,7 @@ mod tests {
         assert_eq!(feed_request.size, 10);
         assert_eq!(
             feed_request.sorting,
-            crate::reddit_fetcher::reddit::request::feed_sorting::FeedSorting::Hot
+            crate::fetcher::reddit::request::feed_sorting::FeedSorting::Hot
         );
     }
 

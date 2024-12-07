@@ -1,4 +1,4 @@
-use crate::env::NLP_URL;
+use crate::env::{NLP_API_KEY, NLP_URL};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::error::NlpError;
 use crate::nlp::nlp_response::NlpAnalysis;
@@ -72,7 +72,15 @@ impl NlpClient {
 
         log::debug!("Sending request to NLP service: {:?}", request);
 
-        let res = self.http.post(&url).json(&request).send().await?;
+        let api_key = std::env::var(NLP_API_KEY).expect("NLP_API_KEY must be set");
+
+        let res = self
+            .http
+            .post(&url)
+            .json(&request)
+            .header("access_token", api_key)
+            .send()
+            .await?;
         Ok(res.json().await?)
     }
 }

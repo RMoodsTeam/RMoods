@@ -9,13 +9,16 @@ import Layout from './Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout.tsx';
 import Settings from './routes/settings/page.tsx';
+import WebsocketProvider from './providers/WebsocketProvider.tsx';
 
 const router = createBrowserRouter([
   {
     element: (
-      <ProtectedRoute>
-        <DashboardLayout />
-      </ProtectedRoute>
+      <WebsocketProvider>
+        <ProtectedRoute>
+          <DashboardLayout />
+        </ProtectedRoute>
+      </WebsocketProvider>
     ),
     children: [
       {

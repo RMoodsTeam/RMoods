@@ -1,10 +1,12 @@
-import { FeedRequest } from './types.ts';
 import authFetch from './authFetch.ts';
+import { ReportFormAdaptedValues } from '../../routes/report/types.ts';
+
+export type ReportRequest = ReportFormAdaptedValues;
 
 /**
  * Provides a simple interface to the RMoods Backend API.
  */
-export default class RMoodsClient {
+export class RMoodsClient {
   static URL = 'http://localhost:8001/api';
 
   /**
@@ -18,7 +20,7 @@ export default class RMoodsClient {
    * We expect a `ReportAck` to come back from this request.
    * @param request
    */
-  static async requestReport(request: FeedRequest): Promise<Response> {
+  static async requestReport(request: ReportRequest): Promise<Response> {
     return await authFetch(`${RMoodsClient.URL}/report`, {
       method: 'POST',
       headers: {

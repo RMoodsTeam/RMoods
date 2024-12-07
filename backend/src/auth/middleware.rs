@@ -1,4 +1,4 @@
-use crate::api::auth::jwt::decode_jwt;
+use crate::auth::jwt::decode_jwt;
 use axum::{extract::Request, middleware::Next, response::Response};
 use http::{HeaderMap, StatusCode, Uri};
 use log_derive::logfn;

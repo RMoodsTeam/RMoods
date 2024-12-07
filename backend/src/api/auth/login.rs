@@ -1,13 +1,11 @@
 use crate::db::db_stored::DbStored;
+use crate::auth::google::{fetch_google_access_token, fetch_google_user_info};
+use crate::auth::jwt::create_jwt;
+use crate::{app_error::AppError, AppState};
 use axum::{extract::State, Json};
 use log_derive::logfn;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-
-use super::{google::fetch_google_access_token, jwt::create_jwt};
-
-use crate::api::auth::google::fetch_google_user_info;
-use crate::{app_error::AppError, AppState};
 
 #[derive(Serialize, Debug, ToSchema)]
 pub struct LoginResponse {

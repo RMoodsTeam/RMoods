@@ -1,4 +1,4 @@
-use crate::reddit_fetcher::reddit::error::RedditError;
+use crate::fetcher::reddit::error::RedditError;
 use thiserror::Error;
 
 /// Describe the possible errors that can occur while fetching data from Reddit.

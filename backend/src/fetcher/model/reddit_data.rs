@@ -1,7 +1,7 @@
-use crate::reddit_fetcher::feed_request::{DataSource, FetcherFeedRequest};
-use crate::reddit_fetcher::fetcher_error::FetcherError;
-use crate::reddit_fetcher::reddit::model::RawContainer;
-use crate::reddit_fetcher::reddit::request::RedditRequest;
+use crate::fetcher::feed_request::{DataSource, FetcherFeedRequest};
+use crate::fetcher::fetcher_error::FetcherError;
+use crate::fetcher::reddit::model::RawContainer;
+use crate::fetcher::reddit::request::RedditRequest;
 use std::fmt::Debug;
 
 /// Describes a common interface for any data that is a feed in Reddit.

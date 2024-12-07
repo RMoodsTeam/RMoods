@@ -1,4 +1,4 @@
-use crate::reddit_fetcher::reddit::connection::InnerFetchError;
+use crate::fetcher::reddit::connection::InnerFetchError;
 use jsonwebtoken::get_current_timestamp;
 use serde::Serialize;
 
