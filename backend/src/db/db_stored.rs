@@ -396,7 +396,18 @@ impl DbStored for User {
     }
 
     async fn get_by_id(id: &str, db: &DbClient) -> Result<Option<Self>, Error> {
-        todo!()
+        let user = sqlx::query_as!(
+            User,
+            r#"
+            SELECT google_sub as "id: String", name, given_name, family_name, picture, email, email_verified
+            FROM users
+            WHERE google_sub = $1
+            "#,
+            id
+        )
+        .fetch_optional(db.raw_db())
+        .await?;
+        Ok(user)
     }
 
     async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error> {

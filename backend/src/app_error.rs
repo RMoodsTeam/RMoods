@@ -29,6 +29,11 @@ impl AppError {
     pub fn internal_server_error() -> Self {
         AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
     }
+
+    /// Shorthand for creating a 404 response.
+    pub fn not_found() -> Self {
+        AppError::new(StatusCode::NOT_FOUND, "Resource not found")
+    }
 }
 
 impl IntoResponse for AppError {
