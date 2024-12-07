@@ -35,7 +35,7 @@ pub trait DbStoredDependently: Sized {
 #[async_trait]
 pub(super) trait FromDb: Sized {
     type DbModel;
-    async fn from_db(model: Self::DbModel, db: &DbClient) -> Result<Self, Error>;
+    async fn from_db_model(model: Self::DbModel, db: &DbClient) -> Result<Self, Error>;
 }
 
 #[async_trait]
@@ -59,8 +59,10 @@ impl DbStoredDependently for NlpMetadata {
 #[async_trait]
 impl FromDb for NlpMetadata {
     type DbModel = DbNlpMetadata;
-    async fn from_db(db_nlp_metadata: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
-        todo!()
+    async fn from_db_model(db_nlp_metadata: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+        Ok(NlpMetadata {
+            generated_in: db_nlp_metadata.generated_in,
+        })
     }
 }
 
@@ -88,7 +90,7 @@ impl DbStoredDependently for NlpAnalysis {
 #[async_trait]
 impl FromDb for NlpAnalysis {
     type DbModel = DbNlpAnalysis;
-    async fn from_db(db_analysis: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+    async fn from_db_model(db_analysis: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
         let nlp_metadata = sqlx::query_as!(
             DbNlpMetadata,
             r#"SELECT * FROM nlp_metadata WHERE id = $1"#,
@@ -154,8 +156,43 @@ impl DbStoredDependently for ReportAnalysesMap {
 #[async_trait]
 impl FromDb for ReportAnalysesMap {
     type DbModel = DbReportAnalysesMap;
-    async fn from_db(db_analyses_map: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
-        todo!()
+    async fn from_db_model(db_analyses_map: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
+        let analyses = sqlx::query_as!(
+            DbNlpAnalysis,
+            r#"
+            SELECT *
+            FROM nlp_analyses
+            WHERE nlp_metadata_id IN (
+                $1, $2, $3, $4, $5, $6, $7, $8
+            )
+            "#,
+            db_analyses_map.clickbait_id,
+            db_analyses_map.hate_speech_id,
+            db_analyses_map.keywords_id,
+            db_analyses_map.language_id,
+            db_analyses_map.politics_id,
+            db_analyses_map.sarcasm_id,
+            db_analyses_map.sentiment_id,
+            db_analyses_map.spam_id
+        )
+        .fetch_all(db.raw_db())
+        .await?;
+
+        let mapped_analyses_fut = analyses
+            .into_iter()
+            .map(|db_analysis| NlpAnalysis::from_db_model(db_analysis, db));
+
+        let analyses_map: HashMap<_, _> = futures::future::join_all(mapped_analyses_fut)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .map(|analysis| (analysis.kind.clone(), analysis))
+            .collect();
+
+        Ok(ReportAnalysesMap {
+            analyses: analyses_map,
+        })
     }
 }
 
@@ -181,8 +218,14 @@ impl DbStoredDependently for ReportMetadata {
 #[async_trait]
 impl FromDb for ReportMetadata {
     type DbModel = DbReportMetadata;
-    async fn from_db(db_report_metadata: Self::DbModel, db: &DbClient) -> Result<Self, Error> {
-        todo!()
+    async fn from_db_model(
+        db_report_metadata: Self::DbModel,
+        db: &DbClient,
+    ) -> Result<Self, Error> {
+        Ok(ReportMetadata {
+            created_at: db_report_metadata.report_created_at,
+            updated_at: db_report_metadata.report_updated_at,
+        })
     }
 }
 
@@ -266,62 +309,37 @@ impl DbStored for Report {
             None => return Ok(None),
         };
 
-        let metadata = sqlx::query_as!(
-            DbReportMetadata,
-            r#"
+        let metadata = {
+            let db_metadata = sqlx::query_as!(
+                DbReportMetadata,
+                r#"
             SELECT *
             FROM report_metadata
             WHERE id = $1
             "#,
-            report.metadata_id
-        )
-        .fetch_one(db.raw_db())
-        .await?;
+                report.metadata_id
+            )
+            .fetch_one(db.raw_db())
+            .await?;
 
-        let map = sqlx::query_as!(
-            DbReportAnalysesMap,
-            r#"
+            ReportMetadata::from_db_model(db_metadata, db).await?
+        };
+
+        let analyses_map = {
+            let map = sqlx::query_as!(
+                DbReportAnalysesMap,
+                r#"
             SELECT *
             FROM report_analyses_maps
             WHERE id = $1
             "#,
-            report.analyses_map_id
-        )
-        .fetch_one(db.raw_db())
-        .await?;
-
-        let analyses = sqlx::query_as!(
-            DbNlpAnalysis,
-            r#"
-            SELECT *
-            FROM nlp_analyses
-            WHERE nlp_metadata_id IN (
-                $1, $2, $3, $4, $5, $6, $7, $8
+                report.analyses_map_id
             )
-            "#,
-            map.clickbait_id,
-            map.hate_speech_id,
-            map.keywords_id,
-            map.language_id,
-            map.politics_id,
-            map.sarcasm_id,
-            map.sentiment_id,
-            map.spam_id
-        )
-        .fetch_all(db.raw_db())
-        .await?;
+            .fetch_one(db.raw_db())
+            .await?;
 
-        let mapped_analyses_fut = analyses
-            .into_iter()
-            .map(|db_analysis| NlpAnalysis::from_db(db_analysis, db));
-
-        let analyses_map: HashMap<_, _> = futures::future::join_all(mapped_analyses_fut)
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?
-            .into_iter()
-            .map(|analysis| (analysis.kind.clone(), analysis))
-            .collect();
+            ReportAnalysesMap::from_db_model(map, db).await?
+        };
 
         Ok(Some(Report {
             id: report.display_id,
@@ -329,13 +347,8 @@ impl DbStored for Report {
             title: report.title,
             description: report.description,
             is_public: report.is_public,
-            metadata: ReportMetadata {
-                created_at: metadata.report_created_at,
-                updated_at: metadata.report_updated_at,
-            },
-            analyses_map: ReportAnalysesMap {
-                analyses: analyses_map,
-            },
+            metadata,
+            analyses_map,
         }))
     }
     async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error> {
