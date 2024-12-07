@@ -10,8 +10,7 @@ impl DbClient {
         Self { db }
     }
 
-    // TODO MAKE PRIVATE
-    pub(crate) fn raw_db(&self) -> &PgPool {
+    pub(super) fn raw_db(&self) -> &PgPool {
         &self.db
     }
 }
