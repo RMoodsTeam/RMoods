@@ -96,7 +96,7 @@ pub async fn generate_report_handler(
         match report_res {
             Ok(report) => {
                 log::warn!("Saving the report");
-                report.save(&state.db).await.expect("Failed to save report");
+                report.save(&state.db).await.unwrap();
                 state
                     .system_tx
                     .send(SystemMessage::ReportDone((report.id, user_info.id)))

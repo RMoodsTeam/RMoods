@@ -16,38 +16,57 @@ pub struct DbPagination {
     per_page: u32,
 }
 
+async fn handle_db_result<T>(
+    result: Result<T, Error>,
+    tx: Transaction<'_, Postgres>,
+) -> Result<T, Error> {
+    match result {
+        Ok(result) => {
+            log::info!("Committing transaction");
+            tx.commit().await?;
+            Ok(result)
+        }
+        Err(e) => {
+            log::error!("Transaction failed: {:?}", e);
+            let r = tx.rollback().await;
+            if let Err(e) = r {
+                log::error!("Rollback failed: {:?}", e);
+            } else {
+                log::warn!("Transaction rolled back");
+            }
+            Err(e)
+        }
+    }
+}
+
 pub trait DbStored: DbStoredInner {
     async fn save(&self, db: &DbClient) -> Result<(), Error> {
         let mut tx = db.raw_db().begin().await?;
-        self.inner_save(&mut tx).await?;
-        tx.commit().await?;
-        Ok(())
+        let result = self.inner_save(&mut tx).await;
+        handle_db_result(result, tx).await
     }
     async fn update(&self, db: &DbClient) -> Result<(), Error> {
         let mut tx = db.raw_db().begin().await?;
-        self.inner_update(&mut tx).await?;
-        tx.commit().await?;
-        Ok(())
+        let result = self.inner_update(&mut tx).await;
+        handle_db_result(result, tx).await
     }
     async fn delete(&self, db: &DbClient) -> Result<(), Error> {
         let mut tx = db.raw_db().begin().await?;
-        self.inner_delete(&mut tx).await?;
-        tx.commit().await?;
-        Ok(())
+        let result = self.inner_delete(&mut tx).await;
+        handle_db_result(result, tx).await
     }
     async fn get_by_id(id: &str, db: &DbClient) -> Result<Option<Self>, Error> {
         let mut tx = db.raw_db().begin().await?;
         let result = Self::inner_get_by_id(id, &mut tx).await?;
-        tx.commit().await?;
-        Ok(result)
+        handle_db_result(Ok(result), tx).await
     }
     async fn get_all(pagination: DbPagination, db: &DbClient) -> Result<Vec<Self>, Error> {
         let mut tx = db.raw_db().begin().await?;
         let result = Self::inner_get_all(pagination, &mut tx).await?;
-        tx.commit().await?;
-        Ok(result)
+        handle_db_result(Ok(result), tx).await
     }
 }
+
 impl<T> DbStored for T where T: DbStoredInner {}
 
 pub trait DbStoredDependently: DbStoredDependentlyInner {
@@ -60,7 +79,6 @@ pub trait DbStoredDependently: DbStoredDependentlyInner {
 }
 impl<T> DbStoredDependently for T where T: DbStoredDependentlyInner {}
 
-/// Implemented for structs that can be saved to our database
 #[async_trait]
 trait DbStoredInner: Sized {
     async fn inner_save(&self, db: &mut Transaction<Postgres>) -> Result<(), Error>;
