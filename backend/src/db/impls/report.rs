@@ -11,7 +11,7 @@ use uuid::Uuid;
 impl DbStoredInner for Report {
     async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
         let metadata_uuid = self.metadata.inner_save(tx).await?;
-        let analyses_uuid = self.analyses_map.inner_save(tx).await?;
+        let analyses_map_uuid = self.analyses_map.inner_save(tx).await?;
         let user_uuid = sqlx::query!(
             r#"
             SELECT id as "id: Uuid" FROM users WHERE google_sub = $1
@@ -25,16 +25,17 @@ impl DbStoredInner for Report {
         sqlx::query!(
             r#"
             INSERT INTO reports (
-            user_id, title, description, is_public, metadata_id, analyses_map_id
+            display_id, user_id, title, description, is_public, metadata_id, analyses_map_id
             )
-            VALUES ($1, $2, $3, $4, $5, $6)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             "#,
+            self.id,
             user_uuid,
             self.title,
             self.description,
             self.is_public,
             metadata_uuid,
-            analyses_uuid
+            analyses_map_uuid
         )
         .execute(&mut **tx)
         .await?;

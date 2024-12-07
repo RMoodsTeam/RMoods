@@ -1,4 +1,4 @@
-use crate::api::auth::google::GoogleId;
+use crate::auth::google::GoogleId;
 use crate::nlp::report::ReportId;
 use chrono::{DateTime, Utc};
 use serde_json::Value;

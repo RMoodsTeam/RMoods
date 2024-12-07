@@ -27,14 +27,14 @@ impl DbStoredDependentlyInner for ReportAnalysesMap {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING id as "id: Uuid";
         "#,
-        map.get(&A::Clickbait),
-        map.get(&A::HateSpeech),
-        map.get(&A::Keywords),
-        map.get(&A::Language),
-        map.get(&A::Politics),
-        map.get(&A::Sarcasm),
-        map.get(&A::Sentiment),
-        map.get(&A::Spam)
+        map.get(&A::Clickbait).copied(),
+        map.get(&A::HateSpeech).copied(),
+        map.get(&A::Keywords).copied(),
+        map.get(&A::Language).copied(),
+        map.get(&A::Politics).copied(),
+        map.get(&A::Sarcasm).copied(),
+        map.get(&A::Sentiment).copied(),
+        map.get(&A::Spam).copied()
     )
             .fetch_one(&mut **tx)
             .await?

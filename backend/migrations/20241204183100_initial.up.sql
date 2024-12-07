@@ -12,9 +12,9 @@ $$ LANGUAGE 'plpgsql';
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS users (
-    id             uuid PRIMARY KEY,
+    id             uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     --
-    google_sub     TEXT        NOT NULL,
+    google_sub     TEXT        NOT NULL UNIQUE,
     name           TEXT        NOT NULL,
     given_name     TEXT        NOT NULL,
     family_name    TEXT,
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS reports (
     updated_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (user_id) REFERENCES users (id), -- DO NOT CASCADE
-    FOREIGN KEY (metadata_id) REFERENCES nlp_metadata (id) ON DELETE CASCADE,
+    FOREIGN KEY (metadata_id) REFERENCES report_metadata (id) ON DELETE CASCADE,
     FOREIGN KEY (analyses_map_id) REFERENCES report_analyses_maps (id) ON DELETE CASCADE
 );
 

@@ -1,4 +1,4 @@
-use crate::api::auth::google::User;
+use crate::auth::google::User;
 use crate::db::db_stored::DbStoredInner;
 use crate::db::pagination::DbPagination;
 use axum::async_trait;
