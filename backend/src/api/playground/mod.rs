@@ -14,7 +14,7 @@ pub struct PlaygroundQuery {
 
 #[derive(Deserialize)]
 pub struct PlaygroundBody {
-    text: Vec<String>,
+    text: String,
 }
 
 #[debug_handler]
@@ -26,7 +26,7 @@ pub async fn playground(
 ) -> Result<Json<NlpAnalysis>, AppError> {
     let analysis = state
         .nlp_client
-        .analyze(query.analysis, &input.text)
+        .analyze(query.analysis, &vec![input.text.clone()])
         .await?;
     Ok(Json(analysis))
 }
