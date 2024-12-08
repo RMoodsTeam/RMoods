@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO nlp_analyses (nlp_metadata_id, kind, analysis)\n            VALUES ($1, $2, $3)\n            RETURNING id as \"id: Uuid\";\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: Uuid",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "bc98e38bc894d8b79922cfbc72e917fad151b8b3f5b5a1a7b0d52bf63f700a37"
+}

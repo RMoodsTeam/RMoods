@@ -1,6 +1,5 @@
 use crate::auth::error::AuthError;
-use crate::auth::google::GoogleUserInfo;
-use crate::auth::google::JwtUserInfo;
+use crate::auth::google::{JwtUserInfo, User};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, DecodingKey, Header, TokenData, Validation};
 use log_derive::logfn;
@@ -17,7 +16,7 @@ pub struct Claims {
 }
 
 /// Create a new JWT based on the secret defined in the environment.
-pub fn create_jwt(user_info: GoogleUserInfo) -> String {
+pub fn create_jwt(user_info: User) -> String {
     let secret = dotenvy::var("JWT_SECRET").expect("JWT_SECRET should be set");
 
     let claim = {
