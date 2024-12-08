@@ -4,6 +4,7 @@ use axum::{routing::get, Router};
 
 pub mod about;
 pub mod auth;
+mod playground;
 pub mod report;
 mod system;
 mod user;
@@ -16,4 +17,5 @@ pub fn router() -> Router<AppState> {
         .route("/about/user", get(about::user::user_about))
         .route("/user", get(user::get_user))
         .route("/system/rate-limits", get(system::rate_limits))
+        .route("/playground", get(playground::playground))
 }
