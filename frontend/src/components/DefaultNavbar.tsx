@@ -1,4 +1,4 @@
-import { Anchor, Card, Flex, Grid } from '@mantine/core';
+import { Anchor, Card, Flex, Grid, Group } from '@mantine/core';
 import ThemeSwitch from './navbar/ThemeSwitch.tsx';
 
 const LeftNavItems = () => {
@@ -25,20 +25,13 @@ const RightNavItems = () => {
 const DefaultNavbar = () => {
   return (
     <Card
-      style={{ margin: 0, borderRadius: 0, marginBottom: 0, height: '10vh' }}
+      style={{ margin: 0, borderRadius: 0, marginBottom: 0 }}
     >
       <nav>
-        <Grid>
-          <Grid.Col span={4}>
-            <LeftNavItems />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <div />
-          </Grid.Col>
-          <Grid.Col span={4}>
-            <RightNavItems />
-          </Grid.Col>
-        </Grid>
+        <Group justify='space-between'>
+          <LeftNavItems />
+          <RightNavItems />
+        </Group>
       </nav>
     </Card>
   );
