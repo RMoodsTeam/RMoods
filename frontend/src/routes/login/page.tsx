@@ -6,6 +6,8 @@ import { userInfoAtom } from '../../atoms';
 import { useNavigate } from 'react-router-dom';
 import { Center, Paper, Stack, Title, Box } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { ErrorBoundary } from 'react-error-boundary';
+import { PageFallback } from '../fallbacks/PageFallback.tsx';
 
 /**
  * Login card with Google sign in button
@@ -78,9 +80,11 @@ const LoginCard = () => {
  */
 const Login = () => {
   return (
-    <Center>
-      <LoginCard />
-    </Center>
+    <ErrorBoundary fallback={<PageFallback />}>
+      <Center>
+        <LoginCard />
+      </Center>
+    </ErrorBoundary>
   );
 };
 

@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { JwtClaims } from '../../rmoods/jwt.ts';
 import { changeDefaultGoogleProfilePictureSize } from '../../utility/changeDefaultGoogleProfilePictureSize.ts';
+import { ErrorBoundary } from 'react-error-boundary';
+import { UserMenuFallback } from '../fallbacks/UserMenuFallback.tsx';
 
 /**
  * User interface representing the user data.
@@ -66,23 +68,27 @@ const UserMenu = () => {
     ? changeDefaultGoogleProfilePictureSize(user.picture, size)
     : '';
   return (
-    <Menu id="user-dropdown">
-      <Menu.Target>
-        <Avatar
-          src={resizedPicture}
-          radius="xl"
-          size={size}
-          style={{ cursor: 'pointer' }}
-          imageProps={{ referrerPolicy: 'no-referrer' }}
-        />
-      </Menu.Target>
-      <Menu.Dropdown>
-        <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>
-        <Menu.Item onClick={() => navigate('/dashboard')}>Dashboard</Menu.Item>
-        <Menu.Item onClick={() => navigate('/settings')}>Settings</Menu.Item>
-        <Menu.Item onClick={() => handleLogout()}>Log out</Menu.Item>
-      </Menu.Dropdown>
-    </Menu>
+    <ErrorBoundary fallback={<UserMenuFallback />}>
+      <Menu id="user-dropdown">
+        <Menu.Target>
+          <Avatar
+            src={resizedPicture}
+            radius="xl"
+            size={size}
+            style={{ cursor: 'pointer' }}
+            imageProps={{ referrerPolicy: 'no-referrer' }}
+          />
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>
+          <Menu.Item onClick={() => navigate('/dashboard')}>
+            Dashboard
+          </Menu.Item>
+          <Menu.Item onClick={() => navigate('/settings')}>Settings</Menu.Item>
+          <Menu.Item onClick={() => handleLogout()}>Log out</Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </ErrorBoundary>
   );
 };
 

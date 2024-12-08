@@ -6,6 +6,8 @@ import React, { useEffect } from 'react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
+import { ErrorBoundary } from 'react-error-boundary';
+import { RateLimitStatusFallback } from '../fallbacks/RateLimitStatusFallback.tsx';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -114,14 +116,16 @@ const RateLimitStatus = () => {
   client.setQueryData(['remainingRequests'], query.data);
 
   return (
-    <HoverCard>
-      <HoverCard.Target>
-        <IconBrandReddit size={24} />
-      </HoverCard.Target>
-      <HoverCard.Dropdown>
-        <RateLimitHoverCard ratelimit={query.data![0]} />
-      </HoverCard.Dropdown>
-    </HoverCard>
+    <ErrorBoundary fallback={<RateLimitStatusFallback />}>
+      <HoverCard>
+        <HoverCard.Target>
+          <IconBrandReddit size={24} />
+        </HoverCard.Target>
+        <HoverCard.Dropdown>
+          <RateLimitHoverCard ratelimit={query.data![0]} />
+        </HoverCard.Dropdown>
+      </HoverCard>
+    </ErrorBoundary>
   );
 };
 

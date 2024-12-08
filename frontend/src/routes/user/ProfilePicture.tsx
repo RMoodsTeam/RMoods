@@ -1,6 +1,8 @@
 import React from 'react';
 import { Image, Box } from '@mantine/core';
 import { changeDefaultGoogleProfilePictureSize } from '../../utility/changeDefaultGoogleProfilePictureSize.ts';
+import { ErrorBoundary } from 'react-error-boundary';
+import { ProfilePictureFallback } from '../../components/fallbacks/ProfilePictureFallback.tsx';
 
 /**
  * Props for the ProfilePicture component.
@@ -21,24 +23,26 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ src, alt }) => {
   const resizedSrc = changeDefaultGoogleProfilePictureSize(src, 250);
 
   return (
-    <Box
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
-      <Image
-        src={resizedSrc}
-        alt={alt}
-        w={'250px'}
-        h={'250px'}
-        fit="contain"
-        radius="50%"
-        referrerPolicy="no-referrer"
-        style={{ objectFit: 'cover', display: 'block' }}
-      />
-    </Box>
+    <ErrorBoundary fallback={<ProfilePictureFallback />}>
+      <Box
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Image
+          src={resizedSrc}
+          alt={alt}
+          w={'250px'}
+          h={'250px'}
+          fit="contain"
+          radius="50%"
+          referrerPolicy="no-referrer"
+          style={{ objectFit: 'cover', display: 'block' }}
+        />
+      </Box>
+    </ErrorBoundary>
   );
 };
 
