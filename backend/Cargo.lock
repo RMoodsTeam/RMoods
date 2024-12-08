@@ -614,12 +614,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 
 [[package]]
-name = "dyn-clone"
-version = "1.0.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d6ef0072f8a535281e4876be788938b528e9a1d43900b82c2569af7da799125"
-
-[[package]]
 name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -665,16 +659,6 @@ name = "equivalent"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
-
-[[package]]
-name = "erased-serde"
-version = "0.4.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24e2389d65ab4fab27dc2a5de7b191e1f6617d1f1c8855c0dc569c94a4cbb18d"
-dependencies = [
- "serde",
- "typeid",
-]
 
 [[package]]
 name = "errno"
@@ -1191,12 +1175,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "inventory"
-version = "0.3.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f958d3d68f4167080a18141e10381e7634563984a537f2a49a30fd8e53ac5767"
-
-[[package]]
 name = "ipnet"
 version = "2.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1294,16 +1272,6 @@ name = "linux-raw-sys"
 version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
-
-[[package]]
-name = "lipsum"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "636860251af8963cc40f6b4baadee105f02e21b28131d76eba8e40ce84ab8064"
-dependencies = [
- "rand",
- "rand_chacha",
-]
 
 [[package]]
 name = "lock_api"
@@ -1946,7 +1914,6 @@ dependencies = [
  "chrono",
  "derive-getters",
  "dotenvy",
- "dyn-clone",
  "env_logger",
  "futures",
  "futures-util",
@@ -1954,7 +1921,6 @@ dependencies = [
  "http-serde",
  "jsonwebtoken",
  "lazy_static",
- "lipsum",
  "log",
  "log-derive",
  "nanoid",
@@ -1966,12 +1932,11 @@ dependencies = [
  "sqlx",
  "thiserror",
  "tokio",
- "tokio-tungstenite",
  "tokio-util",
  "tower-http",
- "typetag",
  "utoipa",
  "utoipa-swagger-ui",
+ "uuid",
 ]
 
 [[package]]
@@ -2372,6 +2337,7 @@ dependencies = [
  "atoi",
  "byteorder",
  "bytes",
+ "chrono",
  "crc",
  "crossbeam-queue",
  "either",
@@ -2399,6 +2365,7 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "url",
+ "uuid",
 ]
 
 [[package]]
@@ -2451,6 +2418,7 @@ dependencies = [
  "bitflags",
  "byteorder",
  "bytes",
+ "chrono",
  "crc",
  "digest",
  "dotenvy",
@@ -2479,6 +2447,7 @@ dependencies = [
  "stringprep",
  "thiserror",
  "tracing",
+ "uuid",
  "whoami",
 ]
 
@@ -2492,6 +2461,7 @@ dependencies = [
  "base64 0.21.7",
  "bitflags",
  "byteorder",
+ "chrono",
  "crc",
  "dotenvy",
  "etcetera",
@@ -2517,6 +2487,7 @@ dependencies = [
  "stringprep",
  "thiserror",
  "tracing",
+ "uuid",
  "whoami",
 ]
 
@@ -2527,6 +2498,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b244ef0a8414da0bed4bb1910426e890b19e5e9bccc27ada6b797d05c55ae0aa"
 dependencies = [
  "atoi",
+ "chrono",
  "flume",
  "futures-channel",
  "futures-core",
@@ -2541,6 +2513,7 @@ dependencies = [
  "tracing",
  "url",
  "urlencoding",
+ "uuid",
 ]
 
 [[package]]
@@ -2943,40 +2916,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "typeid"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e13db2e0ccd5e14a544e8a246ba2312cd25223f616442d7f2cb0e3db614236e"
-
-[[package]]
 name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
-
-[[package]]
-name = "typetag"
-version = "0.2.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52ba3b6e86ffe0054b2c44f2d86407388b933b16cb0a70eea3929420db1d9bbe"
-dependencies = [
- "erased-serde",
- "inventory",
- "once_cell",
- "serde",
- "typetag-impl",
-]
-
-[[package]]
-name = "typetag-impl"
-version = "0.2.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70b20a22c42c8f1cd23ce5e34f165d4d37038f5b663ad20fb6adbdf029172483"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.85",
-]
 
 [[package]]
 name = "unicase"
