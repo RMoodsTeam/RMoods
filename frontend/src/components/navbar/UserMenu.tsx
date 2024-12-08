@@ -15,6 +15,10 @@ interface User {
   picture: string;
 }
 
+/**
+ * Fetches the user data from the server.
+ * @returns {Promise<User>} The user data.
+ */
 const fetchUserData = async (): Promise<User> => {
   const token = Cookies.get('RMOODS_JWT');
   if (!token) {
