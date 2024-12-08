@@ -80,12 +80,16 @@ const LoginCard = () => {
  */
 const Login = () => {
   return (
-    <ErrorBoundary fallback={<PageFallback />}>
-      <Center>
-        <LoginCard />
-      </Center>
-    </ErrorBoundary>
+    <Center>
+      <LoginCard />
+    </Center>
   );
 };
 
-export default Login;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={PageFallback}>
+      <Login />
+    </ErrorBoundary>
+  );
+}

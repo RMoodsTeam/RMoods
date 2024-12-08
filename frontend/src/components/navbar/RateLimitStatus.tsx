@@ -116,7 +116,7 @@ const RateLimitStatus = () => {
   client.setQueryData(['remainingRequests'], query.data);
 
   return (
-    <ErrorBoundary fallback={<RateLimitStatusFallback />}>
+    <ErrorBoundary FallbackComponent={RateLimitStatusFallback}>
       <HoverCard>
         <HoverCard.Target>
           <IconBrandReddit size={24} />
@@ -129,4 +129,10 @@ const RateLimitStatus = () => {
   );
 };
 
-export default RateLimitStatus;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={RateLimitStatusFallback}>
+      <RateLimitStatus />
+    </ErrorBoundary>
+  );
+}

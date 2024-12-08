@@ -67,55 +67,59 @@ const UserPage = () => {
   }
 
   return (
-    <ErrorBoundary fallback={<PageFallback />}>
-      <Box
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-        }}
-      >
-        <Box style={{ flex: '0 0 350px', marginRight: '20px' }}>
-          <UserCard user={user} />
+    <Box
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+      }}
+    >
+      <Box style={{ flex: '0 0 350px', marginRight: '20px' }}>
+        <UserCard user={user} />
+      </Box>
+      <Box style={{ flex: '1', display: 'flex', flexWrap: 'wrap' }}>
+        <Box style={{ flex: '1 1 50%', padding: '10px' }}>
+          <StatisticItem
+            label="Liked reports"
+            value={statistics.likedReports.join(', ')}
+          />
+          <StatisticItem
+            label="Latest report"
+            value={statistics.latestReportDate}
+          />
+          <StatisticItem
+            label="Number of created reports"
+            value={statistics.totalReports}
+          />
+          <StatisticItem
+            label="Top 3 subreddits"
+            value={statistics.topSubreddits.join(', ')}
+          />
         </Box>
-        <Box style={{ flex: '1', display: 'flex', flexWrap: 'wrap' }}>
-          <Box style={{ flex: '1 1 50%', padding: '10px' }}>
-            <StatisticItem
-              label="Liked reports"
-              value={statistics.likedReports.join(', ')}
-            />
-            <StatisticItem
-              label="Latest report"
-              value={statistics.latestReportDate}
-            />
-            <StatisticItem
-              label="Number of created reports"
-              value={statistics.totalReports}
-            />
-            <StatisticItem
-              label="Top 3 subreddits"
-              value={statistics.topSubreddits.join(', ')}
-            />
-          </Box>
-          <Box style={{ flex: '1 1 50%', padding: '10px' }}>
-            <StatisticItem label="Karma" value={statistics.karma} />
-            <StatisticItem
-              label="Total cost of reports"
-              value={statistics.generatedCost}
-            />
-            <StatisticItem
-              label="Total used requests"
-              value={statistics.totalRequests}
-            />
-            <StatisticItem
-              label="Longest Report Time"
-              value={statistics.longestReportTime}
-            />
-          </Box>
+        <Box style={{ flex: '1 1 50%', padding: '10px' }}>
+          <StatisticItem label="Karma" value={statistics.karma} />
+          <StatisticItem
+            label="Total cost of reports"
+            value={statistics.generatedCost}
+          />
+          <StatisticItem
+            label="Total used requests"
+            value={statistics.totalRequests}
+          />
+          <StatisticItem
+            label="Longest Report Time"
+            value={statistics.longestReportTime}
+          />
         </Box>
       </Box>
-    </ErrorBoundary>
+    </Box>
   );
 };
 
-export default UserPage;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={PageFallback}>
+      <UserPage />
+    </ErrorBoundary>
+  );
+}

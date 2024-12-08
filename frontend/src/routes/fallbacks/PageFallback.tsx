@@ -1,7 +1,10 @@
-export const PageFallback = () => {
+import { Center } from '@mantine/core';
+
+export const PageFallback = ({ error }: any) => {
   return (
-    <div>
-      <h1>Trouble loading the page</h1>
-    </div>
+    <Center role="alert">
+      <p>Something went wrong:</p>
+      <pre style={{ color: 'red' }}>{error.message}</pre>
+    </Center>
   );
 };

@@ -3,11 +3,13 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../fallbacks/PageFallback.tsx';
 
 const Settings = () => {
-  return (
-    <ErrorBoundary fallback={<PageFallback />}>
-      <Box>Work in progress</Box>
-    </ErrorBoundary>
-  );
+  return <Box>Work in progress</Box>;
 };
 
-export default Settings;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={PageFallback}>
+      <Settings />
+    </ErrorBoundary>
+  );
+}

@@ -5,15 +5,19 @@ import { PageFallback } from './fallbacks/PageFallback.tsx';
 
 const Root = () => {
   return (
-    <ErrorBoundary fallback={<PageFallback />}>
-      <Container>
-        <Center>
-          <Title order={1}>RMoods Demo Content</Title>
-        </Center>
-        <Demo />
-      </Container>
-    </ErrorBoundary>
+    <Container>
+      <Center>
+        <Title order={1}>RMoods Demo Content</Title>
+      </Center>
+      <Demo />
+    </Container>
   );
 };
 
-export default Root;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={PageFallback}>
+      <Root />
+    </ErrorBoundary>
+  );
+}

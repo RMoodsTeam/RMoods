@@ -68,28 +68,30 @@ const UserMenu = () => {
     ? changeDefaultGoogleProfilePictureSize(user.picture, size)
     : '';
   return (
-    <ErrorBoundary fallback={<UserMenuFallback />}>
-      <Menu id="user-dropdown">
-        <Menu.Target>
-          <Avatar
-            src={resizedPicture}
-            radius="xl"
-            size={size}
-            style={{ cursor: 'pointer' }}
-            imageProps={{ referrerPolicy: 'no-referrer' }}
-          />
-        </Menu.Target>
-        <Menu.Dropdown>
-          <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>
-          <Menu.Item onClick={() => navigate('/dashboard')}>
-            Dashboard
-          </Menu.Item>
-          <Menu.Item onClick={() => navigate('/settings')}>Settings</Menu.Item>
-          <Menu.Item onClick={() => handleLogout()}>Log out</Menu.Item>
-        </Menu.Dropdown>
-      </Menu>
-    </ErrorBoundary>
+    <Menu id="user-dropdown">
+      <Menu.Target>
+        <Avatar
+          src={resizedPicture}
+          radius="xl"
+          size={size}
+          style={{ cursor: 'pointer' }}
+          imageProps={{ referrerPolicy: 'no-referrer' }}
+        />
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>
+        <Menu.Item onClick={() => navigate('/dashboard')}>Dashboard</Menu.Item>
+        <Menu.Item onClick={() => navigate('/settings')}>Settings</Menu.Item>
+        <Menu.Item onClick={() => handleLogout()}>Log out</Menu.Item>
+      </Menu.Dropdown>
+    </Menu>
   );
 };
 
-export default UserMenu;
+export default function () {
+  return (
+    <ErrorBoundary fallback={<UserMenuFallback />}>
+      <UserMenu />
+    </ErrorBoundary>
+  );
+}

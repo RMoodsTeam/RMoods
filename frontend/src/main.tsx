@@ -11,10 +11,10 @@ import { MainFallback } from './routes/fallbacks/MainFallback.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary fallback={<MainFallback />}>
-      <Providers>
+    <Providers>
+      <ErrorBoundary fallback={<MainFallback />}>
         <RouterProvider router={router} />
-      </Providers>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </Providers>
   </StrictMode>
 );
