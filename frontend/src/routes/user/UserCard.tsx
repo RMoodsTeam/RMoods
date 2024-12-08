@@ -31,7 +31,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
           {user.name}
         </Title>
         <Text size='sm' c='dimmed' style={{ fontSize: '18px' }}>
-          {user.given_name}
+          {user.givenName}
         </Text>
         <Divider my='sm' />
         <Text size='sm' c='dimmed' style={{ fontSize: '18px' }}>

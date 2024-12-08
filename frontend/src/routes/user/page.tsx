@@ -1,18 +1,18 @@
-import { Box, Text, Loader } from '@mantine/core';
+import { Box, Text } from '@mantine/core';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
+import { useEffect, useState } from 'react';
 import UserCard from './UserCard';
 import StatisticItem from './StatisticItem';
 import { JwtClaims } from '../../rmoods/jwt.ts';
 import authFetch from '../../rmoods/client/authFetch.ts';
-import { useQuery } from '@tanstack/react-query';
 
 /**
  * User interface representing the user data.
  */
 export interface User {
   name: string;
-  given_name: string;
+  givenName: string;
   email: string;
   picture: string;
 }
@@ -32,53 +32,36 @@ const statistics = {
 };
 
 /**
- * Fetches the user data from the server.
- * @returns {Promise<User>} The user data.
- */
-const fetchUserData = async (): Promise<User> => {
-  const token = Cookies.get('RMOODS_JWT');
-  if (!token) {
-    throw new Error('No JWT token found');
-  }
-
-  const data = jwtDecode<JwtClaims>(token);
-  const id = data.userInfo.id;
-  const response = await authFetch(`http://localhost:8001/api/user?id=${id}`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch user data');
-  }
-
-  return response.json();
-};
-
-/**
  * UserPage component that displays the user's profile and statistics.
  * @returns {JSX.Element} The UserPage component.
  */
 const UserPage = () => {
-  const { data, error, isLoading } = useQuery<User, Error>({
-    queryKey: ['userData'],
-    queryFn: fetchUserData,
-    refetchInterval: 5000,
-  });
+  const [user, setUser] = useState<User | null>(null);
 
-  if (isLoading) {
-    return (
-      <Box
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '50vh',
-        }}
-      >
-        <Loader color="blue" size={40} />
-      </Box>
-    );
-  }
+  useEffect(() => {
+    const token = Cookies.get('RMOODS_JWT');
+    if (!token) {
+      console.error('No JWT token found');
+      throw new Error('No JWT token found');
+    }
 
-  if (error) {
-    return <Text>Error: {error.message}</Text>;
+    try {
+      const data = jwtDecode<JwtClaims>(token);
+      const id = data.userInfo.id;
+
+      authFetch('http://localhost:8001/api/user?id=' + id).then((response) => {
+        response.json().then((data) => {
+          setUser(data);
+        });
+      });
+    } catch (error) {
+      console.error('JWT token could not be decoded.', error);
+      throw new Error('JWT token could not be decoded.');
+    }
+  }, []);
+
+  if (!user) {
+    return <Text>Loading...</Text>;
   }
 
   return (
@@ -90,7 +73,7 @@ const UserPage = () => {
       }}
     >
       <Box style={{ flex: '0 0 350px', marginRight: '20px' }}>
-        {data && <UserCard user={data} />}
+        <UserCard user={user} />
       </Box>
       <Box style={{ flex: '1', display: 'flex', flexWrap: 'wrap' }}>
         <Box style={{ flex: '1 1 50%', padding: '10px' }}>
