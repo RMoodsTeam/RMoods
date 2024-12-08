@@ -6,11 +6,15 @@ import './index.css';
 import { RouterProvider } from 'react-router-dom';
 import router from './router.tsx';
 import Providers from './providers/Providers.tsx';
+import { ErrorBoundary } from 'react-error-boundary';
+import { MainFallback } from './components/fallbacks/MainFallback.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Providers>
-      <RouterProvider router={router} />
-    </Providers>
+    <ErrorBoundary fallback={<MainFallback />}>
+      <Providers>
+        <RouterProvider router={router} />
+      </Providers>
+    </ErrorBoundary>
   </StrictMode>
 );

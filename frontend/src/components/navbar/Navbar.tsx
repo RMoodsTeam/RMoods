@@ -3,6 +3,8 @@ import ThemeSwitch from './ThemeSwitch';
 import { Anchor, Card, Flex, Group } from '@mantine/core';
 import StatusIndicator from './StatusIndicator';
 import RateLimitStatus from './RateLimitStatus.tsx';
+import { ErrorBoundary } from 'react-error-boundary';
+import { RateLimitStatusFallback } from '../fallbacks/RateLimitStatusFallback.tsx';
 
 const LeftNavItems = () => {
   return (
@@ -17,7 +19,9 @@ const LeftNavItems = () => {
 const RightNavItems = () => {
   return (
     <Flex gap={10} justify={'right'} align="center">
-      <RateLimitStatus />
+      <ErrorBoundary fallback={<RateLimitStatusFallback />}>
+        <RateLimitStatus />
+      </ErrorBoundary>
       <StatusIndicator />
       <ThemeSwitch />
       <UserMenu />
@@ -30,11 +34,9 @@ const RightNavItems = () => {
  */
 const Navbar = () => {
   return (
-    <Card
-      style={{ margin: 0, borderRadius: 0, marginBottom: 0 }}
-    >
+    <Card style={{ margin: 0, borderRadius: 0, marginBottom: 0 }}>
       <nav>
-        <Group justify='space-between'>
+        <Group justify="space-between">
           <LeftNavItems />
           <RightNavItems />
         </Group>
