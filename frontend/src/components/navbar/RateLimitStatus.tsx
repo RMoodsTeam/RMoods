@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import authFetch from '../../rmoods/client/authFetch.ts';
-import { Center, HoverCard, Loader, Progress, Stack, Text } from '@mantine/core';
+import { Center, HoverCard, Progress, Stack, Text } from '@mantine/core';
 import { IconBrandReddit } from '@tabler/icons-react';
 import React, { useEffect } from 'react';
 import dayjs from 'dayjs';
@@ -104,7 +104,7 @@ const RateLimitStatus = () => {
   });
 
   if (query.isLoading) {
-    return <Loader color="blue" size={20} />;
+    return <div>Loading...</div>;
   }
 
   if (query.isError) {
