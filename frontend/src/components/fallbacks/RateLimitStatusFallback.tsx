@@ -2,7 +2,7 @@ import { HoverCard } from '@mantine/core';
 import { IconBrandReddit } from '@tabler/icons-react';
 import React from 'react';
 
-export const RateLimitStatusFallback = ({ error }: any) => {
+export const RateLimitStatusFallback = ({ error }) => {
   return (
     <HoverCard>
       <HoverCard.Target>
