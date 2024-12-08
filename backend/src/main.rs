@@ -1,8 +1,9 @@
+use crate::env::DATABASE_URL;
 use crate::fetcher::fetcher::RMoodsFetcher;
 use crate::fetcher::reddit::connection::RedditConnection;
 use crate::nlp::nlp_client::NlpClient;
 use crate::open_api::ApiDoc;
-use crate::startup::{shutdown_signal, verify_environment};
+use crate::startup::{setup_environment, shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
 use axum::Router;
 use log::{error, info, warn};
@@ -42,7 +43,7 @@ pub struct AppState {
 
 /// Run the server, assuming the environment has been already validated.
 async fn run() -> anyhow::Result<()> {
-    let url = std::env::var("DATABASE_URL").expect("DB_URL is set");
+    let url = std::env::var(DATABASE_URL).expect("DB_URL is set");
     let pool = PgPoolOptions::new()
         .max_connections(10)
         .connect(&url)
@@ -113,16 +114,14 @@ async fn run() -> anyhow::Result<()> {
 }
 
 /// Entry point of the RMoods server.
-/// Validates the environment, initializes the server and runs it.
+/// Sets up and validates the environment, initializes the server and runs it.
 #[tokio::main]
 async fn main() {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "0");
     env_logger::init();
 
-    if dotenvy::dotenv().is_err() {
-        warn!(".env not found. Environment variables will have to be defined outside of .env");
-    }
+    setup_environment();
 
     if !verify_environment() {
         error!("Invalid environment, aborting.");
