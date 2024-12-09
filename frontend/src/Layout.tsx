@@ -13,13 +13,15 @@ const Layout = () => {
       }}
     >
       <DefaultNavbar />
-      <Box
+      <Flex
         style={{
+          // flex 1 to fill the entire available space
+          flex: '1',
           padding: '2rem 15%',
         }}
       >
         <Outlet />
-      </Box>
+      </Flex>
       <Footer />
     </Flex>
   );

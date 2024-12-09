@@ -30,11 +30,11 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
         <Title order={2} style={{ marginTop: '10px', fontSize: '22px' }}>
           {user.name}
         </Title>
-        <Text size='sm' c='dimmed' style={{ fontSize: '18px' }}>
-          {user.givenName}
+        <Text size="sm" c="dimmed" style={{ fontSize: '18px' }}>
+          {user.given_name}
         </Text>
-        <Divider my='sm' />
-        <Text size='sm' c='dimmed' style={{ fontSize: '18px' }}>
+        <Divider my="sm" />
+        <Text size="sm" c="dimmed" style={{ fontSize: '18px' }}>
           {user.email}
         </Text>
       </Box>

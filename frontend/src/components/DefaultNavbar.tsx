@@ -20,7 +20,7 @@ const LeftNavItems = () => {
 
 const RightNavItems = () => {
   return (
-    <Flex gap={10} justify={'right'} align="center">
+    <Flex gap={10} justify="right" align="center">
       <ThemeSwitch />
     </Flex>
   );

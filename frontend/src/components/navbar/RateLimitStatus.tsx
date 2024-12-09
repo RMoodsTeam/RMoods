@@ -6,6 +6,8 @@ import React, { useEffect } from 'react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
+import { ErrorBoundary } from 'react-error-boundary';
+import { RateLimitStatusFallback } from '../fallbacks/RateLimitStatusFallback.tsx';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -125,4 +127,10 @@ const RateLimitStatus = () => {
   );
 };
 
-export default RateLimitStatus;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={RateLimitStatusFallback}>
+      <RateLimitStatus />
+    </ErrorBoundary>
+  );
+}

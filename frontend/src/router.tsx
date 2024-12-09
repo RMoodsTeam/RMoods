@@ -50,7 +50,6 @@ const router = createHashRouter([
         path: '/about',
         element: <About />,
       },
-
       {
         path: '/login',
         element: <Login />,

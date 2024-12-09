@@ -24,6 +24,8 @@ import {
 } from './types.ts';
 import { transformJson } from './transformJson.ts';
 import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
+import { ErrorBoundary } from 'react-error-boundary';
+import { PageFallback } from '../fallbacks/PageFallback.tsx';
 
 /**
  * Report component for creating a new report.
@@ -287,4 +289,10 @@ const Report = () => {
   );
 };
 
-export default Report;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={PageFallback}>
+      <Report />
+    </ErrorBoundary>
+  );
+}

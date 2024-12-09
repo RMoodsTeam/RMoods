@@ -54,11 +54,11 @@ export const DataSourceSchema = z.object({
 const GoogleUserInfoSchema = z.object({
   sub: z.string(),
   name: z.string(),
-  given_name: z.string(),
-  family_name: z.string().nullable(),
+  givenName: z.string(),
+  familyName: z.string().nullable(),
   picture: z.string().url(),
   email: z.string().email(),
-  email_verified: z.boolean(),
+  emailVerified: z.boolean(),
 });
 
 const LanguageResponseSchema = z.object({
@@ -67,7 +67,7 @@ const LanguageResponseSchema = z.object({
 });
 
 const NlpMetadataSchema = z.object({
-  generated_in: z.number(),
+  generatedIn: z.number(),
 });
 
 const NlpAnalysisSchema = z.object({
@@ -76,9 +76,9 @@ const NlpAnalysisSchema = z.object({
 });
 
 const ReportMetadataSchema = z.object({
-  created_at: z.number(),
-  user_info: GoogleUserInfoSchema,
-  is_public: z.boolean(),
+  createdAt: z.number(),
+  userInfo: GoogleUserInfoSchema,
+  isPublic: z.boolean(),
 });
 
 const ReportResponseSchema = z.object({
