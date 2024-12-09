@@ -1,12 +1,19 @@
 import { Anchor, Card, Flex, Grid, Group } from '@mantine/core';
 import ThemeSwitch from './navbar/ThemeSwitch.tsx';
+import { Link } from 'react-router-dom';
 
 const LeftNavItems = () => {
   return (
     <Flex gap={10}>
-      <Anchor href="/">Main</Anchor>
-      <Anchor href="/about">About</Anchor>
-      <Anchor href="/dashboard">Dashboard</Anchor>
+      <Anchor component={Link} to="/">
+        Main
+      </Anchor>
+      <Anchor component={Link} to="/about">
+        About
+      </Anchor>
+      <Anchor component={Link} to="/dashboard">
+        Dashboard
+      </Anchor>
     </Flex>
   );
 };

@@ -21,6 +21,13 @@ case $command in
             PYTHONPATH=src python -c 'import sys, version_checker; version_checker.upload_manager(sys.argv[1:])' "${array[@]}"
         fi
     ;;
+    "upload-language")
+        if [[ ${#array[@]} -eq 2 ]]; then
+            PYTHONPATH=src python -c 'import sys, version_checker; version_checker.upload_manager([sys.argv[1]], sys.argv[2])' "${array[@]}"
+        else
+            echo "Usage: $0 upload-language <model_name> <language>"
+        fi
+    ;;
     "status") 
         PYTHONPATH=src python -c 'import version_checker; version_checker.get_status(True)'
     ;;

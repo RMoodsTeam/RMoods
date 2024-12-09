@@ -1,5 +1,6 @@
 import string
 
+
 def preprocess_data(input_text: str):
     """
         Preprocess input text.
@@ -11,6 +12,7 @@ def preprocess_data(input_text: str):
             str: Preprocessed text.
         """
     return input_text.lower().translate(str.maketrans('', '', string.punctuation))
+
 
 def confidence_output(value: float | str):
     """

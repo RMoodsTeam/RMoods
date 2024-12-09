@@ -24,12 +24,15 @@ use std::collections::HashMap;
 pub async fn nlp_analysis<T: RedditFeedData>(
     nlp_client: &NlpClient,
     data: T,
+    analysis_kinds: Vec<NlpAnalysisKind>,
     user_id: GoogleId,
 ) -> Result<Report, AppError> {
     let texts = data.extract_texts();
-    let language_analysis = nlp_client
-        .analyze(NlpAnalysisKind::Language, &texts)
-        .await?;
+    let analyses = nlp_client
+        .analyze_parallel(analysis_kinds, &texts)
+        .await?
+        .into_iter()
+        .collect::<HashMap<_, _>>();
     let report = Report {
         id: new_report_id(),
         user_id,
@@ -40,9 +43,7 @@ pub async fn nlp_analysis<T: RedditFeedData>(
             created_at: Utc::now(),
             updated_at: Utc::now(),
         },
-        analyses_map: ReportAnalysesMap {
-            analyses: HashMap::from([(NlpAnalysisKind::Language, language_analysis)]),
-        },
+        analyses_map: ReportAnalysesMap { analyses },
     };
     Ok(report)
 }
@@ -57,8 +58,9 @@ async fn generate_report<T: RedditFeedData>(
     nlp: &NlpClient,
     user_info: &GoogleId,
 ) -> Result<Report, AppError> {
+    let analysis_kinds = feed_request.analyses.clone();
     let (data, _) = fetcher.fetch_feed::<T>(feed_request).await?;
-    let report = nlp_analysis(nlp, data, user_info.clone()).await?;
+    let report = nlp_analysis(nlp, data, analysis_kinds, user_info.clone()).await?;
     Ok(report)
 }
 

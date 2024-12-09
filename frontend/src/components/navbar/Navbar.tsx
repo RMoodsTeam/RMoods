@@ -3,13 +3,20 @@ import ThemeSwitch from './ThemeSwitch';
 import { Anchor, Card, Flex, Group } from '@mantine/core';
 import StatusIndicator from './StatusIndicator';
 import RateLimitStatus from './RateLimitStatus.tsx';
+import { Link } from 'react-router-dom';
 
 const LeftNavItems = () => {
   return (
     <Flex gap={10}>
-      <Anchor href="/">Main</Anchor>
-      <Anchor href="/about">About</Anchor>
-      <Anchor href="/report">Report</Anchor>
+      <Anchor component={Link} to="/">
+        Main
+      </Anchor>
+      <Anchor component={Link} to="/about">
+        About
+      </Anchor>
+      <Anchor component={Link} to="/report">
+        Report
+      </Anchor>
     </Flex>
   );
 };

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createHashRouter } from 'react-router-dom';
 import About from './routes/about/page';
 import Dashboard from './routes/dashboard/page';
 import Login from './routes/login/page';
@@ -11,7 +11,7 @@ import DashboardLayout from './components/DashboardLayout.tsx';
 import Settings from './routes/settings/page.tsx';
 import WebsocketProvider from './providers/WebsocketProvider.tsx';
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     element: (
       <WebsocketProvider>
@@ -22,19 +22,19 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        path: 'dashboard',
+        path: '/dashboard',
         element: <Dashboard />,
       },
       {
-        path: 'report',
+        path: '/report',
         element: <Report />,
       },
       {
-        path: 'user',
+        path: '/user',
         element: <UserPage />,
       },
       {
-        path: 'settings',
+        path: '/settings',
         element: <Settings />,
       },
     ],
@@ -47,11 +47,11 @@ const router = createBrowserRouter([
         element: <Root />,
       },
       {
-        path: 'about',
+        path: '/about',
         element: <About />,
       },
       {
-        path: 'login',
+        path: '/login',
         element: <Login />,
       },
     ],

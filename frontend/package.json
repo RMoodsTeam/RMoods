@@ -1,6 +1,7 @@
 {
   "name": "frontend",
   "private": true,
+  "homepage": "https://rmoods.online",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -33,7 +34,6 @@
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "mantine-form-zod-resolver": "^1.1.0",
-    "prettier": "^3.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-error-boundary": "^4.1.2",
@@ -58,6 +58,7 @@
     "postcss": "^8.4.48",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
+    "prettier": "^3.4.2",
     "start-server-and-test": "^2.0.8",
     "typedoc": "^0.26.8",
     "typedoc-plugin-rename-defaults": "^0.7.1",
