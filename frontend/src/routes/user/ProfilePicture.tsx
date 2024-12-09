@@ -44,10 +44,10 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ src, alt }) => {
   );
 };
 
-export default function () {
+export default function ({ src, alt }) {
   return (
     <ErrorBoundary FallbackComponent={ProfilePictureFallback}>
-      <ProfilePicture src="defaultSrc" alt="defaultAlt" />
+      <ProfilePicture src={src} alt={alt} />
     </ErrorBoundary>
   );
 }
