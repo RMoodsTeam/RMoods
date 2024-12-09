@@ -1,6 +1,6 @@
 use crate::app_error::AppError;
-use crate::reddit_fetcher::model::subreddit_info::SubredditAbout;
-use crate::reddit_fetcher::reddit::request::SubredditAboutRequest;
+use crate::fetcher::model::subreddit_info::SubredditAbout;
+use crate::fetcher::reddit::request::SubredditAboutRequest;
 use crate::AppState;
 use axum::extract::State;
 use axum::Json;

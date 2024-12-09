@@ -1,10 +1,10 @@
-import {Box, Text} from '@mantine/core';
+import { Box, Text } from '@mantine/core';
 import Cookies from 'js-cookie';
-import {jwtDecode} from 'jwt-decode';
-import {useEffect, useState} from 'react';
+import { jwtDecode } from 'jwt-decode';
+import { useEffect, useState } from 'react';
 import UserCard from './UserCard';
 import StatisticItem from './StatisticItem';
-import {JwtClaims} from '../../rmoods/jwt.ts';
+import { JwtClaims } from '../../rmoods/jwt.ts';
 import authFetch from '../../rmoods/client/authFetch.ts';
 
 /**
@@ -47,16 +47,13 @@ const UserPage = () => {
 
     try {
       const data = jwtDecode<JwtClaims>(token);
-      console.log('Decoded data: ', data);
       const id = data.userInfo.id;
 
-      authFetch('http://localhost:8001/api/user?id=' + id, token).then(
-        (response) => {
-          response.json().then((data) => {
-            setUser(data);
-          });
-        }
-      );
+      authFetch('http://localhost:8001/api/user?id=' + id).then((response) => {
+        response.json().then((data) => {
+          setUser(data);
+        });
+      });
     } catch (error) {
       console.error('JWT token could not be decoded.', error);
       throw new Error('JWT token could not be decoded.');
@@ -72,8 +69,7 @@ const UserPage = () => {
       style={{
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        margin: '50px 200px 0 200px',
+        alignItems: 'flex-start'
       }}
     >
       <Box style={{ flex: '0 0 350px', marginRight: '20px' }}>
@@ -82,34 +78,34 @@ const UserPage = () => {
       <Box style={{ flex: '1', display: 'flex', flexWrap: 'wrap' }}>
         <Box style={{ flex: '1 1 50%', padding: '10px' }}>
           <StatisticItem
-            label="Liked reports"
+            label='Liked reports'
             value={statistics.likedReports.join(', ')}
           />
           <StatisticItem
-            label="Latest report"
+            label='Latest report'
             value={statistics.latestReportDate}
           />
           <StatisticItem
-            label="Number of created reports"
+            label='Number of created reports'
             value={statistics.totalReports}
           />
           <StatisticItem
-            label="Top 3 subreddits"
+            label='Top 3 subreddits'
             value={statistics.topSubreddits.join(', ')}
           />
         </Box>
         <Box style={{ flex: '1 1 50%', padding: '10px' }}>
-          <StatisticItem label="Karma" value={statistics.karma} />
+          <StatisticItem label='Karma' value={statistics.karma} />
           <StatisticItem
-            label="Total cost of reports"
+            label='Total cost of reports'
             value={statistics.generatedCost}
           />
           <StatisticItem
-            label="Total used requests"
+            label='Total used requests'
             value={statistics.totalRequests}
           />
           <StatisticItem
-            label="Longest Report Time"
+            label='Longest Report Time'
             value={statistics.longestReportTime}
           />
         </Box>

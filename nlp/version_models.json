@@ -1,9 +1,24 @@
 {
-    "language": "v1",
-    "sentiment": "v1",
-    "sarcasm": "v1",
-    "spam": "v1",
-    "political": "v1",
-    "hate_speech": "v1",
-    "clickbait": "v1"
+  "language": [
+    "english"
+  ],
+  "sentiment": [
+    "english"
+  ],
+  "sarcasm": [
+    "english"
+  ],
+  "spam": [
+    "english"
+  ],
+  "political": [
+    "english"
+  ],
+  "hate_speech": [
+    "english",
+    "polish"
+  ],
+  "clickbait": [
+    "english"
+  ]
 }

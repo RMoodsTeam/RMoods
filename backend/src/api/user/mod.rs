@@ -1,5 +1,6 @@
-use crate::api::auth::google::GoogleUserInfo;
 use crate::app_error::AppError;
+use crate::auth::google::User;
+use crate::db::db_stored::DbStored;
 use crate::AppState;
 use axum::extract::{Query, State};
 use axum::Json;
@@ -13,14 +14,9 @@ pub struct GetUserQuery {
 pub async fn get_user(
     State(state): State<AppState>,
     Query(query): Query<GetUserQuery>,
-) -> Result<Json<GoogleUserInfo>, AppError> {
-    let user = sqlx::query_as!(
-        GoogleUserInfo,
-        "SELECT * FROM users WHERE id = $1",
-        query.id
-    )
-    .fetch_one(&state.pool)
-    .await?;
-
-    Ok(Json(user))
+) -> Result<Json<User>, AppError> {
+    User::get_by_id(&query.id, &state.db)
+        .await?
+        .ok_or_else(AppError::not_found)
+        .map(Json)
 }

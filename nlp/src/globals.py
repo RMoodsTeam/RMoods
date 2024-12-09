@@ -1,0 +1,9 @@
+language_model = None
+sentiment_tokenizer = None
+sentiment_model = None
+sarcastic_pipeline = None
+spam_pipeline = None
+political_pipeline = None
+hate_speech_pipeline = None
+clickbait_pipeline = None
+keyword_model = None

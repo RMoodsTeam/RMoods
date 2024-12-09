@@ -18,19 +18,19 @@ const mockdata = [
     icon: IconNotes,
     initiallyOpened: true,
     links: [
-      { label: 'Overview', link: '/' },
-      { label: 'Forecasts', link: '/' },
-      { label: 'Outlook', link: '/' },
-      { label: 'Real time', link: '/' },
+      { label: 'TODO1', link: '/' },
+      { label: 'TODO2', link: '/' },
+      { label: 'TODO3', link: '/' },
+      { label: 'TODO4', link: '/' },
     ],
   },
   {
     label: 'Releases',
     icon: IconCalendarStats,
     links: [
-      { label: 'Upcoming releases', link: '/' },
-      { label: 'Previous releases', link: '/' },
-      { label: 'Releases schedule', link: '/' },
+      { label: 'TODO5', link: '/' },
+      { label: 'TODO6', link: '/' },
+      { label: 'TODO7', link: '/' },
     ],
   },
   { label: 'Analytics', icon: IconPresentationAnalytics },
@@ -40,9 +40,9 @@ const mockdata = [
     label: 'Security',
     icon: IconLock,
     links: [
-      { label: 'Enable 2FA', link: '/' },
-      { label: 'Change password', link: '/' },
-      { label: 'Recovery codes', link: '/' },
+      { label: 'TODO7', link: '/' },
+      { label: 'TODO8', link: '/' },
+      { label: 'TODO9', link: '/' },
     ],
   },
 ];
@@ -58,8 +58,8 @@ export default function Sidebar() {
       className={classes.navbar}
       style={{
         margin: 0,
-        minWidth: '300px',
-        maxWidth: '300px',
+        minWidth: '180px',
+        maxWidth: '180px',
         height: '100vh',
         zIndex: 1,
         overflow: 'hidden',

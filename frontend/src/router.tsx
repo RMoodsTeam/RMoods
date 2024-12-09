@@ -8,13 +8,17 @@ import Report from './routes/report/page';
 import Layout from './Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout.tsx';
+import Settings from './routes/settings/page.tsx';
+import WebsocketProvider from './providers/WebsocketProvider.tsx';
 
 const router = createHashRouter([
   {
     element: (
-      <ProtectedRoute>
-        <DashboardLayout />
-      </ProtectedRoute>
+      <WebsocketProvider>
+        <ProtectedRoute>
+          <DashboardLayout />
+        </ProtectedRoute>
+      </WebsocketProvider>
     ),
     children: [
       {
@@ -28,6 +32,10 @@ const router = createHashRouter([
       {
         path: '/user',
         element: <UserPage />,
+      },
+      {
+        path: 'settings',
+        element: <Settings />,
       },
     ],
   },

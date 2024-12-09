@@ -1,19 +1,22 @@
-use crate::api::auth::google::{GoogleId, JwtUserInfo};
 use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
+use crate::auth::google::{GoogleId, JwtUserInfo};
+use crate::db::db_stored::DbStored;
+use crate::fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
+use crate::fetcher::fetcher::RMoodsFetcher;
+use crate::fetcher::model::post_comments::PostComments;
+use crate::fetcher::model::posts::Posts;
+use crate::fetcher::model::reddit_data::RedditFeedData;
+use crate::fetcher::model::user_posts::UserPosts;
+use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::report::{new_report_id, NlpAnalyses, RMoodsReport, ReportMetadata};
-use crate::reddit_fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
-use crate::reddit_fetcher::fetcher::RMoodsFetcher;
-use crate::reddit_fetcher::model::post_comments::PostComments;
-use crate::reddit_fetcher::model::posts::Posts;
-use crate::reddit_fetcher::model::reddit_data::RedditFeedData;
-use crate::reddit_fetcher::model::user_posts::UserPosts;
+use crate::nlp::report::{new_report_id, Report, ReportAnalysesMap, ReportMetadata};
 use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
 use axum::extract::State;
-use jsonwebtoken::get_current_timestamp;
+use chrono::Utc;
+use std::collections::HashMap;
 
 /// Create a report from the given data.
 ///
@@ -22,18 +25,23 @@ pub async fn nlp_analysis<T: RedditFeedData>(
     nlp_client: &NlpClient,
     data: T,
     user_id: GoogleId,
-) -> Result<RMoodsReport, AppError> {
+) -> Result<Report, AppError> {
     let texts = data.extract_texts();
-    let language_analysis = nlp_client.analyze_language(&texts).await?;
-    let report = RMoodsReport {
+    let language_analysis = nlp_client
+        .analyze(NlpAnalysisKind::Language, &texts)
+        .await?;
+    let report = Report {
         id: new_report_id(),
+        user_id,
+        title: "RMoods Report".to_string(),
+        description: "An RMoods report generated from Reddit data.".to_string(),
+        is_public: true,
         metadata: ReportMetadata {
-            created_at: get_current_timestamp(),
-            user_id,
-            is_public: true,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
         },
-        analyses: NlpAnalyses {
-            language: Some(language_analysis),
+        analyses_map: ReportAnalysesMap {
+            analyses: HashMap::from([(NlpAnalysisKind::Language, language_analysis)]),
         },
     };
     Ok(report)
@@ -48,7 +56,7 @@ async fn generate_report<T: RedditFeedData>(
     feed_request: FetcherFeedRequest,
     nlp: &NlpClient,
     user_info: &GoogleId,
-) -> Result<RMoodsReport, AppError> {
+) -> Result<Report, AppError> {
     let (data, _) = fetcher.fetch_feed::<T>(feed_request).await?;
     let report = nlp_analysis(nlp, data, user_info.clone()).await?;
     Ok(report)
@@ -87,6 +95,8 @@ pub async fn generate_report_handler(
 
         match report_res {
             Ok(report) => {
+                log::warn!("Saving the report");
+                report.save(&state.db).await.unwrap();
                 state
                     .system_tx
                     .send(SystemMessage::ReportDone((report.id, user_info.id)))

@@ -24,7 +24,7 @@ To exit the virtual environment, run the following command:
 
 To run the server, run the following command:
 
-```python src/start.py```
+```python start.py```
 
 ### Running the tests
 

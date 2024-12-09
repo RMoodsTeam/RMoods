@@ -1,5 +1,5 @@
-use crate::api::auth::google::{GoogleId, GoogleUserInfo, JwtUserInfo};
 use crate::app_error::AppError;
+use crate::auth::google::{GoogleId, JwtUserInfo};
 use crate::nlp::report::ReportId;
 use crate::AppState;
 use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
@@ -24,8 +24,8 @@ fn generate_user_id() -> String {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(tag = "status", content = "data")]
 pub enum ClientMessage {
-    RemainingRequestsUpdate(u16),
     ReportDone(ReportId),
     ReportError(AppError),
 }
