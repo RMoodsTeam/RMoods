@@ -21,9 +21,10 @@ pub struct GoogleTokenResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
-pub struct GoogleUserInfo {
+pub struct User {
     /// Unique user ID
     #[serde(rename = "sub")]
+    #[sqlx(rename = "google_id")]
     pub id: String,
     pub name: String,
     pub given_name: String,
@@ -104,8 +105,8 @@ pub async fn fetch_google_access_token(
 pub async fn fetch_google_user_info(
     access_token: String,
     http: &Client,
-) -> Result<GoogleUserInfo, AuthError> {
-    let user_info: GoogleUserInfo = http
+) -> Result<User, AuthError> {
+    let user_info: User = http
         .get("https://www.googleapis.com/oauth2/v3/userinfo")
         .bearer_auth(access_token)
         .send()
@@ -133,6 +134,6 @@ mod test {
                 "email_verified": true
             }
         );
-        serde_json::from_value::<super::GoogleUserInfo>(json).unwrap();
+        serde_json::from_value::<super::User>(json).unwrap();
     }
 }

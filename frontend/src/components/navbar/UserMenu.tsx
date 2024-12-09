@@ -2,12 +2,10 @@ import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Menu } from '@mantine/core';
 import authFetch from '../../rmoods/client/authFetch.ts';
-import { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { JwtClaims } from '../../rmoods/jwt.ts';
 import { changeDefaultGoogleProfilePictureSize } from '../../utility/changeDefaultGoogleProfilePictureSize.ts';
-import { ErrorBoundary } from 'react-error-boundary';
-import { UserMenuFallback } from '../fallbacks/UserMenuFallback.tsx';
+import { useQuery } from '@tanstack/react-query';
 
 /**
  * User interface representing the user data.
@@ -18,55 +16,53 @@ interface User {
 }
 
 /**
+ * Fetches the user data from the server.
+ * @returns {Promise<User>} The user data.
+ */
+const fetchUserData = async (): Promise<User> => {
+  const token = Cookies.get('RMOODS_JWT');
+  if (!token) {
+    throw new Error('No JWT token found');
+  }
+
+  const data = jwtDecode<JwtClaims>(token);
+  const id = data.userInfo.id;
+  const response = await authFetch(`http://localhost:8001/api/user?id=${id}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch user data');
+  }
+
+  return response.json();
+};
+
+
+/**
  * UserMenu component that displays the user menu.
  * @returns {JSX.Element} The UserMenu component.
  */
 const UserMenu = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = Cookies.get('RMOODS_JWT');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    let isMounted = true;
-    try {
-      const data = jwtDecode<JwtClaims>(token);
-      const id = data.userInfo.id;
-
-      authFetch('http://localhost:8001/api/user?id=' + id).then((response) => {
-        response.json().then((data) => {
-          if (isMounted) {
-            setUser(data);
-            setLoading(false);
-          }
-        });
-      });
-    } catch (error) {
-      console.error('JWT token could not be decoded.', error);
-      if (isMounted) {
-        setLoading(false);
-      }
-    }
-    return () => {
-      isMounted = false;
-    };
-  }, [navigate]);
+  const { data, error } = useQuery<User, Error>({
+    queryKey: ['userData'],
+    queryFn: fetchUserData,
+    refetchInterval: 5000,
+  });
 
   const handleLogout = () => {
-    console.log('Logging out');
     Cookies.remove('RMOODS_JWT');
     navigate('/login');
   };
 
+  if (error) {
+    throw new Error('Failed to fetch user data');
+  }
+
   const size = 45;
-  const resizedPicture = user
-    ? changeDefaultGoogleProfilePictureSize(user.picture, size)
+  const resizedPicture = data?.picture
+    ? changeDefaultGoogleProfilePictureSize(data.picture, size)
     : '';
+
   return (
     <Menu id="user-dropdown">
       <Menu.Target>
@@ -88,10 +84,4 @@ const UserMenu = () => {
   );
 };
 
-export default function () {
-  return (
-    <ErrorBoundary FallbackComponent={UserMenuFallback}>
-      <UserMenu />
-    </ErrorBoundary>
-  );
-}
+export default UserMenu;
