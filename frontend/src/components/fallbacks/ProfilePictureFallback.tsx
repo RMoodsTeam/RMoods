@@ -1,7 +1,7 @@
 import { Box, Image } from '@mantine/core';
 import React from 'react';
 
-export const ProfilePictureFallback = () => {
+export const ProfilePictureFallback = ({ error }) => {
   return (
     <Box
       style={{
@@ -12,7 +12,7 @@ export const ProfilePictureFallback = () => {
     >
       <Image
         src={'https://placehold.co/250x250?text=PfP'}
-        alt="default profile picture"
+        alt={`defaulting to placeholder: ${error.message}`}
         w={'250px'}
         h={'250px'}
         fit="contain"

@@ -12,7 +12,7 @@ import { MainFallback } from './routes/fallbacks/MainFallback.tsx';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Providers>
-      <ErrorBoundary fallback={<MainFallback />}>
+      <ErrorBoundary FallbackComponent={MainFallback}>
         <RouterProvider router={router} />
       </ErrorBoundary>
     </Providers>

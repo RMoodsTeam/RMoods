@@ -90,7 +90,7 @@ const UserMenu = () => {
 
 export default function () {
   return (
-    <ErrorBoundary fallback={<UserMenuFallback />}>
+    <ErrorBoundary FallbackComponent={UserMenuFallback}>
       <UserMenu />
     </ErrorBoundary>
   );
