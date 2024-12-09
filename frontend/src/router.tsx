@@ -34,7 +34,7 @@ const router = createHashRouter([
         element: <UserPage />,
       },
       {
-        path: 'settings',
+        path: '/settings',
         element: <Settings />,
       },
     ],
