@@ -13,7 +13,7 @@ const LeftNavItems = () => {
 
 const RightNavItems = () => {
   return (
-    <Flex gap={10} justify={'right'} align="center">
+    <Flex gap={10} justify="right" align="center">
       <ThemeSwitch />
     </Flex>
   );
@@ -24,11 +24,9 @@ const RightNavItems = () => {
  */
 const DefaultNavbar = () => {
   return (
-    <Card
-      style={{ margin: 0, borderRadius: 0, marginBottom: 0 }}
-    >
+    <Card style={{ margin: 0, borderRadius: 0, marginBottom: 0 }}>
       <nav>
-        <Group justify='space-between'>
+        <Group justify="space-between">
           <LeftNavItems />
           <RightNavItems />
         </Group>

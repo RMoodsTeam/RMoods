@@ -14,7 +14,7 @@ import { PageFallback } from '../fallbacks/PageFallback.tsx';
  */
 export interface User {
   name: string;
-  givenName: string;
+  given_name: string;
   email: string;
   picture: string;
 }
