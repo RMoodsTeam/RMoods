@@ -116,16 +116,14 @@ const RateLimitStatus = () => {
   client.setQueryData(['remainingRequests'], query.data);
 
   return (
-    <ErrorBoundary FallbackComponent={RateLimitStatusFallback}>
-      <HoverCard>
-        <HoverCard.Target>
-          <IconBrandReddit size={24} />
-        </HoverCard.Target>
-        <HoverCard.Dropdown>
-          <RateLimitHoverCard ratelimit={query.data![0]} />
-        </HoverCard.Dropdown>
-      </HoverCard>
-    </ErrorBoundary>
+    <HoverCard>
+      <HoverCard.Target>
+        <IconBrandReddit size={24} />
+      </HoverCard.Target>
+      <HoverCard.Dropdown>
+        <RateLimitHoverCard ratelimit={query.data![0]} />
+      </HoverCard.Dropdown>
+    </HoverCard>
   );
 };
 
