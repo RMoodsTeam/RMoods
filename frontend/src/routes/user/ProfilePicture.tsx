@@ -23,27 +23,31 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ src, alt }) => {
   const resizedSrc = changeDefaultGoogleProfilePictureSize(src, 250);
 
   return (
-    <ErrorBoundary fallback={<ProfilePictureFallback />}>
-      <Box
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Image
-          src={resizedSrc}
-          alt={alt}
-          w={'250px'}
-          h={'250px'}
-          fit="contain"
-          radius="50%"
-          referrerPolicy="no-referrer"
-          style={{ objectFit: 'cover', display: 'block' }}
-        />
-      </Box>
-    </ErrorBoundary>
+    <Box
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <Image
+        src={resizedSrc}
+        alt={alt}
+        w={'250px'}
+        h={'250px'}
+        fit="contain"
+        radius="50%"
+        referrerPolicy="no-referrer"
+        style={{ objectFit: 'cover', display: 'block' }}
+      />
+    </Box>
   );
 };
 
-export default ProfilePicture;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={ProfilePictureFallback}>
+      <ProfilePicture src="defaultSrc" alt="defaultAlt" />
+    </ErrorBoundary>
+  );
+}
