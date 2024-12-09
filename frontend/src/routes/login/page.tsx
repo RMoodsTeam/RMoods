@@ -1,10 +1,10 @@
 import { useGoogleLogin } from '@react-oauth/google';
 import GoogleSignInButton from './GoogleSignInButton';
-import { useAtom, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import Cookies from 'js-cookie';
 import { userInfoAtom } from '../../atoms';
 import { useNavigate } from 'react-router-dom';
-import { Center, Paper, Stack, Title, Box } from '@mantine/core';
+import { Center, Paper, Stack, Title, Box, Card } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../fallbacks/PageFallback.tsx';
@@ -59,18 +59,16 @@ const LoginCard = () => {
   });
 
   return (
-    <Center p="xl" h="70vh">
-      <Paper radius="md" w="540" p="xl" withBorder shadow="md">
-        <Stack gap="md" align="center">
-          <Box>
-            <Title order={1} ta="center">
-              Welcome to RMoods!
-            </Title>
-          </Box>
-          <GoogleSignInButton onClick={googleLogin} />
-        </Stack>
-      </Paper>
-    </Center>
+    <Card radius="md" p="xl" withBorder shadow="md">
+      <Stack gap="md" align="center">
+        <Box>
+          <Title order={1} ta="center">
+            Welcome to RMoods!
+          </Title>
+        </Box>
+        <GoogleSignInButton onClick={googleLogin} />
+      </Stack>
+    </Card>
   );
 };
 
@@ -80,7 +78,7 @@ const LoginCard = () => {
  */
 const Login = () => {
   return (
-    <Center>
+    <Center flex={1}>
       <LoginCard />
     </Center>
   );
