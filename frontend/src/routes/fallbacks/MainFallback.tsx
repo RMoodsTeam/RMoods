@@ -3,6 +3,7 @@ import { Card, Center, Stack, Text, Title } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 
 export const MainFallback = ({ error }) => {
+  console.error('MainFallback:', error.message);
   return (
     <Center>
       <Card shadow="xs" p="xl" withBorder radius={20}>

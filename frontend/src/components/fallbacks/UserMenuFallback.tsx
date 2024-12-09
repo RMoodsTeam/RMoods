@@ -1,5 +1,5 @@
 export const UserMenuFallback = ({ error }) => {
-  console.error(error);
+  console.error('UserMenuFallback:', error.message);
   return (
     // will have to get more info how to handle UserMenu from the team
     <div>

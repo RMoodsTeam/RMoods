@@ -3,6 +3,7 @@ import { IconBrandReddit } from '@tabler/icons-react';
 import React from 'react';
 
 export const RateLimitStatusFallback = ({ error }) => {
+  console.error('RateLimitStatusFallback:', error.message);
   return (
     <HoverCard>
       <HoverCard.Target>

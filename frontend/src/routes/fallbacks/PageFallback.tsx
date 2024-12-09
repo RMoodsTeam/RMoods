@@ -2,6 +2,7 @@ import { Center, Stack, Title, Text, Paper, Card } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 
 export const PageFallback = ({ error }) => {
+  console.error('PageFallback:', error.message);
   return (
     <Center>
       <Card shadow="xs" p="xl" withBorder radius={20}>

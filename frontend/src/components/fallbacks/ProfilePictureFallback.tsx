@@ -2,6 +2,7 @@ import { Box, Image } from '@mantine/core';
 import React from 'react';
 
 export const ProfilePictureFallback = ({ error }) => {
+  console.error('ProfilePictureFallback:', error.message);
   return (
     <Box
       style={{
