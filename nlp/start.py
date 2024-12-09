@@ -1,6 +1,7 @@
 import subprocess
 import sys
 
+from src.logger_config import logger
 
 def run_uvicorn():
     port = '8002'
@@ -13,15 +14,14 @@ def run_uvicorn():
         "--port", str(port),
         "--reload"
     ]
-
     try:
         # Run the command
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
-        print(f"Error running uvicorn: {e}")
+        logger.error(f"Error running uvicorn: {e}")
         sys.exit(1)
     except FileNotFoundError:
-        print("Error: uvicorn not found. Please ensure it is installed and in your PATH")
+        logger.error("Error: uvicorn not found. Please ensure it is installed and in your PATH")
         sys.exit(1)
 
 

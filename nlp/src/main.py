@@ -1,6 +1,8 @@
 import src.authorization as auth
 import src.globals as globals
+import logging
 
+from src.logger_config import logger
 from src.base_models import *
 from src.models_loading import *
 from src.utils import *
@@ -20,35 +22,32 @@ async def lifespan(application: FastAPI):
     Args
         application (FastAPI): FastAPI application.
     """
-    print("Application is starting.")
-    print("Checking for model updates.")
-    update_model_versions()
+    logger.info("Application is starting")
+    logger.info("Checking for model updates")
+    try:
+        update_model_versions()
+        logger.debug("Model versions updated successfully")
+    except Exception as e:
+        logger.error(f"Failed to update model versions: {e}")
+        raise
 
-    print("Loading language model.")
-    load_model("language")
+    models = [
+        "language", "sentiment", "sarcasm", "spam",
+        "political", "hate_speech", "clickbait", "keywords"
+    ]
 
-    print("Loading sentiment model.")
-    load_model("sentiment")
+    for model_name in models:
+        logger.info(f"Loading {model_name} model")
+        try:
+            load_model(model_name)
+            logger.debug(f"{model_name.title()} model loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load {model_name} model: {e}")
+            raise
 
-    print("Loading sarcastic model.")
-    load_model("sarcasm")
-
-    print("Loading spam model.")
-    load_model("spam")
-    #
-    print("Loading politics model.")
-    load_model("political")
-
-    print("Loadaing hate_speech model.")
-    load_model("hate_speech")
-
-    print("Loading clickbait model.")
-    load_model("clickbait")
-
-    print("Loading keyword model.")
-    load_model("keywords")
+    logger.info("All models loaded successfully")
     yield
-    print("Application is shutting down.")
+    logger.info("Application is shutting down")
 
 app = FastAPI(lifespan=lifespan)
 

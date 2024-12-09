@@ -3,6 +3,7 @@ import os
 import datetime
 import pytz
 
+from src.logger_config import logger
 from httplib2 import ServerNotFoundError
 from src.google_service import create_service
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
@@ -17,12 +18,12 @@ CROSS_MARK = u'\u274c'
 APPROVAL_MARK = u'\u2705'
 MISSING_MARK = u'\u2753'
 
+
 if os.path.exists("client_secret_file.json"):
     SERVICE = create_service("client_secret_file.json", API_NAME,
                              API_VERSION, SCOPES)
 else:
-    print("client_secret_file.json file not found. Check if the file exists.")
-
+    logger.error("client_secret_file.json file not found. Check if the file exists.")
 
 def read_model_file() -> dict:
     """
@@ -50,10 +51,10 @@ def find_folder(service: object, folder_name: str) -> str:
         if "files" in response and len(response['files']) > 0:
             return response["files"][0]["id"]
     except ServerNotFoundError as e:
-        print(f"Server not found. Stopping looking for folder. {e}")
+        logger.error(f"Server not found. Stopping looking for folder. {e}")
         return ""
     except TimeoutError as e:
-        print(f"Connection timed out. Stopping download. {e}")
+        logger.error(f"Connection timed out. Stopping download. {e}")
         return ""
 
 
@@ -78,10 +79,10 @@ def list_folder_contents(service: object, folder_id: str) -> dict:
                 files[file['name']] = file['id']
         return files
     except ServerNotFoundError as e:
-        print(f"Server not found. Stopping listing files. {e}")
+        logger.error(f"Server not found. Stopping listing files. {e}")
         return {}
     except TimeoutError as e:
-        print(f"Connection timed out. Stopping download. {e}")
+        logger.error(f"Connection timed out. Stopping download. {e}")
         return {}
 
 
@@ -126,10 +127,10 @@ def download_file(service: object, file_id: str, file_name: str,
             f.write(file.read())
 
         if done:
-            print(f"Downloaded {file_name} to {models_directory} successfully.")
+            logger.info(f"Downloaded {file_name} to {models_directory} successfully.")
             return True
     except (HttpError, ServerNotFoundError) as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
         return False
 
 
@@ -202,7 +203,7 @@ def get_version(folder_id: str, current_version: str, model_name: str) -> bool:
                         status = download_file(SERVICE, file_id, file_name,
                                                models_directory)
                         if not status:
-                            print(f"An error occurred while downloading the "
+                            logger.error(f"An error occurred while downloading the "
                                   f"file {model_name}.")
                             return False
                 return True
@@ -230,7 +231,7 @@ def update_model_versions(models_names: str = "") -> bool:
         try:
             current_version = data[model_name]
         except KeyError:
-            print(f"Model {model_name} not found in the version_models.json file. "
+            logger.error(f"Model {model_name} not found in the version_models.json file. "
                   f"Check out name of the model file.")
             errors += 1
             continue
@@ -243,7 +244,7 @@ def update_model_versions(models_names: str = "") -> bool:
         download_status = get_version(folder_id, current_version,
                                       model_name)
         if not download_status:
-            print("Error occurred while downloading the file.")
+            logger.error("Error occurred while downloading the file.")
             errors += 1
         else:
             count_correct += 1
@@ -290,7 +291,7 @@ def get_status_information(data: dict, service: object, parent_id: str = 'root',
                 else:
                     file_conditions = APPROVAL_MARK
 
-                print('  ' * level + f"File local: {file}  {file_conditions}")
+                logger.info('  ' * level + f"File local: {file}  {file_conditions}")
 
         for folder in folders:
             skip = False
@@ -309,7 +310,7 @@ def get_status_information(data: dict, service: object, parent_id: str = 'root',
             else:
                 folder_conditions = APPROVAL_MARK
 
-            print('  ' * level + f"Folder local: {folder['name']} "
+            logger.info('  ' * level + f"Folder local: {folder['name']} "
                                  f"  {folder_conditions}")
 
             parent_name = folder['name']
@@ -317,9 +318,9 @@ def get_status_information(data: dict, service: object, parent_id: str = 'root',
                                    folder['name'] + '/', local_status=local_status,
                                    parent_name=parent_name)
     except ServerNotFoundError as e:
-        print(f"Server not found. Stopping listing files. {e}")
+        logger.error(f"Server not found. Stopping listing files. {e}")
     except TimeoutError as e:
-        print(f"Connection timed out. Stopping listing files. {e}")
+        logger.error(f"Connection timed out. Stopping listing files. {e}")
 
 
 def get_status(local_status: bool = False) -> None:
@@ -389,7 +390,7 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
     try:
         file_path = f"models/{folder_name}/{version}/{file_name}"
         if not os.path.exists(file_path):
-            print(f"File {file_name} not found. Stopping upload.")
+            logger.error(f"File {file_name} not found. Stopping upload.")
             return False
 
         folder_id = find_folder(SERVICE, folder_name)
@@ -402,7 +403,7 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
             if file_create == {}:
                 return False
 
-            print(f"File {file_name} uploaded successfully. Model file updated.")
+            logger.info(f"File {file_name} uploaded successfully. Model file updated.")
             return True
 
         query = (f"'{folder_id}' in parents and mimeType='application/"
@@ -430,7 +431,7 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
                     answer = input(f"File {file_name} already exists Do you "
                                    f"want to overwrite the file? (y/n): ")
                     if answer == 'n':
-                        print("File skipped.")
+                        logger.info("File skipped.")
                         return False
                     elif answer == 'y':
                         proceed = True
@@ -447,16 +448,16 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
         if file_create is None:
             return False
 
-        print(f"File {file_name} uploaded successfully. Models file updated.")
+        logger.info(f"File {file_name} uploaded successfully. Models file updated.")
         return True
     except HttpError as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
         return False
     except ServerNotFoundError as e:
-        print(f"Server not found. Stopping upload. {e}")
+        logger.error(f"Server not found. Stopping upload. {e}")
         return False
     except TimeoutError as e:
-        print(f"Connection timed out. Stopping upload. {e}")
+        logger.error(f"Connection timed out. Stopping upload. {e}")
         return False
 
 
@@ -476,14 +477,14 @@ def upload_manager(folders: str = None) -> None:
             version = data[folder]
             files = os.listdir(f"models/{folder}/{version}")
             for file_name in files:
-                print(
+                logger.info(
                     f"Uploading {folder} model with version {version}, file {file_name}")
                 update_successful = upload_file(folder, version, file_name)
                 if update_successful == {}:
-                    print(f"File {file_name} already exists. Skipping file.")
+                    logger.warning(f"File {file_name} already exists. Skipping file.")
                 elif not update_successful:
-                    print(f"Error occurred with file {file_name}.")
+                    logger.error(f"Error occurred with file {file_name}.")
         except KeyError:
-            print(f"Model {folder} not found in the version_models.json file. "
+            logger.error(f"Model {folder} not found in the version_models.json file. "
                   f"Check out name of the model")
             
