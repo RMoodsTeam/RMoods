@@ -69,15 +69,13 @@ const UserMenu = () => {
           style={{ cursor: 'pointer' }}
           imageProps={{ referrerPolicy: 'no-referrer' }}
         />
-        <Menu.Dropdown>
-          <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>
-          <Menu.Item onClick={() => navigate('/dashboard')}>
-            Dashboard
-          </Menu.Item>
-          <Menu.Item onClick={() => navigate('/settings')}>Settings</Menu.Item>
-          <Menu.Item onClick={() => logout(navigate)}>Log out</Menu.Item>
-        </Menu.Dropdown>
       </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>
+        <Menu.Item onClick={() => navigate('/dashboard')}>Dashboard</Menu.Item>
+        <Menu.Item onClick={() => navigate('/settings')}>Settings</Menu.Item>
+        <Menu.Item onClick={() => logout(navigate)}>Log out</Menu.Item>
+      </Menu.Dropdown>
     </Menu>
   );
 };
