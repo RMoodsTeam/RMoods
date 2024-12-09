@@ -6,6 +6,8 @@ import StatisticItem from './StatisticItem';
 import { JwtClaims } from '../../rmoods/jwt.ts';
 import authFetch from '../../rmoods/client/authFetch.ts';
 import { useQuery } from '@tanstack/react-query';
+import { ErrorBoundary } from 'react-error-boundary';
+import { PageFallback } from '../fallbacks/PageFallback.tsx';
 
 /**
  * User interface representing the user data.
@@ -59,7 +61,6 @@ const UserPage = () => {
   const { data, error, isLoading } = useQuery<User, Error>({
     queryKey: ['userData'],
     queryFn: fetchUserData,
-    refetchInterval: 5000,
   });
 
   if (isLoading) {
@@ -86,7 +87,7 @@ const UserPage = () => {
       style={{
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-start'
+        alignItems: 'flex-start',
       }}
     >
       <Box style={{ flex: '0 0 350px', marginRight: '20px' }}>
@@ -95,34 +96,34 @@ const UserPage = () => {
       <Box style={{ flex: '1', display: 'flex', flexWrap: 'wrap' }}>
         <Box style={{ flex: '1 1 50%', padding: '10px' }}>
           <StatisticItem
-            label='Liked reports'
+            label="Liked reports"
             value={statistics.likedReports.join(', ')}
           />
           <StatisticItem
-            label='Latest report'
+            label="Latest report"
             value={statistics.latestReportDate}
           />
           <StatisticItem
-            label='Number of created reports'
+            label="Number of created reports"
             value={statistics.totalReports}
           />
           <StatisticItem
-            label='Top 3 subreddits'
+            label="Top 3 subreddits"
             value={statistics.topSubreddits.join(', ')}
           />
         </Box>
         <Box style={{ flex: '1 1 50%', padding: '10px' }}>
-          <StatisticItem label='Karma' value={statistics.karma} />
+          <StatisticItem label="Karma" value={statistics.karma} />
           <StatisticItem
-            label='Total cost of reports'
+            label="Total cost of reports"
             value={statistics.generatedCost}
           />
           <StatisticItem
-            label='Total used requests'
+            label="Total used requests"
             value={statistics.totalRequests}
           />
           <StatisticItem
-            label='Longest Report Time'
+            label="Longest Report Time"
             value={statistics.longestReportTime}
           />
         </Box>
@@ -131,4 +132,10 @@ const UserPage = () => {
   );
 };
 
-export default UserPage;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={PageFallback}>
+      <UserPage />
+    </ErrorBoundary>
+  );
+}

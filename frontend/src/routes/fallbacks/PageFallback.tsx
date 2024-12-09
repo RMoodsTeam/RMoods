@@ -1,10 +1,10 @@
-import { Center, Stack, Title, Text, Paper, Card } from '@mantine/core';
+import { Center, Stack, Title, Text, Card } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 
 export const PageFallback = ({ error }) => {
   console.error('PageFallback:', error.message);
   return (
-    <Center>
+    <Center style={{ flex: 1 }}>
       <Card shadow="xs" p="xl" withBorder radius={20}>
         <Stack>
           <Center>

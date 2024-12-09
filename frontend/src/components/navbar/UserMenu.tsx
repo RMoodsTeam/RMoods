@@ -6,6 +6,9 @@ import { jwtDecode } from 'jwt-decode';
 import { JwtClaims } from '../../rmoods/jwt.ts';
 import { changeDefaultGoogleProfilePictureSize } from '../../utility/changeDefaultGoogleProfilePictureSize.ts';
 import { useQuery } from '@tanstack/react-query';
+import { ErrorBoundary } from 'react-error-boundary';
+import { UserMenuFallback } from '../fallbacks/UserMenuFallback.tsx';
+import { logout } from '../../utility/logout.ts';
 
 /**
  * User interface representing the user data.
@@ -35,7 +38,6 @@ const fetchUserData = async (): Promise<User> => {
   return response.json();
 };
 
-
 /**
  * UserMenu component that displays the user menu.
  * @returns {JSX.Element} The UserMenu component.
@@ -46,13 +48,7 @@ const UserMenu = () => {
   const { data, error } = useQuery<User, Error>({
     queryKey: ['userData'],
     queryFn: fetchUserData,
-    refetchInterval: 5000,
   });
-
-  const handleLogout = () => {
-    Cookies.remove('RMOODS_JWT');
-    navigate('/login');
-  };
 
   if (error) {
     throw new Error('Failed to fetch user data');
@@ -73,15 +69,29 @@ const UserMenu = () => {
           style={{ cursor: 'pointer' }}
           imageProps={{ referrerPolicy: 'no-referrer' }}
         />
+        <Menu.Dropdown>
+          <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>
+          <Menu.Item onClick={() => navigate('/dashboard')}>
+            Dashboard
+          </Menu.Item>
+          <Menu.Item onClick={() => navigate('/settings')}>Settings</Menu.Item>
+          <Menu.Item onClick={() => logout(navigate)}>Log out</Menu.Item>
+        </Menu.Dropdown>
       </Menu.Target>
-      <Menu.Dropdown>
-        <Menu.Item onClick={() => navigate('/user')}>Profile</Menu.Item>
-        <Menu.Item onClick={() => navigate('/dashboard')}>Dashboard</Menu.Item>
-        <Menu.Item onClick={() => navigate('/settings')}>Settings</Menu.Item>
-        <Menu.Item onClick={() => handleLogout()}>Log out</Menu.Item>
-      </Menu.Dropdown>
     </Menu>
   );
 };
 
-export default UserMenu;
+export default function () {
+  const navigate = useNavigate();
+  return (
+    <ErrorBoundary
+      FallbackComponent={UserMenuFallback}
+      onReset={() => {
+        logout(navigate);
+      }}
+    >
+      <UserMenu />
+    </ErrorBoundary>
+  );
+}
