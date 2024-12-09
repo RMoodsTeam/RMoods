@@ -19,8 +19,8 @@
 
 <div align="center">
   <strong>
-    <h3>
-    <a href="https://rmoods.net">rmoods.net</a>
+    <h2>
+    <a href="https://rmoods.online">rmoods.online</a>
     </h2>
   </strong>
 </div>
@@ -29,7 +29,7 @@
 TODO
 
 ## Documentation
-The documentation for each module is available [here](https://rmoodsteam.github.io/RMoods/).
+The documentation for each module is available [here](https://rmoods.online/docs).
 
 ## Setup
 **TODO** Other setup steps
