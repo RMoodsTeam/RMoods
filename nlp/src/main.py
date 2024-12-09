@@ -49,6 +49,7 @@ async def lifespan(application: FastAPI):
     yield
     logger.info("Application is shutting down")
 
+
 app = FastAPI(lifespan=lifespan)
 
 
@@ -80,7 +81,8 @@ async def get_sentiment(request: TextRequest):
     for text in request.text:
         tokenized_text = globals.sentiment_tokenizer([preprocess_data(text)],
                                                      padding=True, truncation=True,
-                                                     max_length=128, return_tensors="pt")
+                                                     max_length=128,
+                                                     return_tensors="pt")
         output = globals.sentiment_model(**tokenized_text)
         probs = output.logits.softmax(dim=-1).tolist()[0]
         confidence = max(probs)
