@@ -5,7 +5,6 @@ from keybert import KeyBERT
 import src.globals as g
 
 
-
 def load_model(model_name: str):
     """
     Load spam models function. It loads the model and tokenizer for the given
@@ -14,7 +13,7 @@ def load_model(model_name: str):
     Args:
          model_name (str): Name of the model to load.
     """
-    model_path = os.path.join("models", model_name, "v1")
+    model_path = os.path.join("models", model_name, "english")
 
     if not os.path.exists(model_path) and model_name != "keywords":
         raise RuntimeError("Model file not found")
@@ -36,19 +35,19 @@ def load_model(model_name: str):
 
     if model_name == "spam":
         g.spam_pipeline = pipeline("text-classification", model=model,
-                                 tokenizer=tokenizer)
+                                   tokenizer=tokenizer)
     elif model_name == "sarcasm":
         g.sarcastic_pipeline = pipeline("text-classification", model=model,
-                                      tokenizer=tokenizer)
+                                        tokenizer=tokenizer)
     elif model_name == "sentiment":
         g.sentiment_model = model
         g.sentiment_tokenizer = tokenizer
     elif model_name == "political":
         g.political_pipeline = pipeline("text-classification", model=model,
-                                      tokenizer=tokenizer)
+                                        tokenizer=tokenizer)
     elif model_name == "hate_speech":
         g.hate_speech_pipeline = pipeline("text-classification", model=model,
-                                        tokenizer=tokenizer)
+                                          tokenizer=tokenizer)
     elif model_name == "clickbait":
         g.clickbait_pipeline = pipeline("text-classification", model=model,
-                                      tokenizer=tokenizer)
+                                        tokenizer=tokenizer)

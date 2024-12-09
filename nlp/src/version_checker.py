@@ -18,12 +18,12 @@ CROSS_MARK = u'\u274c'
 APPROVAL_MARK = u'\u2705'
 MISSING_MARK = u'\u2753'
 
-
 if os.path.exists("client_secret_file.json"):
     SERVICE = create_service("client_secret_file.json", API_NAME,
                              API_VERSION, SCOPES)
 else:
     logger.error("client_secret_file.json file not found. Check if the file exists.")
+
 
 def read_model_file() -> dict:
     """
@@ -145,8 +145,9 @@ def is_file_up_to_date(file_id: str, file_exists: bool, file_path: str) -> bool:
 
     :return: True if the file is up to date, False otherwise.
     """
-    file_created_time = (SERVICE.files().get(fileId=file_id, fields="createdTime,modifiedTime")
-                         .execute())
+    file_created_time = (
+        SERVICE.files().get(fileId=file_id, fields="createdTime,modifiedTime")
+        .execute())
 
     if file_exists:
         create_time = datetime.datetime.strptime(
@@ -172,28 +173,28 @@ def is_file_up_to_date(file_id: str, file_exists: bool, file_path: str) -> bool:
         return False
 
 
-def get_version(folder_id: str, current_version: str, model_name: str) -> bool:
+def get_version(folder_id: str, current_languages: str, model_name: str) -> bool:
     """
     This function is the main function of the script. It reads the file
     containing model versions, finds the folder with the given name, lists the
     contents of the folder and downloads the file.
 
     :param folder_id: The ID of the folder to find.
-    :param current_version: The current version of the model.
+    :param current_languages: The current language of the model.
     :param model_name: The name of the model.
 
     :return: True if the file was downloaded successfully, False otherwise.
     """
     if folder_id:
         files_with_versions = list_folder_contents(SERVICE, folder_id)
-        if current_version in files_with_versions:
-            folder_with_current_version_id = files_with_versions[current_version]
+        if current_languages in files_with_versions:
+            folder_with_current_version_id = files_with_versions[current_languages]
             list_files = list_folder_contents(SERVICE,
                                               folder_with_current_version_id)
 
             if len(list_files) > 0:
                 for file_name, file_id in list_files.items():
-                    models_directory = f"models/{model_name}/{current_version}"
+                    models_directory = f"models/{model_name}/{current_languages}"
                     full_models_path = f"{models_directory}/{file_name}"
 
                     file_exists = os.path.exists(full_models_path)
@@ -204,7 +205,7 @@ def get_version(folder_id: str, current_version: str, model_name: str) -> bool:
                                                models_directory)
                         if not status:
                             logger.error(f"An error occurred while downloading the "
-                                  f"file {model_name}.")
+                                         f"file {model_name}.")
                             return False
                 return True
 
@@ -229,10 +230,11 @@ def update_model_versions(models_names: str = "") -> bool:
     errors = 0
     for model_name in models_names:
         try:
-            current_version = data[model_name]
+            current_languages = data[model_name]
         except KeyError:
-            logger.error(f"Model {model_name} not found in the version_models.json file. "
-                  f"Check out name of the model file.")
+            logger.error(
+                f"Model {model_name} not found in the version_models.json file. "
+                f"Check out name of the model file.")
             errors += 1
             continue
 
@@ -241,13 +243,14 @@ def update_model_versions(models_names: str = "") -> bool:
         if folder_id == "":
             return False
 
-        download_status = get_version(folder_id, current_version,
-                                      model_name)
-        if not download_status:
-            logger.error("Error occurred while downloading the file.")
-            errors += 1
-        else:
-            count_correct += 1
+        for language in current_languages:
+            download_status = get_version(folder_id, language,
+                                          model_name)
+            if not download_status:
+                logger.error("Error occurred while downloading the file.")
+                errors += 1
+            else:
+                count_correct += 1
 
     return bool(count_correct == len(models_names) - errors)
 
@@ -311,7 +314,7 @@ def get_status_information(data: dict, service: object, parent_id: str = 'root',
                 folder_conditions = APPROVAL_MARK
 
             logger.info('  ' * level + f"Folder local: {folder['name']} "
-                                 f"  {folder_conditions}")
+                                       f"  {folder_conditions}")
 
             parent_name = folder['name']
             get_status_information(data, service, folder['id'], level + 1, path +
@@ -377,18 +380,18 @@ def create_file(folder_name_id: str, version_folder_id: str, file_path: str,
     return file
 
 
-def upload_file(folder_name: str, version: str, file_name: str) -> bool:
+def upload_file(folder_name: str, language: str, file_name: str) -> bool:
     """
     This function uploads the file to the Google Drive folder.
 
     :param folder_name: The name of the folder to upload.
-    :param version: The version of the model.
+    :param language: The language of the model.
     :param file_name: The name of the file to upload.
 
     :return: True if the file was uploaded successfully, False otherwise.
     """
     try:
-        file_path = f"models/{folder_name}/{version}/{file_name}"
+        file_path = f"models/{folder_name}/{language}/{file_name}"
         if not os.path.exists(file_path):
             logger.error(f"File {file_name} not found. Stopping upload.")
             return False
@@ -396,8 +399,8 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
         folder_id = find_folder(SERVICE, folder_name)
         if folder_id is None:
             folder_name_id = create_folder(folder_name)
-            version_folder_id = create_folder(version, folder_name_id)
-            file_create = create_file(folder_name_id, version_folder_id,
+            language_folder_id = create_folder(language, folder_name_id)
+            file_create = create_file(folder_name_id, language_folder_id,
                                       file_path, file_name)
 
             if file_create == {}:
@@ -411,16 +414,16 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
         response = SERVICE.files().list(q=query).execute()
         folders = response.get('files', [])
 
-        version_folder_id = None
+        language_folder_id = None
         for folder in folders:
-            if folder['name'] == version:
-                version_folder_id = folder['id']
+            if folder['name'] == language:
+                language_folder_id = folder['id']
                 break
 
-        if version_folder_id is None:
-            version_folder_id = create_folder(version, folder_id)
+        if language_folder_id is None:
+            language_folder_id = create_folder(language, folder_id)
 
-        response_files = SERVICE.files().list(q=f"'{version_folder_id}' "
+        response_files = SERVICE.files().list(q=f"'{language_folder_id}' "
                                                 f"in parents").execute()
         files = response_files.get('files', [])
 
@@ -443,7 +446,7 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
                 SERVICE.files().update(fileId=file['id'], body=body_value).execute()
                 break
 
-        file_create = create_file(folder_id, version_folder_id,
+        file_create = create_file(folder_id, language_folder_id,
                                   file_path, file_name)
         if file_create is None:
             return False
@@ -461,30 +464,34 @@ def upload_file(folder_name: str, version: str, file_name: str) -> bool:
         return False
 
 
-def upload_manager(folders: str = None) -> None:
+def upload_manager(folders: [str] = None, model_language: [str] = None) -> None:
     """
     This function manages uploads to the Google Drive folder.
 
     :param folders: The names of the folders to upload. If None, all folders are
         uploaded.
+    :param model_language: The language of the model to upload. If None, all languages
+        are uploaded.
     """
     if folders is None:
         folders = read_model_file()
+        model_language = None
 
     data = read_model_file()
     for folder in folders:
         try:
-            version = data[folder]
-            files = os.listdir(f"models/{folder}/{version}")
-            for file_name in files:
-                logger.info(
-                    f"Uploading {folder} model with version {version}, file {file_name}")
-                update_successful = upload_file(folder, version, file_name)
-                if update_successful == {}:
-                    logger.warning(f"File {file_name} already exists. Skipping file.")
-                elif not update_successful:
-                    logger.error(f"Error occurred with file {file_name}.")
+            languages = data[folder] if model_language is None else [model_language]
+            for language in languages:
+                files = os.listdir(f"models/{folder}/{language}")
+                for file_name in files:
+                    logger.info( f"Uploading {folder} model with language {language}, "
+                                 f"file {file_name}")
+                    update_successful = upload_file(folder, language, file_name)
+                    if update_successful == {}:
+                        logger.warning(
+                            f"File {file_name} already exists. Skipping file.")
+                    elif not update_successful:
+                        logger.error(f"Error occurred with file {file_name}.")
         except KeyError:
             logger.error(f"Model {folder} not found in the version_models.json file. "
-                  f"Check out name of the model")
-            
+                         f"Check out name of the model")
