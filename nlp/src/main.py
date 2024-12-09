@@ -1,17 +1,16 @@
+from contextlib import asynccontextmanager
+
 import src.authorization as auth
 import src.globals as globals
-import logging
-
-from src.logger_config import logger
-from src.base_models import *
-from src.models_loading import *
-from src.utils import *
-from src.version_checker import update_model_versions
 from fastapi import FastAPI, HTTPException
 from fastapi.params import Depends
 from langcodes import tag_is_valid, Language
-from contextlib import asynccontextmanager
-from fastapi.security.api_key import APIKey
+from src.base_models import *
+from src.logger_config import logger
+from src.models_loading import *
+from src.process_input import process_inputs
+from src.utils import *
+from src.version_checker import update_model_versions
 
 
 @asynccontextmanager
@@ -49,6 +48,7 @@ async def lifespan(application: FastAPI):
     yield
     logger.info("Application is shutting down")
 
+
 app = FastAPI(lifespan=lifespan)
 
 
@@ -76,8 +76,7 @@ async def get_sentiment(request: TextRequest):
         5: "Surprise"
     }
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         tokenized_text = globals.sentiment_tokenizer([preprocess_data(text)],
                                                      padding=True, truncation=True,
                                                      max_length=128, return_tensors="pt")
@@ -89,7 +88,9 @@ async def get_sentiment(request: TextRequest):
             labels=[labels[prediction]],
             confidences=[confidence_output(confidence)]
         )
-        results.append(result)
+        return result
+
+    results = process_inputs(process_fn, request.text)
 
     return TextResponse(
         kind="sentiment",
@@ -113,8 +114,7 @@ async def get_language(request: TextRequest):
     if globals.language_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         languages = []
         prediction = globals.language_model.predict(text, k=2)
 
@@ -130,7 +130,9 @@ async def get_language(request: TextRequest):
             labels=languages,
             confidences=[confidence_output(y) for y in prediction[1]]
         )
-        results.append(result)
+        return result
+
+    results = process_inputs(process_fn, request.text)
 
     return TextResponse(
         kind="language",
@@ -158,15 +160,16 @@ async def get_sarcasm(request: TextRequest):
         "0": "NOT_SARCASTIC",
         "1": "SARCASTIC"
     }
-    results = []
 
-    for text in request.text:
+    def process_fn(text):
         predict = globals.sarcastic_pipeline(text)
         result = AnalysisResult(
             labels=[labels[predict[0]["label"].replace("LABEL_", "")]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results = process_inputs(process_fn, request.text)
 
     return TextResponse(
         kind="sarcasm",
@@ -187,19 +190,20 @@ async def get_keywords(request: TextRequest):
     Returns:
         TextResponse: Keyword extraction results with labels and relevance scores.
     """
-    # Rememeber add author if we wan to use this model
+    # Remember add author if we want to use this model
     # How keywords will work with long text?
     if globals.keyword_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         keywords = globals.keyword_model.extract_keywords(text, top_n=5)
         result = AnalysisResult(
             labels=[kw[0] for kw in keywords],
             confidences=[kw[1] for kw in keywords]
         )
-        results.append(result)
+        return result
+
+    results = process_inputs(process_fn, request.text)
 
     return TextResponse(
         kind="keywords",
@@ -228,14 +232,15 @@ async def get_spam(request: TextRequest):
         "1": "SPAM"
     }
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         predict = globals.spam_pipeline(text)
         result = AnalysisResult(
             labels=[labels[predict[0]["label"].replace("LABEL_", "")]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results = process_inputs(process_fn, request.text)
 
     return TextResponse(
         kind="spam",
@@ -261,14 +266,15 @@ async def get_politics(request: TextRequest):
     if globals.political_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         predict = globals.political_pipeline(text)
         result = AnalysisResult(
             labels=[predict[0]["label"]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results = process_inputs(process_fn, request.text)
 
     return TextResponse(
         kind="politics",
@@ -295,17 +301,18 @@ async def get_hate_speech(request: TextRequest):
     if globals.hate_speech_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         predict = globals.hate_speech_pipeline(text)
         result = AnalysisResult(
             labels=[predict[0]["label"]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results = process_inputs(process_fn, request.text)
 
     return TextResponse(
-        kind="hate_speech",
+        kind="hateSpeech",
         metadata=Metadata(generated_in=0.0),
         results=results
     ).json()
@@ -326,19 +333,20 @@ async def get_clickbait(request: TextRequest):
     if globals.clickbait_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         predict = globals.clickbait_pipeline(text)
         result = AnalysisResult(
             labels=[predict[0]["label"]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results = process_inputs(process_fn, request.text)
 
     return TextResponse(
         kind="clickbait",
         metadata=Metadata(generated_in=0.0),
-        result=results
+        results=results
     ).json()
 
 
