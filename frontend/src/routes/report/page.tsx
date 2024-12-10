@@ -26,6 +26,7 @@ import { transformJson } from './transformJson.ts';
 import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../fallbacks/PageFallback.tsx';
+import { FloatingLabelInput } from '../../components/FloatingLabelInput/FloatingLabelInput.tsx';
 
 /**
  * Report component for creating a new report.
@@ -128,7 +129,7 @@ const Report = () => {
             });
         })}
       >
-        <TextInput
+        <FloatingLabelInput
           label="Report Name"
           placeholder="Enter report name"
           {...form.getInputProps('name')}
