@@ -7,8 +7,6 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipe
 from keybert import KeyBERT
 from sentence_transformers import SentenceTransformer
 
-from src.globals import keyword_model
-
 
 def load_model(model_name: str):
     """

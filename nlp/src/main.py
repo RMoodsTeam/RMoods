@@ -1,9 +1,7 @@
-from contextlib import asynccontextmanager
-
 import src.authorization as auth
 import src.globals as globals
-import torch
-import torch.nn.functional as F
+
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.params import Depends
 from langcodes import tag_is_valid, Language
@@ -26,7 +24,7 @@ async def lifespan(application: FastAPI):
     logger.info("Application is starting")
     logger.info("Checking for model updates")
     try:
-        # update_model_versions()
+        update_model_versions()
         logger.debug("Model versions updated successfully")
     except Exception as e:
         logger.error(f"Failed to update model versions: {e}")
