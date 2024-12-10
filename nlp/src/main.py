@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 import src.authorization as auth
 import src.globals as globals
+import torch
+import torch.nn.functional as F
 from fastapi import FastAPI, HTTPException
 from fastapi.params import Depends
 from langcodes import tag_is_valid, Language
@@ -24,7 +26,7 @@ async def lifespan(application: FastAPI):
     logger.info("Application is starting")
     logger.info("Checking for model updates")
     try:
-        update_model_versions()
+        # update_model_versions()
         logger.debug("Model versions updated successfully")
     except Exception as e:
         logger.error(f"Failed to update model versions: {e}")
@@ -299,11 +301,28 @@ async def get_hate_speech(request: TextRequest):
     # Do zamieszczenia bibliografie z linku
     # https: // huggingface.co / Hate - speech - CNERG / dehatebert - mono - english
     # Pamiętamy
-    if globals.hate_speech_pipeline is None:
+    if globals.language_model is None:
+        raise HTTPException(status_code=500, detail="Language model not loaded")
+
+    if (globals.hate_speech_english_pipeline is None or
+            globals.hate_speech_polish_pipeline is None):
         raise HTTPException(status_code=500, detail="Model not loaded")
 
+    def detect_language(text):
+        prediction = globals.language_model.predict(text, k=1)
+        lang_tag = prediction[0][0].rsplit("_")[-2]
+        if tag_is_valid(lang_tag):
+            lang_name = Language.get(lang_tag).display_name("en")
+            return lang_name
+        return lang_tag
+
     def process_fn(text):
-        predict = globals.hate_speech_pipeline(text)
+        lang_name= detect_language(text)
+        if lang_name == "Polish":
+            predict = globals.hate_speech_polish_pipeline(text)
+        else:
+            predict = globals.hate_speech_english_pipeline(text)
+
         result = AnalysisResult(
             labels=[predict[0]["label"]],
             confidences=[confidence_output(predict[0]["score"])]

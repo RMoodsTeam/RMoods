@@ -1,5 +1,5 @@
 import string
-
+import json
 
 def preprocess_data(input_text: str):
     """
@@ -25,3 +25,13 @@ def confidence_output(value: float | str):
             Float value of confidence.
        """
     return float(round(value, 2))
+
+
+def read_model_file() -> dict:
+    """
+    This function reads the file with the models version.
+
+    :return: The data read from file.
+    """
+    with open("version_models.json", "r") as f:
+        return json.load(f)
