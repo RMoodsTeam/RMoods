@@ -3,13 +3,13 @@ import os
 import datetime
 import pytz
 
+from src.utils import read_model_file
 from src.logger_config import logger
 from httplib2 import ServerNotFoundError
 from src.google_service import create_service
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from googleapiclient.errors import HttpError
 from tqdm import tqdm
-import json
 
 API_NAME = "drive"
 API_VERSION = "v3"
@@ -23,16 +23,6 @@ if os.path.exists("client_secret_file.json"):
                              API_VERSION, SCOPES)
 else:
     logger.error("client_secret_file.json file not found. Check if the file exists.")
-
-
-def read_model_file() -> dict:
-    """
-    This function reads the file with the models version.
-
-    :return: The data read from file.
-    """
-    with open("version_models.json", "r") as f:
-        return json.load(f)
 
 
 def find_folder(service: object, folder_name: str) -> str:
@@ -353,25 +343,25 @@ def create_folder(folder_name: str, parent_id: str = 'root') -> str:
     return file.get('id')
 
 
-def create_file(folder_name_id: str, version_folder_id: str, file_path: str,
+def create_file(name_folder_id: str, parent_folder_id: str, file_path: str,
                 file_name: str) -> dict:
     """
     This function creates a file in the Google Drive folder.
 
-    :param folder_name_id: The ID of the folder to create the file.
-    :param version_folder_id: The ID of the version folder to create the file.
+    :param name_folder_id: The ID of the folder to create the file.
+    :param parent_folder_id: The ID of the version folder to create the file.
     :param file_path: The path to the file to upload.
     :param file_name: The name of the file to upload.
 
     :return: The file created. Or False if the folder_name_id or version_folder_id
             is None.
     """
-    if folder_name_id is None or version_folder_id is None:
+    if name_folder_id is None or parent_folder_id is None:
         return {}
 
     file_metadata = {
         'name': file_name,
-        'parents': [version_folder_id]
+        'parents': [parent_folder_id]
     }
 
     media = MediaFileUpload(file_path, resumable=True)
