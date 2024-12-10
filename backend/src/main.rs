@@ -1,8 +1,9 @@
-use crate::env::DATABASE_URL;
 use crate::db::db_client::DbClient;
+use crate::env::DATABASE_URL;
 use crate::fetcher::fetcher::RMoodsFetcher;
 use crate::fetcher::reddit::connection::RedditConnection;
 use crate::nlp::nlp_client::NlpClient;
+use crate::nlp::report::Report;
 use crate::open_api::ApiDoc;
 use crate::startup::{setup_environment, shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
