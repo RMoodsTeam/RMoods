@@ -8,16 +8,14 @@ import {
   Radio,
   SegmentedControl,
   Stack,
-  TextInput,
   Title,
 } from '@mantine/core';
-import { useForm, UseFormReturnType } from '@mantine/form';
+import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
 import { DataSource } from '../../rmoods/client/types.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from './tables.tsx';
 import {
-  MantineReportForm,
   ReportFormValidationSchema,
   ReportFormValues,
   RowWrapper,
@@ -27,6 +25,7 @@ import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../fallbacks/PageFallback.tsx';
 import { FloatingLabelInput } from '../../components/FloatingLabelInput/FloatingLabelInput.tsx';
+import gradientSegmentControlClasses from './GradientSegmentedControl.module.css';
 
 /**
  * Report component for creating a new report.
@@ -103,7 +102,7 @@ const Report = () => {
   };
 
   return (
-    <Box>
+    <Stack>
       <Title order={1}>Create Report</Title>
 
       <form
@@ -141,60 +140,74 @@ const Report = () => {
           ]}
           {...form.getInputProps('isPublic')}
         />
-        <Radio.Group
-          name="sourceType"
-          label="Select source type"
-          {...form.getInputProps('resourceKind')}
-          onClick={() => {
-            setRows([]);
-          }}
-        >
-          <Stack>
-            <Radio value="subredditPosts" label="Subreddit Posts" />
-            <Radio value="postComments" label="Post Comments" />
-            <Radio value="userPosts" label="User Posts" />
-          </Stack>
-        </Radio.Group>
+        <Box>
+          <Title order={5}>Data Sources</Title>
+          <SegmentedControl
+            radius="xl"
+            size="md"
+            classNames={gradientSegmentControlClasses}
+            data={[
+              {
+                label: 'Subreddit Posts',
+                value: 'subredditPosts',
+              },
+              {
+                label: 'Post Comments',
+                value: 'postComments',
+              },
+              {
+                label: 'User Posts',
+                value: 'userPosts',
+              },
+            ]}
+            {...form.getInputProps('resourceKind')}
+            onClick={() => {
+              setRows([]);
+            }}
+          />
+        </Box>
 
-        <Radio.Group
-          name="sortBy"
-          label="Sort by"
-          {...form.getInputProps('sortBy')}
-          onClick={() => {
-            setRows([]);
-          }}
-        >
-          <Stack>
-            <Radio value="hot" label="Hot" />
-            <Radio value="new" label="New" />
-            <Radio value="rising" label="Rising" />
-            <Radio value="top" label="Top" />
-            <Radio value="controversial" label="Controversial" />
-          </Stack>
-        </Radio.Group>
-
-        {form.getInputProps('sortBy').value === 'top' ||
-        form.getInputProps('sortBy').value === 'controversial' ? (
+        <Group>
           <Radio.Group
-            name="time"
-            label="Select time"
-            {...form.getInputProps('time')}
+            style={{ width: '50%' }}
+            name="sortBy"
+            label="Sort by"
+            {...form.getInputProps('sortBy')}
             onClick={() => {
               setRows([]);
             }}
           >
             <Stack>
-              <Radio value="day" label="Day" />
-              <Radio value="week" label="Week" />
-              <Radio value="month" label="Month" />
-              <Radio value="year" label="Year" />
-              <Radio value="all" label="All" />
+              <Radio value="hot" label="Hot" />
+              <Radio value="new" label="New" />
+              <Radio value="rising" label="Rising" />
+              <Radio value="top" label="Top" />
+              <Radio value="controversial" label="Controversial" />
             </Stack>
           </Radio.Group>
-        ) : (
-          <></>
-        )}
 
+          {form.getInputProps('sortBy').value === 'top' ||
+          form.getInputProps('sortBy').value === 'controversial' ? (
+            <Radio.Group
+              name="time"
+              label="Select time"
+              {...form.getInputProps('time')}
+              onClick={() => {
+                setRows([]);
+              }}
+            >
+              <Stack>
+                <Radio value="day" label="Day" />
+                <Radio value="week" label="Week" />
+                <Radio value="month" label="Month" />
+                <Radio value="year" label="Year" />
+                <Radio value="all" label="All" />
+              </Stack>
+            </Radio.Group>
+          ) : (
+            <></>
+          )}
+        </Group>
         <Box>
           <DataSourceTable
             form={form}
@@ -286,7 +299,7 @@ const Report = () => {
           </Button>
         </Group>
       </form>
-    </Box>
+    </Stack>
   );
 };
 
