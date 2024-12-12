@@ -5,6 +5,8 @@ on:
     branches: ["**"]
   pull_request:
     branches: ["**"]
+  release:
+    types: [published]
 
 jobs:
   docker:
@@ -24,8 +26,8 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/rmoods:nlp-0.6.0 .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/rmoods:nlp-${{ vars.RELEASE_TAG }} .
 
       - name: Push image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/rmoods:nlp-0.6.0
+          docker push ${{ secrets.DOCKER_USERNAME }}/rmoods:nlp-${{ vars.RELEASE_TAG }}
