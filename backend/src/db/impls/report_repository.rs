@@ -6,11 +6,12 @@ use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::report::Report;
 use axum::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
+use serde::{Deserialize, Serializer};
 use sqlx::Error;
 
 /// Represents a date range for querying reports.
 /// Not validated for correctness, so the start date can be after the end date, later the query will just return no results.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct DateRange {
     pub start_date: DateTime<Utc>,
     pub end_date: DateTime<Utc>,
@@ -19,21 +20,31 @@ pub struct DateRange {
 /// Parameters for querying reports.
 ///
 /// All fields are optional, so the query can be as specific or as general as needed.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ReportQuery {
     /// Filter by the user's name.
     ///
     /// The query will return reports where the user's name contains this string. It's used as `LIKE %<pattern>%`.
+    #[serde(rename = "username")]
     pub user_name_pattern: Option<String>,
     /// Filter by the kinds of analyses contained in the report.
     ///
     /// The query will return reports that contain all the specified kinds of analyses.
-    pub contained_analysis_kinds: Option<Vec<NlpAnalysisKind>>,
+    #[serde(rename = "analyses")]
+    #[serde(default)]
+    pub contained_analysis_kinds: Vec<NlpAnalysisKind>,
     /// Filter by the date range when the report was created.
-    pub date_range: Option<DateRange>,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_optional_dt")]
+    pub start_date: Option<DateTime<Utc>>,
+
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_optional_dt")]
+    pub end_date: Option<DateTime<Utc>>,
     /// Filter by the title of the report.
     ///
     /// The query will return reports where the title contains this string. It's used as `LIKE %<pattern>%`.
+    #[serde(rename = "title")]
     pub title_pattern: Option<String>,
 }
 
@@ -41,11 +52,24 @@ impl Default for ReportQuery {
     fn default() -> Self {
         Self {
             user_name_pattern: None,
-            contained_analysis_kinds: None,
-            date_range: None,
+            contained_analysis_kinds: vec![],
+            start_date: None,
+            end_date: None,
             title_pattern: None,
         }
     }
+}
+
+pub fn deserialize_optional_dt<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Option::<i64>::deserialize(deserializer)?
+        .map(|secs| {
+            DateTime::from_timestamp(secs, 0)
+                .ok_or_else(|| serde::de::Error::custom("Invalid timestamp"))
+        })
+        .transpose()
 }
 
 /// Arguments for the query to get reports.
@@ -81,32 +105,32 @@ impl ReportQuery {
     /// Another example: the date range, where if it's not provided, the start date is the UNIX epoch and the end date is the current date and time, which will match any report.
     fn into_bind_args(self) -> ReportQueryBindArgs {
         let user_name_pattern = self.user_name_pattern.unwrap_or(String::new());
-        let contained_analysis_kinds_clauses = self
-            .contained_analysis_kinds
-            .map(|kinds| {
-                kinds
-                    .iter()
-                    .map(|kind| {
-                        format!(
-                            "report_analyses_maps.{}_id IS NOT NULL",
-                            kind.to_snake_case()
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                    .join(" AND ")
-            })
-            .unwrap_or("1=1".to_string());
-        let date_range = self.date_range.unwrap_or(DateRange {
-            start_date: NaiveDateTime::UNIX_EPOCH.and_utc(),
-            end_date: Utc::now(),
-        });
+        let contained_analysis_kinds_clauses = if self.contained_analysis_kinds.is_empty() {
+            "1=1".to_string()
+        } else {
+            self.contained_analysis_kinds
+                .into_iter()
+                .map(|kind| {
+                    format!(
+                        "report_analyses_maps.{}_id IS NOT NULL",
+                        kind.to_snake_case()
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join(" AND ")
+        };
+
+        let start_date = self
+            .start_date
+            .unwrap_or(NaiveDateTime::UNIX_EPOCH.and_utc());
+        let end_date = self.end_date.unwrap_or(Utc::now());
         let title_pattern = self.title_pattern.unwrap_or("".to_string());
 
         ReportQueryBindArgs {
             user_name_pattern,
             contained_analysis_kinds_clauses,
-            start_date: date_range.start_date,
-            end_date: date_range.end_date,
+            start_date,
+            end_date,
             title_pattern,
         }
     }
@@ -201,7 +225,7 @@ mod tests {
     #[test]
     fn test_into_where_clauses_contained_analysis_kinds_one() {
         let query = ReportQuery {
-            contained_analysis_kinds: Some(vec![NlpAnalysisKind::Sentiment]),
+            contained_analysis_kinds: vec![NlpAnalysisKind::Sentiment],
             ..Default::default()
         };
         let args = query.into_bind_args();
@@ -215,11 +239,11 @@ mod tests {
     #[test]
     fn test_into_where_clauses_contained_analysis_kinds_multiple() {
         let query = ReportQuery {
-            contained_analysis_kinds: Some(vec![
+            contained_analysis_kinds: vec![
                 NlpAnalysisKind::Sentiment,
                 NlpAnalysisKind::Clickbait,
                 NlpAnalysisKind::HateSpeech,
-            ]),
+            ],
             ..Default::default()
         };
         let args = query.into_bind_args();
@@ -234,10 +258,8 @@ mod tests {
     fn test_into_where_clauses_date_range() {
         let now = Utc::now();
         let query = ReportQuery {
-            date_range: Some(DateRange {
-                start_date: now - chrono::Duration::days(1),
-                end_date: now,
-            }),
+            start_date: Some(now - chrono::Duration::days(1)),
+            end_date: Some(now),
             ..Default::default()
         };
         let args = query.into_bind_args();
@@ -286,8 +308,9 @@ mod tests {
         let _ = Report::get_by_query(
             ReportQuery {
                 user_name_pattern: None,
-                contained_analysis_kinds: None,
-                date_range: None,
+                contained_analysis_kinds: vec![],
+                start_date: None,
+                end_date: None,
                 title_pattern: None,
             },
             DbPagination::new(0, 10),
@@ -306,14 +329,12 @@ mod tests {
         let _ = Report::get_by_query(
             ReportQuery {
                 user_name_pattern: Some(String::from("test_user")),
-                contained_analysis_kinds: Some(vec![
+                contained_analysis_kinds: vec![
                     NlpAnalysisKind::Sentiment,
                     NlpAnalysisKind::HateSpeech,
-                ]),
-                date_range: Some(DateRange {
-                    start_date: Utc::now() - chrono::Duration::days(3),
-                    end_date: Utc::now(),
-                }),
+                ],
+                start_date: Some(Utc::now() - chrono::Duration::days(3)),
+                end_date: Some(Utc::now()),
                 title_pattern: Some("test".to_string()),
             },
             DbPagination::new(0, 10),
