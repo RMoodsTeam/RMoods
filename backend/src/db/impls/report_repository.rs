@@ -8,17 +8,32 @@ use axum::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use sqlx::Error;
 
+/// Represents a date range for querying reports.
+/// Not validated for correctness, so the start date can be after the end date, later the query will just return no results.
 #[derive(Debug, Clone)]
 pub struct DateRange {
     pub start_date: DateTime<Utc>,
     pub end_date: DateTime<Utc>,
 }
 
+/// Parameters for querying reports.
+///
+/// All fields are optional, so the query can be as specific or as general as needed.
 #[derive(Debug, Clone)]
 pub struct ReportQuery {
+    /// Filter by the user's name.
+    ///
+    /// The query will return reports where the user's name contains this string. It's used as `LIKE %<pattern>%`.
     pub user_name_pattern: Option<String>,
+    /// Filter by the kinds of analyses contained in the report.
+    ///
+    /// The query will return reports that contain all the specified kinds of analyses.
     pub contained_analysis_kinds: Option<Vec<NlpAnalysisKind>>,
+    /// Filter by the date range when the report was created.
     pub date_range: Option<DateRange>,
+    /// Filter by the title of the report.
+    ///
+    /// The query will return reports where the title contains this string. It's used as `LIKE %<pattern>%`.
     pub title_pattern: Option<String>,
 }
 
@@ -33,15 +48,37 @@ impl Default for ReportQuery {
     }
 }
 
+/// Arguments for the query to get reports.
+///
+/// Created by converting a [ReportQuery] to this struct.
+/// Values in this struct are meant as bind parameters for the SQL query.
+/// Depending on the query, some values might be empty or have a default value, which will still maintain the query's correctness.
 struct ReportQueryBindArgs {
+    /// The user's name pattern.
+    /// If not provided in the query, it's an empty string. It's used as `LIKE %<pattern>%`.
     user_name_pattern: String,
+    /// The concatenated `WHERE` clauses for checking if the report contains the specified kinds of analyses.
+    /// If not provided in the query, it's `1=1`, which is always true and maintains the query's correctness.
     contained_analysis_kinds_clauses: String,
+    /// The start date of the date range.
+    /// If not provided in the query, it's the UNIX epoch.
     start_date: DateTime<Utc>,
+    /// The end date of the date range.
+    /// If not provided in the query, it's the current date and time.
     end_date: DateTime<Utc>,
+    /// The title pattern.
+    /// If not provided in the query, it's an empty string. It's used as `LIKE %<pattern>%`.
     title_pattern: String,
 }
 
 impl ReportQuery {
+    /// Converts the query to bind parameters for the SQL query.
+    ///
+    /// Depending on the query parameters, this method computes the correct values for the bind parameters.
+    /// If a parameter is not provided, it's replaced with a default value that maintains the query's syntactic correctness, but has no effect on the results.
+    ///
+    /// For example, if the username pattern is not provided, it's an empty string, which will match any username.
+    /// Another example: the date range, where if it's not provided, the start date is the UNIX epoch and the end date is the current date and time, which will match any report.
     fn into_bind_args(self) -> ReportQueryBindArgs {
         let user_name_pattern = self.user_name_pattern.unwrap_or(String::new());
         let contained_analysis_kinds_clauses = self
@@ -75,6 +112,9 @@ impl ReportQuery {
     }
 }
 
+/// Repository trait for reports.
+///
+/// Specifies methods for fetching reports from the database.
 #[async_trait]
 pub trait ReportRepository: Sized {
     async fn get_by_query(
@@ -86,6 +126,7 @@ pub trait ReportRepository: Sized {
 
 #[async_trait]
 impl ReportRepository for Report {
+    /// Fetches reports from the database based on the query and pagination.
     async fn get_by_query(
         query: ReportQuery,
         pagination: DbPagination,
