@@ -1,11 +1,18 @@
+use serde::Deserialize;
+use serde_with::serde_as;
+
 /// Pagination struct for database queries that would return too much data otherwise.
+#[serde_as]
+#[derive(Clone, Debug, Deserialize)]
 pub struct DbPagination {
+    #[serde_as(as = "serde_with::DisplayFromStr")]
     page: u32,
-    per_page: u8,
+    #[serde_as(as = "serde_with::DisplayFromStr")]
+    per_page: u32,
 }
 
 impl DbPagination {
-    pub fn new(page: u32, per_page: u8) -> Self {
+    pub fn new(page: u32, per_page: u32) -> Self {
         Self { page, per_page }
     }
 
@@ -19,8 +26,17 @@ impl DbPagination {
         } else {
             self.page
         };
-        let offset = (page_checked - 1) * self.per_page as u32;
+        let offset = (page_checked - 1) * self.per_page;
         (self.per_page as i64, offset as i64)
+    }
+}
+
+impl Default for DbPagination {
+    fn default() -> Self {
+        Self {
+            page: 1,
+            per_page: 30,
+        }
     }
 }
 

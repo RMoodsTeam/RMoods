@@ -46,6 +46,9 @@ pub struct ReportQuery {
     /// The query will return reports where the title contains this string. It's used as `LIKE %<pattern>%`.
     #[serde(rename = "title")]
     pub title_pattern: Option<String>,
+
+    #[serde(flatten)]
+    pub pagination: DbPagination,
 }
 
 impl Default for ReportQuery {
@@ -56,6 +59,7 @@ impl Default for ReportQuery {
             start_date: None,
             end_date: None,
             title_pattern: None,
+            pagination: DbPagination::default(),
         }
     }
 }
@@ -141,22 +145,14 @@ impl ReportQuery {
 /// Specifies methods for fetching reports from the database.
 #[async_trait]
 pub trait ReportRepository: Sized {
-    async fn get_by_query(
-        query: ReportQuery,
-        pagination: DbPagination,
-        db: &DbClient,
-    ) -> Result<Vec<Self>, Error>;
+    async fn get_by_query(query: ReportQuery, db: &DbClient) -> Result<Vec<Self>, Error>;
 }
 
 #[async_trait]
 impl ReportRepository for Report {
     /// Fetches reports from the database based on the query and pagination.
-    async fn get_by_query(
-        query: ReportQuery,
-        pagination: DbPagination,
-        db: &DbClient,
-    ) -> Result<Vec<Self>, Error> {
-        let (limit, offset) = pagination.into_limit_and_offset();
+    async fn get_by_query(query: ReportQuery, db: &DbClient) -> Result<Vec<Self>, Error> {
+        let (limit, offset) = query.pagination.clone().into_limit_and_offset();
 
         let bind_args = query.into_bind_args();
 
@@ -312,8 +308,8 @@ mod tests {
                 start_date: None,
                 end_date: None,
                 title_pattern: None,
+                pagination: DbPagination::default(),
             },
-            DbPagination::new(0, 10),
             &db,
         )
         .await
@@ -336,8 +332,8 @@ mod tests {
                 start_date: Some(Utc::now() - chrono::Duration::days(3)),
                 end_date: Some(Utc::now()),
                 title_pattern: Some("test".to_string()),
+                pagination: DbPagination::new(0, 10),
             },
-            DbPagination::new(0, 10),
             &db,
         )
         .await
