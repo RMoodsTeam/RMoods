@@ -6,18 +6,20 @@ use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::report::Report;
 use axum::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
-use serde::{Deserialize, Serializer};
+use serde::Deserialize;
 use sqlx::Error;
 
 /// Represents a date range for querying reports.
+///
 /// Not validated for correctness, so the start date can be after the end date, later the query will just return no results.
+/// This should be validated on the frontend anyway.
 #[derive(Debug, Clone, Deserialize)]
 pub struct DateRange {
     pub start_date: DateTime<Utc>,
     pub end_date: DateTime<Utc>,
 }
 
-/// Parameters for querying reports.
+/// Parameters for querying [Report]s
 ///
 /// All fields are optional, so the query can be as specific or as general as needed.
 #[derive(Debug, Clone, Deserialize)]
@@ -33,11 +35,15 @@ pub struct ReportQuery {
     #[serde(rename = "analyses")]
     #[serde(default)]
     pub contained_analysis_kinds: Vec<NlpAnalysisKind>,
-    /// Filter by the date range when the report was created.
+    /// Filter by the creation date of the report.
+    ///
+    /// Filters out reports created before this date, passed as a UNIX timestamp.
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_optional_dt")]
     pub start_date: Option<DateTime<Utc>>,
-
+    /// Filter by the creation date of the report.
+    ///
+    /// Filters out reports created after this date, passed as a UNIX timestamp.
     #[serde(default)]
     #[serde(deserialize_with = "deserialize_optional_dt")]
     pub end_date: Option<DateTime<Utc>>,
@@ -46,7 +52,9 @@ pub struct ReportQuery {
     /// The query will return reports where the title contains this string. It's used as `LIKE %<pattern>%`.
     #[serde(rename = "title")]
     pub title_pattern: Option<String>,
-
+    /// Pagination parameters for the query.
+    ///
+    /// If not provided, the default values are used: page 1, 30 items per page.
     #[serde(flatten)]
     pub pagination: DbPagination,
 }
@@ -64,7 +72,8 @@ impl Default for ReportQuery {
     }
 }
 
-pub fn deserialize_optional_dt<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
+/// Deserializes an optional UNIX timestamp into an optional [DateTime<Utc>].
+fn deserialize_optional_dt<'de, D>(deserializer: D) -> Result<Option<DateTime<Utc>>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
@@ -83,18 +92,23 @@ where
 /// Depending on the query, some values might be empty or have a default value, which will still maintain the query's correctness.
 struct ReportQueryBindArgs {
     /// The user's name pattern.
+    ///
     /// If not provided in the query, it's an empty string. It's used as `LIKE %<pattern>%`.
     user_name_pattern: String,
     /// The concatenated `WHERE` clauses for checking if the report contains the specified kinds of analyses.
+    ///
     /// If not provided in the query, it's `1=1`, which is always true and maintains the query's correctness.
     contained_analysis_kinds_clauses: String,
     /// The start date of the date range.
+    ///
     /// If not provided in the query, it's the UNIX epoch.
     start_date: DateTime<Utc>,
     /// The end date of the date range.
+    ///
     /// If not provided in the query, it's the current date and time.
     end_date: DateTime<Utc>,
     /// The title pattern.
+    ///
     /// If not provided in the query, it's an empty string. It's used as `LIKE %<pattern>%`.
     title_pattern: String,
 }
@@ -151,6 +165,17 @@ pub trait ReportRepository: Sized {
 #[async_trait]
 impl ReportRepository for Report {
     /// Fetches reports from the database based on the query and pagination.
+    ///
+    /// # WARNING
+    /// This function dynamically creates an SQL query based on parameters provided **by the user**.
+    /// However, it's carefully checked and validated to prevent SQL injection.
+    /// Most parameters are used as bind parameters, so they are not directly interpolated into the query string.
+    ///
+    /// The only part where we really construct the query string dynamically is the `WHERE` clause for the contained analysis kinds.
+    /// This is done by concatenating the clauses for each kind of analysis that the user wants to filter by.
+    /// It's safe, because the kinds are passed as a [Vec] of [NlpAnalysisKind]s, which are validated by `serde` deserialization.
+    ///
+    /// **Any changes to this function need to be carefully reviewed to prevent SQL injection.**
     async fn get_by_query(query: ReportQuery, db: &DbClient) -> Result<Vec<Self>, Error> {
         let (limit, offset) = query.pagination.clone().into_limit_and_offset();
 
