@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run All" type="CompoundRunConfigurationType">
+    <toRun name="Run" targetId="RsBuildProfile:dev" type="CargoCommandRunConfiguration" />
+    <toRun name="Local DB" type="docker-deploy" />
+    <toRun name="dev" type="js.build_tools.npm" />
+    <toRun name="NLP" type="PythonConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>

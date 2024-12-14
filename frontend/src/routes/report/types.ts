@@ -32,7 +32,7 @@ export const ReportFormValidationSchema = z.object({
   isPublic: z.enum(['true', 'false']),
   size: FetchSizeSchema, // string due to form api constraints
   sortBy: FeedSortingKindSchema,
-  time: FeedSortingTimeSchema,
+  time: FeedSortingTimeSchema.nullable(),
   dataSources: z
     .array(DataSourceSchema)
     .min(1, { message: 'At least 1 data source is required' }),
