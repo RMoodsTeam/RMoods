@@ -24,8 +24,7 @@ export const RowWrapperSchema = z.object({
   id: z.number(),
 });
 
-export const FetchSizeSchema = z.enum(['30', '70', '100', 'custom']);
-
+export const FetchSizeSchema = z.string();
 export const ReportFormValidationSchema = z.object({
   name: z.string().min(1, { message: 'Name must be longer than 1 character' }),
   resourceKind: FeedKindSchema,

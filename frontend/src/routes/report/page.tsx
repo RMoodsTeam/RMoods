@@ -19,7 +19,11 @@ import { useEffect, useState } from 'react';
 import { DataSource } from '../../rmoods/client/types.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from './DataSourceTable.tsx';
-import { ReportFormValidationSchema, ReportFormValues, RowWrapper } from './types.ts';
+import {
+  ReportFormValidationSchema,
+  ReportFormValues,
+  RowWrapper,
+} from './types.ts';
 import { transformJson } from './transformJson.ts';
 import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -56,6 +60,13 @@ const Report = () => {
   });
 
   const [rows, setRows] = useState<RowWrapper[]>([]); // Array to store all rows
+
+  const [selectValue, setSelectValue] = useState('30');
+
+  const handleSelectChange = (value) => {
+    form.setFieldValue('size', value); // Update the form value
+    setSelectValue(value); // Update the local state for conditional rendering
+  };
 
   useEffect(() => {
     form.setFieldValue(
@@ -275,14 +286,17 @@ const Report = () => {
                     { value: '100', label: 'Large (100)' },
                     { value: 'custom', label: 'Custom' },
                   ]}
-                  {...form.getInputProps('size')}
+                  onChange={handleSelectChange}
+                  value={form.values.size}
                 />
-                {form.values.size === 'custom' && (
+                {selectValue === 'custom' && (
                   <NumberInput
                     label="Custom Size"
                     min={0}
                     max={500}
-                    {...form.getInputProps('size')}
+                    onChange={(value) =>
+                      form.setFieldValue('size', value.toString())
+                    }
                   />
                 )}
               </Group>
