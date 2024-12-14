@@ -35,3 +35,4 @@ http-serde = "2.1.1"
 rand = "0.8.5"
 nanoid = "0.4.0"
 uuid = { version = "1.11.0", features = ["v4"] }
+axum-extra = { version = "0.9.6", features = ["query"] }

@@ -2,7 +2,7 @@ use crate::auth::google::User;
 use crate::db::db_stored::DbStoredInner;
 use crate::db::pagination::DbPagination;
 use axum::async_trait;
-use sqlx::{Error, Postgres, Transaction};
+use sqlx::{Error, PgPool, Postgres, Transaction};
 
 #[async_trait]
 impl DbStoredInner for User {
@@ -43,10 +43,7 @@ impl DbStoredInner for User {
         Ok(())
     }
 
-    async fn inner_get_by_id(
-        id: &str,
-        tx: &mut Transaction<Postgres>,
-    ) -> Result<Option<Self>, Error> {
+    async fn inner_get_by_id(id: &str, pool: &PgPool) -> Result<Option<Self>, Error> {
         let user = sqlx::query_as!(
             User,
             r#"
@@ -56,15 +53,12 @@ impl DbStoredInner for User {
             "#,
             id
         )
-        .fetch_optional(&mut **tx)
+        .fetch_optional(pool)
         .await?;
         Ok(user)
     }
 
-    async fn inner_get_all(
-        pagination: DbPagination,
-        tx: &mut Transaction<Postgres>,
-    ) -> Result<Vec<Self>, Error> {
+    async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, Error> {
         unimplemented!()
     }
 }

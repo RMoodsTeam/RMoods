@@ -4,7 +4,7 @@ use crate::db::model::{DbNlpAnalysis, DbNlpMetadata};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
 use axum::async_trait;
-use sqlx::{Error, Postgres, Transaction};
+use sqlx::{Error, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 #[async_trait]
@@ -31,16 +31,13 @@ impl DbStoredDependentlyInner for NlpAnalysis {
 #[async_trait]
 impl FromDb for NlpAnalysis {
     type DbModel = DbNlpAnalysis;
-    async fn from_db_model(
-        model: Self::DbModel,
-        tx: &mut Transaction<Postgres>,
-    ) -> Result<Self, Error> {
+    async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, Error> {
         let nlp_metadata = sqlx::query_as!(
             DbNlpMetadata,
             r#"SELECT * FROM nlp_metadata WHERE id = $1"#,
             model.nlp_metadata_id
         )
-        .fetch_one(&mut **tx)
+        .fetch_one(pool)
         .await?;
         Ok(NlpAnalysis {
             kind: NlpAnalysisKind::from_snake_case(&model.kind).unwrap(),

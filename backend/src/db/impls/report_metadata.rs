@@ -3,7 +3,7 @@ use crate::db::from_db::FromDb;
 use crate::db::model::DbReportMetadata;
 use crate::nlp::report::ReportMetadata;
 use axum::async_trait;
-use sqlx::{Error, Postgres, Transaction};
+use sqlx::{Error, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 #[async_trait]
@@ -28,10 +28,7 @@ impl DbStoredDependentlyInner for ReportMetadata {
 #[async_trait]
 impl FromDb for ReportMetadata {
     type DbModel = DbReportMetadata;
-    async fn from_db_model(
-        model: Self::DbModel,
-        tx: &mut Transaction<Postgres>,
-    ) -> Result<Self, Error> {
+    async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, Error> {
         Ok(ReportMetadata {
             created_at: model.report_created_at,
             updated_at: model.report_updated_at,
