@@ -14,6 +14,7 @@ function generateId() {
 interface InputRowProps {
   setRows: any;
   form: UseFormReturnType<ReportFormValues>;
+  manualShares?: boolean;
 }
 
 /**
@@ -24,7 +25,7 @@ interface InputRowProps {
  * @param {any} props.form - The form object containing the values.
  * @returns {JSX.Element} - The rendered input row component.
  */
-const InputRow = ({ setRows, form }: InputRowProps) => {
+const InputRow = ({ setRows, form, manualShares }: InputRowProps) => {
   const [inputRow, setInputRow] = useState<RowWrapper>({
     dataSource: {
       name: '',
@@ -34,12 +35,7 @@ const InputRow = ({ setRows, form }: InputRowProps) => {
     id: 0,
   });
 
-  /**
-   * Creates a change handler for the input fields in the data source.
-   *
-   * @param {keyof DataSource} field - The field of the data source to be updated.
-   * @returns {ChangeEventHandler<HTMLInputElement>} - A function that handles the change event for the specified field.
-   */
+  // Create a function that will mutate the given data
   const makeInputChangeHandler = (field: keyof DataSource) => (event: any) => {
     setInputRow((prev) => ({
       ...prev,
@@ -50,13 +46,28 @@ const InputRow = ({ setRows, form }: InputRowProps) => {
     }));
   };
 
-  /**
-   * Adds the current input row to the list of rows and resets the input row.
-   *
-   * @returns {void}
-   */
   const handleAddRow = (): void => {
-    setRows((prevRows: RowWrapper[]) => [...prevRows, inputRow]);
+    // If manual shares are enabled, add the row as is,
+    // otherwise, distribute the shares evenly across all rows
+    setRows((prevRows) => {
+      if (manualShares) {
+        return [...prevRows, inputRow];
+      }
+
+      const totalRows = prevRows.length + 1;
+      const baseShare = Math.floor(100 / totalRows);
+      const remainder = 100 % totalRows;
+
+      return [...prevRows, inputRow].map((row, index) => ({
+        ...row,
+        dataSource: {
+          ...row.dataSource,
+          share: index < remainder ? baseShare + 1 : baseShare,
+        },
+      }));
+    });
+
+    // Reset the input row
     setInputRow({
       dataSource: { name: '', postId: '', share: 0 },
       id: generateId(),
@@ -71,6 +82,19 @@ const InputRow = ({ setRows, form }: InputRowProps) => {
             placeholder="eg. Polska"
             onChange={makeInputChangeHandler('name')}
             value={inputRow.dataSource.name}
+            onKeyUp={(e) => {
+              if (e.key === 'Enter') {
+                e.stopPropagation();
+                e.preventDefault();
+                handleAddRow(); // for accessibility reasons, only add a row on key up event
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.stopPropagation();
+                e.preventDefault();
+              }
+            }}
           />
         </Center>
       </Table.Th>
@@ -85,15 +109,19 @@ const InputRow = ({ setRows, form }: InputRowProps) => {
           </Center>
         </Table.Th>
       )}
-      <Table.Th>
-        <Center>
-          <NumberInput
-            placeholder="eg. 3"
-            onChange={makeInputChangeHandler('share')}
-            value={inputRow.dataSource.share}
-          />
-        </Center>
-      </Table.Th>
+      {manualShares ? (
+        <Table.Th>
+          <Center>
+            <NumberInput
+              placeholder="eg. 3"
+              onChange={makeInputChangeHandler('share')}
+              value={inputRow.dataSource.share}
+            />
+          </Center>
+        </Table.Th>
+      ) : (
+        <></>
+      )}
       <Table.Th>
         <Center>
           <Button variant="transparent" onClick={() => handleAddRow()}>

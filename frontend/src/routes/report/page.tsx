@@ -18,14 +18,13 @@ import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
 import { DataSource } from '../../rmoods/client/types.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
-import { DataSourceTable } from './tables.tsx';
+import { DataSourceTable } from './DataSourceTable.tsx';
 import { ReportFormValidationSchema, ReportFormValues, RowWrapper } from './types.ts';
 import { transformJson } from './transformJson.ts';
 import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../fallbacks/PageFallback.tsx';
-import gradientSegmentControlClasses from './GradientSegmentedControl.module.css';
-import { IconBrandReddit, IconLock, IconMessage, IconUser, IconWorld } from '@tabler/icons-react';
+import { IconLock, IconWorld } from '@tabler/icons-react';
 
 /**
  * Report component for creating a new report.
@@ -100,12 +99,6 @@ const Report = () => {
     const newRows = rows.filter((row) => row.id !== id);
     setRows(newRows);
   };
-
-  const [active, setActive] = useState(1);
-  const nextStep = () =>
-    setActive((current) => (current < 6 ? current + 1 : current));
-  const prevStep = () =>
-    setActive((current) => (current > 0 ? current - 1 : current));
 
   return (
     <Stack>
@@ -193,48 +186,6 @@ const Report = () => {
             <Stack>
               <Title order={2}>Data Sources</Title>
               <Text>Add sources to fetch Reddit data from.</Text>
-              <Center>
-                <Stack>
-                  <SegmentedControl
-                    radius="xl"
-                    size="sm"
-                    classNames={gradientSegmentControlClasses}
-                    data={[
-                      {
-                        label: (
-                          <Group wrap={'nowrap'}>
-                            <IconBrandReddit />
-                            Subreddit Posts
-                          </Group>
-                        ),
-                        value: 'subredditPosts',
-                      },
-                      {
-                        label: (
-                          <Group wrap={'nowrap'}>
-                            <IconUser />
-                            User Posts
-                          </Group>
-                        ),
-                        value: 'userPosts',
-                      },
-                      {
-                        label: (
-                          <Group wrap={'nowrap'}>
-                            <IconMessage />
-                            Post Comments
-                          </Group>
-                        ),
-                        value: 'postComments',
-                      },
-                    ]}
-                    {...form.getInputProps('resourceKind')}
-                    onClick={() => {
-                      setRows([]);
-                    }}
-                  />
-                </Stack>
-              </Center>
               <Box>
                 <DataSourceTable
                   form={form}
