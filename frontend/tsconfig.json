@@ -3,5 +3,7 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.vite.json" }
-  ]
+  ],
+  "types": ["cypress", "@percy/cypress"],
+  "include": ["cypress", "e2e/**/*.ts"]
 }
