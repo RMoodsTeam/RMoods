@@ -24,15 +24,14 @@ export const RowWrapperSchema = z.object({
   id: z.number(),
 });
 
-export const FetchSizeSchema = z.enum(['30', '70', '100', 'custom']);
-
+export const FetchSizeSchema = z.string();
 export const ReportFormValidationSchema = z.object({
   name: z.string().min(1, { message: 'Name must be longer than 1 character' }),
   resourceKind: FeedKindSchema,
   isPublic: z.enum(['true', 'false']),
   size: FetchSizeSchema, // string due to form api constraints
   sortBy: FeedSortingKindSchema,
-  time: FeedSortingTimeSchema,
+  time: FeedSortingTimeSchema.nullable(),
   dataSources: z
     .array(DataSourceSchema)
     .min(1, { message: 'At least 1 data source is required' }),
