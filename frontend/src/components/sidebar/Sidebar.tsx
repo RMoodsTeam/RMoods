@@ -2,47 +2,47 @@ import { Box, Code, Drawer, Group, ScrollArea } from '@mantine/core';
 import {
   IconAdjustments,
   IconCalendarStats,
-  IconFileAnalytics,
   IconGauge,
-  IconLock,
-  IconNotes,
-  IconPresentationAnalytics,
+  IconInfoCircle,
+  IconPlus,
+  IconReport,
+  IconSandbox,
+  IconSearch,
 } from '@tabler/icons-react';
 import classes from './SidebarNested.module.scss';
 import { LinksGroup } from './SidebarLinksGroup.tsx';
 
 const mockdata = [
   { label: 'Dashboard', icon: IconGauge },
+  { label: 'New Report', icon: IconPlus },
   {
-    label: 'Market news',
-    icon: IconNotes,
+    label: 'My Reports',
+    icon: IconReport,
+  },
+  {
+    label: 'Browse',
+    icon: IconSearch,
     initiallyOpened: true,
     links: [
-      { label: 'TODO1', link: '/' },
-      { label: 'TODO2', link: '/' },
-      { label: 'TODO3', link: '/' },
-      { label: 'TODO4', link: '/' },
+      { label: 'Reports', link: '/' },
+      { label: 'Users', link: '/' },
     ],
   },
+  {
+    label: 'NLP Sandbox',
+    icon: IconSandbox,
+  },
+  { label: 'Settings', icon: IconAdjustments },
   {
     label: 'Releases',
     icon: IconCalendarStats,
-    links: [
-      { label: 'TODO5', link: '/' },
-      { label: 'TODO6', link: '/' },
-      { label: 'TODO7', link: '/' },
-    ],
   },
-  { label: 'Analytics', icon: IconPresentationAnalytics },
-  { label: 'Contracts', icon: IconFileAnalytics },
-  { label: 'Settings', icon: IconAdjustments },
   {
-    label: 'Security',
-    icon: IconLock,
+    label: 'About',
+    icon: IconInfoCircle,
     links: [
-      { label: 'TODO7', link: '/' },
-      { label: 'TODO8', link: '/' },
-      { label: 'TODO9', link: '/' },
+      { label: 'FAQ', link: '/' },
+      { label: 'Thesis', link: '/' },
     ],
   },
 ];
