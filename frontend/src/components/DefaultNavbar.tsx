@@ -1,4 +1,4 @@
-import { Anchor, Card, Flex, Grid, Group } from '@mantine/core';
+import { Anchor, Card, Flex, Group } from '@mantine/core';
 import ThemeSwitch from './navbar/ThemeSwitch.tsx';
 import { Link } from 'react-router-dom';
 
@@ -31,7 +31,9 @@ const RightNavItems = () => {
  */
 const DefaultNavbar = () => {
   return (
-    <Card style={{ margin: 0, borderRadius: 0, marginBottom: 0 }}>
+    <Card
+      style={{ margin: 0, borderRadius: 0, marginBottom: 0, height: '5em' }}
+    >
       <nav>
         <Group justify="space-between">
           <LeftNavItems />
