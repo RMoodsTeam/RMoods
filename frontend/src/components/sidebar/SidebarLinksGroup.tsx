@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import {
-  Group,
   Box,
   Collapse,
-  ThemeIcon,
-  Text,
-  UnstyledButton,
+  Group,
   rem,
+  Text,
+  ThemeIcon,
+  UnstyledButton,
 } from '@mantine/core';
-import { IconCalendarStats, IconChevronRight } from '@tabler/icons-react';
+import { IconChevronRight } from '@tabler/icons-react';
 import classes from './SidebarLinksGroup.module.css';
 import { Link } from 'react-router-dom';
 
@@ -66,23 +66,5 @@ export function LinksGroup({
       </UnstyledButton>
       {hasLinks ? <Collapse in={opened}>{items}</Collapse> : null}
     </>
-  );
-}
-
-const mockdata = {
-  label: 'Releases',
-  icon: IconCalendarStats,
-  links: [
-    { label: 'Upcoming releases', link: '/' },
-    { label: 'Previous releases', link: '/' },
-    { label: 'Releases schedule', link: '/' },
-  ],
-};
-
-export function SidebarLinksGroup() {
-  return (
-    <Box mih={220} p="md">
-      <LinksGroup {...mockdata} />
-    </Box>
   );
 }
