@@ -17,7 +17,7 @@ export interface LinksGroupProps {
   label: string;
   initiallyOpened?: boolean;
   links?: { label: string; link: string }[];
-  link?: string
+  link?: string;
 }
 
 export function LinksGroup({
@@ -25,7 +25,7 @@ export function LinksGroup({
   label,
   initiallyOpened,
   links,
-  link
+  link,
 }: LinksGroupProps) {
   const hasLinks = Array.isArray(links);
   const [opened, setOpened] = useState(initiallyOpened || false);
@@ -46,8 +46,7 @@ export function LinksGroup({
         onClick={() => setOpened((o) => !o)}
         className={classes.control}
       >
-        {
-          hasLinks?
+        {hasLinks ? (
           <>
             <Group justify="space-between" gap={0}>
               <Box style={{ display: 'flex', alignItems: 'center' }}>
@@ -68,12 +67,20 @@ export function LinksGroup({
                 />
               )}
             </Group>
-          {hasLinks ? <Collapse in={opened}>{items}</Collapse> : null}
-          </> 
-          : (
-            <Text component={Link} className={classes.link} to={link}>label</Text>
-          )
-      }
+            {hasLinks ? <Collapse in={opened}>{items}</Collapse> : null}
+          </>
+        ) : (
+          <Group justify="space-between" gap={0}>
+            <Box style={{ display: 'flex', alignItems: 'center' }}>
+              <ThemeIcon variant="light" size={30}>
+                <Icon style={{ width: rem(18), height: rem(18) }} />
+              </ThemeIcon>
+              <Text component={Link} ml="md" to={link as string}>
+                {label}
+              </Text>
+            </Box>
+          </Group>
+        )}
       </UnstyledButton>
     </>
   );

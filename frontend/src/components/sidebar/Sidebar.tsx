@@ -11,8 +11,7 @@ import {
 } from '@tabler/icons-react';
 import classes from './SidebarNested.module.scss';
 import { LinksGroup, LinksGroupProps } from './SidebarLinksGroup.tsx';
-import React, { ReactElement } from 'react';
-
+import React from 'react';
 
 const sidebarItems: LinksGroupProps[] = [
   { label: 'Dashboard', icon: IconGauge, link: '/dashboard' },
@@ -20,7 +19,7 @@ const sidebarItems: LinksGroupProps[] = [
   {
     label: 'My Reports',
     icon: IconReport,
-    link: '/myreports'
+    link: '/myreports',
   },
   {
     label: 'Browse',
