@@ -2,10 +2,12 @@ import React from 'react';
 import { Title } from '@mantine/core';
 import LoremIpsum from './LoremIpsum';
 import { ScrollToTop } from './ScrollToTop.tsx';
+import RMoodsLogo from './RMoodsLogo.tsx';
 
 const Demo: React.FC = () => {
   return (
     <>
+        <RMoodsLogo />
       <Title order={2}>Report request</Title>
       <LoremIpsum n={20} />
       <ScrollToTop />

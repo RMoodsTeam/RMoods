@@ -10,6 +10,7 @@ import {
 } from '@tabler/icons-react';
 import classes from './SidebarNested.module.css';
 import { LinksGroup } from './SidebarLinksGroup.tsx';
+import RMoodsLogo from '.././RMoodsLogo.tsx';
 
 const mockdata = [
   { label: 'Dashboard', icon: IconGauge },
@@ -71,7 +72,7 @@ export default function Sidebar() {
     >
       <div className={classes.header}>
         <Group justify="space-between">
-          <Code fw={700}>RMoods</Code>
+          <RMoodsLogo />
         </Group>
       </div>
 
