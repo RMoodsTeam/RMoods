@@ -10,14 +10,17 @@ import {
   IconSearch,
 } from '@tabler/icons-react';
 import classes from './SidebarNested.module.scss';
-import { LinksGroup } from './SidebarLinksGroup.tsx';
+import { LinksGroup, LinksGroupProps } from './SidebarLinksGroup.tsx';
+import React, { ReactElement } from 'react';
 
-const mockdata = [
-  { label: 'Dashboard', icon: IconGauge },
-  { label: 'New Report', icon: IconPlus },
+
+const sidebarItems: LinksGroupProps[] = [
+  { label: 'Dashboard', icon: IconGauge, link: '/dashboard' },
+  { label: 'New Report', icon: IconPlus, link: '/report' },
   {
     label: 'My Reports',
     icon: IconReport,
+    link: '/myreports'
   },
   {
     label: 'Browse',
@@ -48,7 +51,7 @@ const mockdata = [
 ];
 
 const DesktopSidebar = () => {
-  const links = mockdata.map((item) => (
+  const links = sidebarItems.map((item) => (
     <LinksGroup {...item} key={item.label} />
   ));
 
@@ -91,7 +94,7 @@ interface MobileSidebarProps {
 }
 
 const MobileSidebar = ({ opened, onClose }: MobileSidebarProps) => {
-  const links = mockdata.map((item) => (
+  const links = sidebarItems.map((item) => (
     <LinksGroup {...item} key={item.label} />
   ));
 
