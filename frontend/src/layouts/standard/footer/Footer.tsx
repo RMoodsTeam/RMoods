@@ -1,18 +1,19 @@
-import { Anchor, Group, ActionIcon, rem } from '@mantine/core';
+import { Group, ActionIcon, rem, Anchor } from '@mantine/core';
 import {
   IconBrandGithub,
   IconBrandTwitter,
   IconBrandYoutube,
 } from '@tabler/icons-react';
-import classes from './FooterCentered.module.css';
-import { useNavigate } from 'react-router-dom';
+import TemporaryLogo from './TemporaryLogo.tsx';
+import classes from '../../../components/FooterCentered.module.css';
+import { Link, useNavigate } from 'react-router-dom';
 
 const links = [
   { link: '/about', label: 'About' },
   { link: '/dashboard', label: 'Dashboard' },
 ];
 
-export default function DashboardFooterCentered() {
+export default function FooterCentered() {
   const navigate = useNavigate();
   const items = links.map((link) => (
     <Anchor
@@ -32,13 +33,14 @@ export default function DashboardFooterCentered() {
   return (
     <footer className={classes.footer}>
       <div className={classes.inner}>
-        <Group />
+        <TemporaryLogo size={28} />
 
         <Group className={classes.links}>{items}</Group>
 
         <Group gap="xs" justify="flex-end" wrap="nowrap">
           <Anchor
-            href="https://github.com/RMoodsTeam/RMoods"
+            component={Link}
+            to="https://github.com/RMoodsTeam/RMoods"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -50,7 +52,8 @@ export default function DashboardFooterCentered() {
             </ActionIcon>
           </Anchor>
           <Anchor
-            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            component={Link}
+            to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -62,7 +65,8 @@ export default function DashboardFooterCentered() {
             </ActionIcon>
           </Anchor>
           <Anchor
-            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            component={Link}
+            to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
           >

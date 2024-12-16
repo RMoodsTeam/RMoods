@@ -1,11 +1,17 @@
-@import "../../mantine";
+@import "../../../mantine";
 
 .sidebar {
-  padding: var(--mantine-spacing-md);
-  padding-bottom: 0;
   display: flex;
   flex-direction: column;
-
+  margin: 0;
+  width: 250px;
+  height: 100vh;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 0;
+  position: sticky;
+  top: 0;
+  padding: 0;
   @media (width < $mantine-breakpoint-md) {
     /* Don't set a background color, let them be defined by MantineUI Drawer */
     background-color: unset !important;

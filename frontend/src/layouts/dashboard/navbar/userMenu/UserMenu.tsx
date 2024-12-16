@@ -1,14 +1,14 @@
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Menu } from '@mantine/core';
-import authFetch from '../../rmoods/client/authFetch.ts';
+import authFetch from '../../../../rmoods/client/authFetch.ts';
 import { jwtDecode } from 'jwt-decode';
-import { JwtClaims } from '../../rmoods/jwt.ts';
-import { changeDefaultGoogleProfilePictureSize } from '../../utility/changeDefaultGoogleProfilePictureSize.ts';
+import { JwtClaims } from '../../../../rmoods/jwt.ts';
+import { changeDefaultGoogleProfilePictureSize } from '../../../../utility/changeDefaultGoogleProfilePictureSize.ts';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
-import { UserMenuFallback } from '../fallbacks/UserMenuFallback.tsx';
-import { logout } from '../../utility/logout.ts';
+import { UserMenuFallback } from './UserMenuFallback.tsx';
+import { logout } from '../../../../utility/logout.ts';
 
 /**
  * User interface representing the user data.

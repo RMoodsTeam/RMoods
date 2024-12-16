@@ -1,5 +1,5 @@
 import { Anchor, Card, Flex, Group } from '@mantine/core';
-import ThemeSwitch from './navbar/ThemeSwitch.tsx';
+import ThemeSwitch from '../../../components/ThemeSwitch.tsx';
 import { Link } from 'react-router-dom';
 
 const LeftNavItems = () => {
@@ -29,7 +29,7 @@ const RightNavItems = () => {
 /**
  * Navbar contains components to navigate the website
  */
-const DefaultNavbar = () => {
+const Navbar = () => {
   return (
     <Card
       style={{ margin: 0, borderRadius: 0, marginBottom: 0, height: '5em' }}
@@ -44,4 +44,4 @@ const DefaultNavbar = () => {
   );
 };
 
-export default DefaultNavbar;
+export default Navbar;

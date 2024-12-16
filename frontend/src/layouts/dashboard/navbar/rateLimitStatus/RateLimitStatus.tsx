@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import authFetch from '../../rmoods/client/authFetch.ts';
+import authFetch from '../../../../rmoods/client/authFetch.ts';
 import { Center, HoverCard, Progress, Stack, Text } from '@mantine/core';
 import { IconBrandReddit } from '@tabler/icons-react';
 import React, { useEffect } from 'react';
@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
 import { ErrorBoundary } from 'react-error-boundary';
-import { RateLimitStatusFallback } from '../fallbacks/RateLimitStatusFallback.tsx';
+import { RateLimitStatusFallback } from './RateLimitStatusFallback.tsx';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);

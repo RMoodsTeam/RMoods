@@ -1,5 +1,9 @@
-import { ReportFormAdaptedValues, ReportFormValues } from './types.ts';
-import { DataSource, FeedSorting } from '../../rmoods/client/types.ts';
+import {
+  FeedSorting,
+  ReportFormAdaptedValues,
+  ReportFormValues,
+} from './schema.ts';
+import { DataSource } from './schema.ts';
 
 /**
  * Transforms the old JSON format from form to the new JSON format that backend expects.

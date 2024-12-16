@@ -60,23 +60,9 @@ const DesktopSidebar = () => {
     <SidebarEntry {...item} key={item.label} />
   ));
 
-  // TODO: extract the styles to a variable
   return (
     <Box visibleFrom={'md'}>
-      <nav
-        className={classes.sidebar}
-        style={{
-          margin: 0,
-          width: 250,
-          height: '100vh',
-          zIndex: 1,
-          overflow: 'hidden',
-          borderRadius: 0,
-          position: 'sticky',
-          top: 0,
-          padding: 0,
-        }}
-      >
+      <nav className={classes.sidebar}>
         <div className={classes.header}>
           <Group justify="space-between">
             <Code fw={700}>RMoods</Code>
@@ -103,7 +89,6 @@ const MobileSidebar = ({ opened, onClose }: MobileSidebarProps) => {
     <SidebarEntry {...item} key={item.label} />
   ));
 
-  // TODO: extract the styles to a variable
   return (
     <>
       <Drawer

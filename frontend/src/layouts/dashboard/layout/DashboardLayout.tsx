@@ -1,15 +1,10 @@
-import Sidebar from './sidebar/Sidebar.tsx';
+import Sidebar from '../sidebar/Sidebar.tsx';
 import { Outlet } from 'react-router-dom';
-import Navbar from './navbar/Navbar.tsx';
-import DashboardFooter from './footer/DashboardFooter';
+import Navbar from '../navbar/Navbar.tsx';
+import DashboardFooter from '../footer/Footer.tsx';
 import { Flex } from '@mantine/core';
-import { ScrollToTop } from './ScrollToTop.tsx';
+import { ScrollToTop } from '../../../components/ScrollToTop.tsx';
 import { useDisclosure } from '@mantine/hooks';
-
-const dashboardFlex = {
-  flex: 'auto',
-  flexDirection: 'column',
-};
 
 const dashboardContainer = {
   marginX: '5%',

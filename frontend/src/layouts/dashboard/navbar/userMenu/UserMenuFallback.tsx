@@ -1,4 +1,4 @@
-import { logout } from '../../utility/logout.ts';
+import { logout } from '../../../../utility/logout.ts';
 import { useNavigate } from 'react-router-dom';
 
 export const UserMenuFallback = ({ error, resetErrorBoundary }) => {

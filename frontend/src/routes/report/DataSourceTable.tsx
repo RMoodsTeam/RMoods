@@ -11,8 +11,8 @@ import {
 } from '@mantine/core';
 import InputRow from './InputRow.tsx';
 import { TbTrash } from 'react-icons/tb';
-import { DataSource } from '../../rmoods/client/types.ts';
-import { MantineReportForm, RowWrapper } from './types.ts';
+import { DataSource } from './schema.ts';
+import { MantineReportForm, RowWrapper } from './schema.ts';
 import { useState } from 'react';
 import { IconBrandReddit, IconMessage, IconUser } from '@tabler/icons-react';
 import gradientSegmentControlClasses from './GradientSegmentedControl.module.css';

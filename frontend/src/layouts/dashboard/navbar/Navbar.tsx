@@ -1,8 +1,8 @@
-import UserMenu from './UserMenu';
-import ThemeSwitch from './ThemeSwitch';
+import UserMenu from './userMenu/UserMenu.tsx';
+import ThemeSwitch from '../../../components/ThemeSwitch.tsx';
 import { Anchor, Burger, Card, Flex, Group } from '@mantine/core';
-import StatusIndicator from './StatusIndicator';
-import RateLimitStatus from './RateLimitStatus.tsx';
+import StatusIndicator from './StatusIndicator.tsx';
+import RateLimitStatus from './rateLimitStatus/RateLimitStatus.tsx';
 import { Link } from 'react-router-dom';
 
 interface NavbarProps {

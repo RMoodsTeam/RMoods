@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
-import Footer from './components/footer/Footer';
+import Footer from '../footer/Footer.tsx';
 import { Box, Flex } from '@mantine/core';
-import DefaultNavbar from './components/DefaultNavbar.tsx';
+import Navbar from '../navbar/Navbar.tsx';
 
 const Layout = () => {
   return (
@@ -12,7 +12,7 @@ const Layout = () => {
         transition: 'background-color 0.5s ease',
       }}
     >
-      <DefaultNavbar />
+      <Navbar />
       <Flex
         style={{
           // flex 1 to fill the entire available space

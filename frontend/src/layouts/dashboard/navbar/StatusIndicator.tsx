@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAtomValue } from 'jotai';
 import { ActionIcon, Tooltip } from '@mantine/core';
-import { wsConnectionStatusAtom } from '../../atoms.ts';
+import { wsConnectionStatusAtom } from '../../../atoms.ts';
 
 const StatusIndicator = () => {
   const isConnected = useAtomValue(wsConnectionStatusAtom);

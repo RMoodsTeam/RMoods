@@ -1,4 +1,4 @@
-import { ReportResponse } from './types.ts';
+import { ReportResponse } from './schema.ts';
 import { notifications } from '@mantine/notifications';
 
 /**

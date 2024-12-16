@@ -5,9 +5,9 @@ import Login from './routes/login/page';
 import Root from './routes/page';
 import UserPage from './routes/user/page';
 import Report from './routes/report/page';
-import Layout from './Layout';
+import Layout from './layouts/standard/layout/Layout.tsx';
 import ProtectedRoute from './components/ProtectedRoute';
-import DashboardLayout from './components/DashboardLayout.tsx';
+import DashboardLayout from './layouts/dashboard/layout/DashboardLayout.tsx';
 import Settings from './routes/settings/page.tsx';
 import WebsocketProvider from './providers/WebsocketProvider.tsx';
 

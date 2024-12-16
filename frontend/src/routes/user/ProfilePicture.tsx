@@ -2,7 +2,7 @@ import React from 'react';
 import { Image, Box } from '@mantine/core';
 import { changeDefaultGoogleProfilePictureSize } from '../../utility/changeDefaultGoogleProfilePictureSize.ts';
 import { ErrorBoundary } from 'react-error-boundary';
-import { ProfilePictureFallback } from '../../components/fallbacks/ProfilePictureFallback.tsx';
+import { ProfilePictureFallback } from './ProfilePictureFallback.tsx';
 
 /**
  * Props for the ProfilePicture component.

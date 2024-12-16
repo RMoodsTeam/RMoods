@@ -1,19 +1,18 @@
-import { Group, ActionIcon, rem, Anchor } from '@mantine/core';
+import { Anchor, Group, ActionIcon, rem } from '@mantine/core';
 import {
   IconBrandGithub,
   IconBrandTwitter,
   IconBrandYoutube,
 } from '@tabler/icons-react';
-import TemporaryLogo from './TemporaryLogo';
-import classes from './FooterCentered.module.css';
-import { Link, useNavigate } from 'react-router-dom';
+import classes from '../../../components/FooterCentered.module.css';
+import { useNavigate } from 'react-router-dom';
 
 const links = [
   { link: '/about', label: 'About' },
   { link: '/dashboard', label: 'Dashboard' },
 ];
 
-export default function FooterCentered() {
+export default function DashboardFooterCentered() {
   const navigate = useNavigate();
   const items = links.map((link) => (
     <Anchor
@@ -33,14 +32,13 @@ export default function FooterCentered() {
   return (
     <footer className={classes.footer}>
       <div className={classes.inner}>
-        <TemporaryLogo size={28} />
+        <Group />
 
         <Group className={classes.links}>{items}</Group>
 
         <Group gap="xs" justify="flex-end" wrap="nowrap">
           <Anchor
-            component={Link}
-            to="https://github.com/RMoodsTeam/RMoods"
+            href="https://github.com/RMoodsTeam/RMoods"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -52,8 +50,7 @@ export default function FooterCentered() {
             </ActionIcon>
           </Anchor>
           <Anchor
-            component={Link}
-            to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -65,8 +62,7 @@ export default function FooterCentered() {
             </ActionIcon>
           </Anchor>
           <Anchor
-            component={Link}
-            to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
           >

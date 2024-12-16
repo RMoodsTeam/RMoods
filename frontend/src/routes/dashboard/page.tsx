@@ -3,7 +3,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../fallbacks/PageFallback.tsx';
 
 /**
- * Dashboard page, gets user info asynchonously
+ * Dashboard page, gets user info asynchronously
  * @returns Promise<Element>
  */
 const Dashboard = () => {
