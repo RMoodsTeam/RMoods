@@ -2,8 +2,9 @@ import Sidebar from './sidebar/Sidebar.tsx';
 import { Outlet } from 'react-router-dom';
 import Navbar from './navbar/Navbar.tsx';
 import DashboardFooter from './footer/DashboardFooter';
-import { Box, Flex } from '@mantine/core';
+import { Flex } from '@mantine/core';
 import { ScrollToTop } from './ScrollToTop.tsx';
+import { useDisclosure } from '@mantine/hooks';
 
 const dashboardFlex = {
   flex: 'auto',
@@ -17,10 +18,11 @@ const dashboardContainer = {
 };
 
 const DashboardLayout = () => {
+  const [opened, { open, close }] = useDisclosure(false);
   return (
     <>
       <Flex>
-        <Sidebar />
+        <Sidebar opened={opened} onClose={close} />
         <Flex
           // TODO: Cleanup
           style={{
@@ -28,10 +30,10 @@ const DashboardLayout = () => {
             flexDirection: 'column',
           }}
         >
-          <Navbar />
-          <Box style={dashboardContainer}>
+          <Navbar onSidebarOpen={open} />
+          <Flex style={dashboardContainer} flex={1}>
             <Outlet />
-          </Box>
+          </Flex>
           <DashboardFooter />
         </Flex>
       </Flex>

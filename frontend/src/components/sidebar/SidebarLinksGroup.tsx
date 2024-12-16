@@ -1,32 +1,34 @@
 import { useState } from 'react';
 import {
-  Group,
   Box,
   Collapse,
-  ThemeIcon,
-  Text,
-  UnstyledButton,
+  Group,
   rem,
+  Text,
+  ThemeIcon,
+  UnstyledButton,
 } from '@mantine/core';
-import { IconCalendarStats, IconChevronRight } from '@tabler/icons-react';
-import classes from './SidebarLinksGroup.module.css';
+import { IconChevronRight } from '@tabler/icons-react';
+import classes from './SidebarLinksGroup.module.scss';
 import { Link } from 'react-router-dom';
 
-interface LinksGroupProps {
+export interface SidebarEntryProps {
   icon: React.FC<any>;
   label: string;
   initiallyOpened?: boolean;
   links?: { label: string; link: string }[];
+  link?: string;
 }
 
-export function LinksGroup({
+const LinksGroup = ({
   icon: Icon,
-  label,
   initiallyOpened,
+  label,
   links,
-}: LinksGroupProps) {
-  const hasLinks = Array.isArray(links);
+}: Omit<SidebarEntryProps, 'link'>) => {
   const [opened, setOpened] = useState(initiallyOpened || false);
+  const hasLinks = Array.isArray(links) && links.length > 0;
+
   const items = (hasLinks ? links : []).map((link) => (
     <Text
       component={Link}
@@ -67,22 +69,42 @@ export function LinksGroup({
       {hasLinks ? <Collapse in={opened}>{items}</Collapse> : null}
     </>
   );
-}
-
-const mockdata = {
-  label: 'Releases',
-  icon: IconCalendarStats,
-  links: [
-    { label: 'Upcoming releases', link: '/' },
-    { label: 'Previous releases', link: '/' },
-    { label: 'Releases schedule', link: '/' },
-  ],
 };
 
-export function SidebarLinksGroup() {
-  return (
-    <Box mih={220} p="md">
-      <LinksGroup {...mockdata} />
-    </Box>
-  );
+export function SidebarEntry({
+  icon: Icon,
+  label,
+  initiallyOpened,
+  links,
+  link,
+}: SidebarEntryProps) {
+  if (link && links) throw new Error('Cannot have both link and links');
+
+  if (link) {
+    return (
+      <UnstyledButton className={classes.control}>
+        <Group justify="space-between" gap={0}>
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
+            <ThemeIcon variant="light" size={30}>
+              <Icon style={{ width: rem(18), height: rem(18) }} />
+            </ThemeIcon>
+            <Box ml="md">
+              <Text component={Link} to={link}>
+                {label}
+              </Text>
+            </Box>
+          </Box>
+        </Group>
+      </UnstyledButton>
+    );
+  } else {
+    return (
+      <LinksGroup
+        icon={Icon}
+        label={label}
+        initiallyOpened={initiallyOpened}
+        links={links}
+      />
+    );
+  }
 }
