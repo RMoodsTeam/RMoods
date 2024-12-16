@@ -1,20 +1,23 @@
 @import "../../mantine";
 
 .sidebar {
-  @media (min-width: var(--mantine-breakpoint-md)) {
-    background-color: light-dark(var(--mantine-color-white),
-            var(--mantine-color-dark-6));
-    padding: var(--mantine-spacing-md);
-    padding-bottom: 0;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  }
-  @media (max-width: var(--mantine-breakpoint-md)) {
+  padding: var(--mantine-spacing-md);
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+
+  @media (width < $mantine-breakpoint-md) {
     /* Don't set a background color, let them be defined by MantineUI Drawer */
     background-color: unset !important;
     border: 0 !important;
   }
+
+  @media (width >= $mantine-breakpoint-md) {
+    border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+    background-color: light-dark(var(--mantine-color-white),
+            var(--mantine-color-dark-6));
+  }
+
 }
 
 .header {
@@ -28,12 +31,12 @@
   margin-right: calc(var(--mantine-spacing-sm) * -1);
   color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
 
-  @media (min-width: var(--mantine-breakpoint-md)) {
-  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  @media (width < $mantine-breakpoint-md) {
+    border-bottom: 0;
   }
 
-  @media (max-width: var(--mantine-breakpoint-md)) {
-    border-bottom: 0 !important;
+  @media (width >= $mantine-breakpoint-md) {
+    border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   }
 }
 
@@ -52,5 +55,12 @@
   padding: var(--mantine-spacing-md);
   margin-left: calc(var(--mantine-spacing-sm) * -1);
   margin-right: calc(var(--mantine-spacing-sm) * -1);
-  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+
+  @media (width < $mantine-breakpoint-md) {
+    border-top: 0;
+  }
+
+  @media (width >= $mantine-breakpoint-md) {
+    border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  }
 }

@@ -10,10 +10,10 @@ import {
   IconSearch,
 } from '@tabler/icons-react';
 import classes from './SidebarNested.module.scss';
-import { LinksGroup, LinksGroupProps } from './SidebarLinksGroup.tsx';
+import { SidebarEntry, SidebarEntryProps } from './SidebarLinksGroup.tsx';
 import React from 'react';
 
-const sidebarItems: LinksGroupProps[] = [
+const sidebarItems: SidebarEntryProps[] = [
   { label: 'Dashboard', icon: IconGauge, link: '/dashboard' },
   { label: 'New Report', icon: IconPlus, link: '/report' },
   {
@@ -26,32 +26,38 @@ const sidebarItems: LinksGroupProps[] = [
     icon: IconSearch,
     initiallyOpened: true,
     links: [
-      { label: 'Reports', link: '/' },
-      { label: 'Users', link: '/' },
+      { label: 'Reports', link: '/reports' },
+      { label: 'Users', link: '/users' },
     ],
   },
   {
     label: 'NLP Sandbox',
     icon: IconSandbox,
+    link: '/sandbox',
   },
-  { label: 'Settings', icon: IconAdjustments },
+  {
+    label: 'Settings',
+    icon: IconAdjustments,
+    link: '/settings',
+  },
   {
     label: 'Releases',
     icon: IconCalendarStats,
+    link: '/releases',
   },
   {
     label: 'About',
     icon: IconInfoCircle,
     links: [
-      { label: 'FAQ', link: '/' },
-      { label: 'Thesis', link: '/' },
+      { label: 'FAQ', link: '/faq' },
+      { label: 'Thesis', link: '/thesis' },
     ],
   },
 ];
 
 const DesktopSidebar = () => {
   const links = sidebarItems.map((item) => (
-    <LinksGroup {...item} key={item.label} />
+    <SidebarEntry {...item} key={item.label} />
   ));
 
   // TODO: extract the styles to a variable
@@ -94,7 +100,7 @@ interface MobileSidebarProps {
 
 const MobileSidebar = ({ opened, onClose }: MobileSidebarProps) => {
   const links = sidebarItems.map((item) => (
-    <LinksGroup {...item} key={item.label} />
+    <SidebarEntry {...item} key={item.label} />
   ));
 
   // TODO: extract the styles to a variable

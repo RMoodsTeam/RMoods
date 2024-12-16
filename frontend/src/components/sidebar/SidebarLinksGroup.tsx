@@ -9,10 +9,10 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
-import classes from './SidebarLinksGroup.module.css';
+import classes from './SidebarLinksGroup.module.scss';
 import { Link } from 'react-router-dom';
 
-export interface LinksGroupProps {
+export interface SidebarEntryProps {
   icon: React.FC<any>;
   label: string;
   initiallyOpened?: boolean;
@@ -20,15 +20,15 @@ export interface LinksGroupProps {
   link?: string;
 }
 
-export function LinksGroup({
+const LinksGroup = ({
   icon: Icon,
-  label,
   initiallyOpened,
+  label,
   links,
-  link,
-}: LinksGroupProps) {
-  const hasLinks = Array.isArray(links);
+}: Omit<SidebarEntryProps, 'link'>) => {
   const [opened, setOpened] = useState(initiallyOpened || false);
+  const hasLinks = Array.isArray(links) && links.length > 0;
+
   const items = (hasLinks ? links : []).map((link) => (
     <Text
       component={Link}
@@ -46,42 +46,65 @@ export function LinksGroup({
         onClick={() => setOpened((o) => !o)}
         className={classes.control}
       >
-        {hasLinks ? (
-          <>
-            <Group justify="space-between" gap={0}>
-              <Box style={{ display: 'flex', alignItems: 'center' }}>
-                <ThemeIcon variant="light" size={30}>
-                  <Icon style={{ width: rem(18), height: rem(18) }} />
-                </ThemeIcon>
-                <Box ml="md">{label}</Box>
-              </Box>
-              {hasLinks && (
-                <IconChevronRight
-                  className={classes.chevron}
-                  stroke={1.5}
-                  style={{
-                    width: rem(16),
-                    height: rem(16),
-                    transform: opened ? 'rotate(90deg)' : 'none',
-                  }}
-                />
-              )}
-            </Group>
-            {hasLinks ? <Collapse in={opened}>{items}</Collapse> : null}
-          </>
-        ) : (
-          <Group justify="space-between" gap={0}>
-            <Box style={{ display: 'flex', alignItems: 'center' }}>
-              <ThemeIcon variant="light" size={30}>
-                <Icon style={{ width: rem(18), height: rem(18) }} />
-              </ThemeIcon>
-              <Text component={Link} ml="md" to={link as string}>
+        <Group justify="space-between" gap={0}>
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
+            <ThemeIcon variant="light" size={30}>
+              <Icon style={{ width: rem(18), height: rem(18) }} />
+            </ThemeIcon>
+            <Box ml="md">{label}</Box>
+          </Box>
+          {hasLinks && (
+            <IconChevronRight
+              className={classes.chevron}
+              stroke={1.5}
+              style={{
+                width: rem(16),
+                height: rem(16),
+                transform: opened ? 'rotate(90deg)' : 'none',
+              }}
+            />
+          )}
+        </Group>
+      </UnstyledButton>
+      {hasLinks ? <Collapse in={opened}>{items}</Collapse> : null}
+    </>
+  );
+};
+
+export function SidebarEntry({
+  icon: Icon,
+  label,
+  initiallyOpened,
+  links,
+  link,
+}: SidebarEntryProps) {
+  if (link && links) throw new Error('Cannot have both link and links');
+
+  if (link) {
+    return (
+      <UnstyledButton className={classes.control}>
+        <Group justify="space-between" gap={0}>
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
+            <ThemeIcon variant="light" size={30}>
+              <Icon style={{ width: rem(18), height: rem(18) }} />
+            </ThemeIcon>
+            <Box ml="md">
+              <Text component={Link} to={link}>
                 {label}
               </Text>
             </Box>
-          </Group>
-        )}
+          </Box>
+        </Group>
       </UnstyledButton>
-    </>
-  );
+    );
+  } else {
+    return (
+      <LinksGroup
+        icon={Icon}
+        label={label}
+        initiallyOpened={initiallyOpened}
+        links={links}
+      />
+    );
+  }
 }
