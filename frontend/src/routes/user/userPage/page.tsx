@@ -1,14 +1,14 @@
-import { Box, Text, Loader } from '@mantine/core';
+import { Box, Text, Loader, Flex } from '@mantine/core';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
-import UserCard from './UserCard';
-import StatisticItem from './StatisticItem';
-import { JwtClaims } from '../../rmoods/jwt.ts';
-import authFetch from '../../rmoods/client/authFetch.ts';
+import UserCard from '../userCard/UserCard.tsx';
+import StatisticItem from '../statisticItem/StatisticItem.tsx';
+import { JwtClaims } from '../../../rmoods/jwt.ts';
+import authFetch from '../../../rmoods/client/authFetch.ts';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
-import { PageFallback } from '../fallbacks/PageFallback.tsx';
-
+import { PageFallback } from '../../fallbacks/PageFallback.tsx';
+import classes from './page.module.scss';
 /**
  * User interface representing the user data.
  */
@@ -65,16 +65,9 @@ const UserPage = () => {
 
   if (isLoading) {
     return (
-      <Box
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '50vh',
-        }}
-      >
+      <Flex className={classes.loader}>
         <Loader color="blue" size={40} />
-      </Box>
+      </Flex>
     );
   }
 
@@ -83,18 +76,12 @@ const UserPage = () => {
   }
 
   return (
-    <Box
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-      }}
-    >
-      <Box style={{ flex: '0 0 350px', marginRight: '20px' }}>
+    <Flex className={classes.flexOuter}>
+      <Box className={classes.userDataBox}>
         {data && <UserCard user={data} />}
       </Box>
-      <Box style={{ flex: '1', display: 'flex', flexWrap: 'wrap' }}>
-        <Box style={{ flex: '1 1 50%', padding: '10px' }}>
+      <Flex className={classes.flexInner}>
+        <Box className={classes.column}>
           <StatisticItem
             label="Liked reports"
             value={statistics.likedReports.join(', ')}
@@ -112,7 +99,7 @@ const UserPage = () => {
             value={statistics.topSubreddits.join(', ')}
           />
         </Box>
-        <Box style={{ flex: '1 1 50%', padding: '10px' }}>
+        <Box className={classes.column}>
           <StatisticItem label="Karma" value={statistics.karma} />
           <StatisticItem
             label="Total cost of reports"
@@ -127,8 +114,8 @@ const UserPage = () => {
             value={statistics.longestReportTime}
           />
         </Box>
-      </Box>
-    </Box>
+      </Flex>
+    </Flex>
   );
 };
 

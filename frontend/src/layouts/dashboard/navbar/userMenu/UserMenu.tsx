@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
 import { UserMenuFallback } from './UserMenuFallback.tsx';
 import { logout } from '../../../../utility/logout.ts';
+import classes from './UserMenu.module.scss';
 
 /**
  * User interface representing the user data.
@@ -66,7 +67,7 @@ const UserMenu = () => {
           src={resizedPicture}
           radius="xl"
           size={size}
-          style={{ cursor: 'pointer' }}
+          className={classes.avatar}
           imageProps={{ referrerPolicy: 'no-referrer' }}
         />
       </Menu.Target>

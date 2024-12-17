@@ -1,9 +1,9 @@
 import React from 'react';
-import { Image, Box } from '@mantine/core';
-import { changeDefaultGoogleProfilePictureSize } from '../../utility/changeDefaultGoogleProfilePictureSize.ts';
+import { Image, Box, Flex } from '@mantine/core';
+import { changeDefaultGoogleProfilePictureSize } from '../../../utility/changeDefaultGoogleProfilePictureSize.ts';
 import { ErrorBoundary } from 'react-error-boundary';
-import { ProfilePictureFallback } from './ProfilePictureFallback.tsx';
-
+import { ProfilePictureFallback } from '../profilePictureFallback/ProfilePictureFallback.tsx';
+import classes from './ProfilePicture.module.scss';
 /**
  * Props for the ProfilePicture component.
  */
@@ -23,13 +23,7 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ src, alt }) => {
   const resizedSrc = changeDefaultGoogleProfilePictureSize(src, 250);
 
   return (
-    <Box
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
+    <Flex className={classes.flex}>
       <Image
         src={resizedSrc}
         alt={alt}
@@ -38,9 +32,9 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({ src, alt }) => {
         fit="contain"
         radius="50%"
         referrerPolicy="no-referrer"
-        style={{ objectFit: 'cover', display: 'block' }}
+        className={classes.image}
       />
-    </Box>
+    </Flex>
   );
 };
 

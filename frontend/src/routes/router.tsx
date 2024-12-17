@@ -3,7 +3,7 @@ import About from './about/page.tsx';
 import Dashboard from './dashboard/page.tsx';
 import Login from './login/page.tsx';
 import Root from './page.tsx';
-import UserPage from './user/page.tsx';
+import UserPage from './user/userPage/page.tsx';
 import Report from './report/page.tsx';
 import Layout from '../layouts/standard/layout/Layout.tsx';
 import ProtectedRoute from './ProtectedRoute.tsx';

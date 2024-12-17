@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, Divider, Text, Title } from '@mantine/core';
-import ProfilePicture from './ProfilePicture';
-import { User } from './page.tsx';
-
+import { Box, Divider, Flex, Text, Title } from '@mantine/core';
+import ProfilePicture from '../profilePicture/ProfilePicture.tsx';
+import { User } from '../userPage/page.tsx';
+import classes from './UserCard.module.scss';
 /**
  * Props for the UserCard component.
  */
@@ -18,26 +18,20 @@ interface UserCardProps {
  */
 const UserCard: React.FC<UserCardProps> = ({ user }) => {
   return (
-    <Box style={{ width: '350px', height: '600px', padding: '20px' }}>
-      <Box
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
+    <Box className={classes.outer}>
+      <Flex className={classes.wrapper}>
         <ProfilePicture src={user.picture} alt={user.name} />
-        <Title order={2} style={{ marginTop: '10px', fontSize: '22px' }}>
+        <Title order={2} className={classes.title}>
           {user.name}
         </Title>
-        <Text size="sm" c="dimmed" style={{ fontSize: '18px' }}>
+        <Text size="sm" c="dimmed" className={classes.text}>
           {user.given_name}
         </Text>
         <Divider my="sm" />
-        <Text size="sm" c="dimmed" style={{ fontSize: '18px' }}>
+        <Text size="sm" c="dimmed" className={classes.text}>
           {user.email}
         </Text>
-      </Box>
+      </Flex>
     </Box>
   );
 };

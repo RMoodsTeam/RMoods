@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAtomValue } from 'jotai';
 import { ActionIcon, Tooltip } from '@mantine/core';
-import { wsConnectionStatusAtom } from '../../../atoms.ts';
+import { wsConnectionStatusAtom } from '../../../../atoms.ts';
+import classes from './StatusIndicator.module.scss';
 
 const StatusIndicator = () => {
   const isConnected = useAtomValue(wsConnectionStatusAtom);
@@ -16,7 +17,7 @@ const StatusIndicator = () => {
         size="xs"
         radius="100%"
         color={isConnected ? 'green' : 'red'}
-        style={{ cursor: 'default' }}
+        className={classes.icon}
       />
     </Tooltip>
   );

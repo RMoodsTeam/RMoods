@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Box,
   Collapse,
+  Flex,
   Group,
   rem,
   Text,
@@ -47,12 +48,12 @@ const LinksGroup = ({
         className={classes.control}
       >
         <Group justify="space-between" gap={0}>
-          <Box style={{ display: 'flex', alignItems: 'center' }}>
+          <Flex className={classes.entryFlex}>
             <ThemeIcon variant="light" size={30}>
-              <Icon style={{ width: rem(18), height: rem(18) }} />
+              <Icon className={classes.icon} />
             </ThemeIcon>
             <Box ml="md">{label}</Box>
-          </Box>
+          </Flex>
           {hasLinks && (
             <IconChevronRight
               className={classes.chevron}
@@ -84,16 +85,16 @@ export function SidebarEntry({
     return (
       <UnstyledButton className={classes.control}>
         <Group justify="space-between" gap={0}>
-          <Box style={{ display: 'flex', alignItems: 'center' }}>
+          <Flex className={classes.entryFlex}>
             <ThemeIcon variant="light" size={30}>
-              <Icon style={{ width: rem(18), height: rem(18) }} />
+              <Icon className={classes.icon} />
             </ThemeIcon>
             <Box ml="md">
               <Text component={Link} to={link}>
                 {label}
               </Text>
             </Box>
-          </Box>
+          </Flex>
         </Group>
       </UnstyledButton>
     );

@@ -34,3 +34,12 @@
 .chevron {
   transition: transform 200ms ease;
 }
+
+.entryFlex {
+  align-items: center;
+}
+
+.icon {
+    height: var(--mantine-icon-size-md);
+    width: var(--mantine-icon-size-md);
+}

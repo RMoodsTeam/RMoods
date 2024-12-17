@@ -1,16 +1,11 @@
-import { Box, Image } from '@mantine/core';
+import { Flex, Image } from '@mantine/core';
 import React from 'react';
+import classes from './ProfilePictureFallback.module.scss';
 
 export const ProfilePictureFallback = ({ error }) => {
   console.error('ProfilePictureFallback:', error.message);
   return (
-    <Box
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
+    <Flex className={classes.flex}>
       <Image
         src={'https://placehold.co/250x250?text=PfP'}
         alt={`defaulting to placeholder: ${error.message}`}
@@ -19,8 +14,8 @@ export const ProfilePictureFallback = ({ error }) => {
         fit="contain"
         radius="50%"
         referrerPolicy="no-referrer"
-        style={{ objectFit: 'cover', display: 'block' }}
+        className={classes.image}
       />
-    </Box>
+    </Flex>
   );
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text } from '@mantine/core';
-
+import classes from './StatisticItem.module.scss';
 /**
  * Props for the StatisticItem component.
  */
@@ -18,7 +18,7 @@ interface StatisticItemProps {
  */
 const StatisticItem: React.FC<StatisticItemProps> = ({ label, value }) => {
   return (
-    <Box style={{ width: '100%', marginBottom: '10px', height: '100px', border: '1px solid #ccc', borderRadius: '12px', padding: '20px' }}>
+    <Box className={classes.wrapper}>
       <Text w={300}>{label}:</Text>
       <Text>{value}</Text>
     </Box>

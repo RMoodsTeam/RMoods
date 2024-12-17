@@ -8,6 +8,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
 import { ErrorBoundary } from 'react-error-boundary';
 import { RateLimitStatusFallback } from './RateLimitStatusFallback.tsx';
+import classes from './RateLimitStatus.module.scss';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -54,7 +55,7 @@ const RateLimitHoverCard = ({
   const timeUntilReset = ratelimit.reset - (timestamp - ratelimit.createdAt);
 
   return (
-    <Stack gap={8} style={{ padding: 4 }}>
+    <Stack gap={8} className={classes.wrapper} style={{ padding: 4 }}>
       <Center>
         <Text>Reddit API Rate Limit</Text>
       </Center>

@@ -1,7 +1,7 @@
 import UserMenu from '../userMenu/UserMenu.tsx';
 import ThemeSwitch from '../../../shared/ThemeSwitch.tsx';
 import { Anchor, Burger, Card, Flex, Group } from '@mantine/core';
-import StatusIndicator from '../StatusIndicator.tsx';
+import StatusIndicator from '../statusIndicator/StatusIndicator.tsx';
 import RateLimitStatus from '../rateLimitStatus/RateLimitStatus.tsx';
 import { Link } from 'react-router-dom';
 import classes from './Navbar.module.scss';

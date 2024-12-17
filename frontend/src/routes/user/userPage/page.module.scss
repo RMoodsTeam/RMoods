@@ -1,0 +1,25 @@
+.loader {
+  justify-content: center;
+  align-content: center;
+  height: 50vh;
+}
+
+.userDataBox {
+  flex: 0 0 350px;
+  margin-right: 20px;
+}
+
+.flexOuter {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.flexInner {
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.column {
+  flex: 1 1 50%;
+  padding: 10px;
+}
