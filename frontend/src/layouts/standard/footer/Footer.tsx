@@ -1,12 +1,13 @@
-import { Group, ActionIcon, rem, Anchor } from '@mantine/core';
+import { Group, Anchor, Box } from '@mantine/core';
 import {
   IconBrandGithub,
   IconBrandTwitter,
   IconBrandYoutube,
 } from '@tabler/icons-react';
 import TemporaryLogo from './TemporaryLogo.tsx';
-import classes from '../../../components/FooterCentered.module.css';
+import classes from '../../shared/FooterCentered.module.scss';
 import { Link, useNavigate } from 'react-router-dom';
+import ActionIconComponent from '../../shared/actionIconComponent/ActionIconComponent.tsx';
 
 const links = [
   { link: '/about', label: 'About' },
@@ -32,7 +33,7 @@ export default function FooterCentered() {
 
   return (
     <footer className={classes.footer}>
-      <div className={classes.inner}>
+      <Box className={classes.inner}>
         <TemporaryLogo size={28} />
 
         <Group className={classes.links}>{items}</Group>
@@ -44,12 +45,7 @@ export default function FooterCentered() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <ActionIcon size="lg" variant="default" radius="xl">
-              <IconBrandGithub
-                style={{ width: rem(18), height: rem(18) }}
-                stroke={1.5}
-              />
-            </ActionIcon>
+            <ActionIconComponent icon={IconBrandGithub} />
           </Anchor>
           <Anchor
             component={Link}
@@ -57,12 +53,7 @@ export default function FooterCentered() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <ActionIcon size="lg" variant="default" radius="xl">
-              <IconBrandTwitter
-                style={{ width: rem(18), height: rem(18) }}
-                stroke={1.5}
-              />
-            </ActionIcon>
+            <ActionIconComponent icon={IconBrandTwitter} />
           </Anchor>
           <Anchor
             component={Link}
@@ -70,15 +61,10 @@ export default function FooterCentered() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <ActionIcon size="lg" variant="default" radius="xl">
-              <IconBrandYoutube
-                style={{ width: rem(18), height: rem(18) }}
-                stroke={1.5}
-              />
-            </ActionIcon>
+            <ActionIconComponent icon={IconBrandYoutube} />
           </Anchor>
         </Group>
-      </div>
+      </Box>
     </footer>
   );
 }

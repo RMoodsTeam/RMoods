@@ -15,7 +15,7 @@ import { DataSource } from './schema.ts';
 import { MantineReportForm, RowWrapper } from './schema.ts';
 import { useState } from 'react';
 import { IconBrandReddit, IconMessage, IconUser } from '@tabler/icons-react';
-import gradientSegmentControlClasses from './GradientSegmentedControl.module.css';
+import gradientSegmentControlClasses from './GradientSegmentedControl.module.scss';
 
 interface TableProps {
   rows: RowWrapper[];

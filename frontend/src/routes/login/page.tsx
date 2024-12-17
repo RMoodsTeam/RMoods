@@ -1,5 +1,5 @@
 import { useGoogleLogin } from '@react-oauth/google';
-import GoogleSignInButton from './GoogleSignInButton';
+import GoogleSignInButton from './googleSignInButton/GoogleSignInButton.tsx';
 import { useSetAtom } from 'jotai';
 import Cookies from 'js-cookie';
 import { userInfoAtom } from '../../atoms';

@@ -1,10 +1,11 @@
 import Sidebar from '../sidebar/Sidebar.tsx';
 import { Outlet } from 'react-router-dom';
-import Navbar from '../navbar/Navbar.tsx';
+import Navbar from '../navbar/dashboardNavbar/Navbar.tsx';
 import DashboardFooter from '../footer/Footer.tsx';
 import { Flex } from '@mantine/core';
-import { ScrollToTop } from '../../../components/ScrollToTop.tsx';
+import { ScrollToTop } from '../../shared/ScrollToTop.tsx';
 import { useDisclosure } from '@mantine/hooks';
+import classes from './DashboardLayout.module.scss';
 
 const dashboardContainer = {
   marginX: '5%',
@@ -18,15 +19,9 @@ const DashboardLayout = () => {
     <>
       <Flex>
         <Sidebar opened={opened} onClose={close} />
-        <Flex
-          // TODO: Cleanup
-          style={{
-            flex: 'auto',
-            flexDirection: 'column',
-          }}
-        >
+        <Flex className={classes.outer}>
           <Navbar onSidebarOpen={open} />
-          <Flex style={dashboardContainer} flex={1}>
+          <Flex className={classes.container}>
             <Outlet />
           </Flex>
           <DashboardFooter />

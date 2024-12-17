@@ -1,5 +1,5 @@
 import { Anchor, Card, Flex, Group } from '@mantine/core';
-import ThemeSwitch from '../../../components/ThemeSwitch.tsx';
+import ThemeSwitch from '../../shared/ThemeSwitch.tsx';
 import { Link } from 'react-router-dom';
 
 const LeftNavItems = () => {

@@ -1,7 +1,7 @@
 .footer {
   margin-top: auto;
   /* This should be set to auto to keep footer at the bottom of the page*/
-  border-top: rem(1px) solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+  border-top: sass-rem(1px) solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
 }
 
 .inner {

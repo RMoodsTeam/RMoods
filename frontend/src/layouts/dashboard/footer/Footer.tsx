@@ -4,8 +4,9 @@ import {
   IconBrandTwitter,
   IconBrandYoutube,
 } from '@tabler/icons-react';
-import classes from '../../../components/FooterCentered.module.css';
+import classes from '../../shared/FooterCentered.module.scss';
 import { useNavigate } from 'react-router-dom';
+import ActionIconComponent from '../../shared/actionIconComponent/ActionIconComponent.tsx';
 
 const links = [
   { link: '/about', label: 'About' },
@@ -42,36 +43,21 @@ export default function DashboardFooterCentered() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <ActionIcon size="lg" variant="default" radius="xl">
-              <IconBrandGithub
-                style={{ width: rem(18), height: rem(18) }}
-                stroke={1.5}
-              />
-            </ActionIcon>
+            <ActionIconComponent icon={IconBrandGithub} />
           </Anchor>
           <Anchor
             href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <ActionIcon size="lg" variant="default" radius="xl">
-              <IconBrandTwitter
-                style={{ width: rem(18), height: rem(18) }}
-                stroke={1.5}
-              />
-            </ActionIcon>
+            <ActionIconComponent icon={IconBrandTwitter} />
           </Anchor>
           <Anchor
             href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <ActionIcon size="lg" variant="default" radius="xl">
-              <IconBrandYoutube
-                style={{ width: rem(18), height: rem(18) }}
-                stroke={1.5}
-              />
-            </ActionIcon>
+            <ActionIconComponent icon={IconBrandYoutube} />
           </Anchor>
         </Group>
       </div>

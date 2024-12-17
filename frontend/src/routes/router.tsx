@@ -1,15 +1,15 @@
 import { createHashRouter } from 'react-router-dom';
-import About from './routes/about/page';
-import Dashboard from './routes/dashboard/page';
-import Login from './routes/login/page';
-import Root from './routes/page';
-import UserPage from './routes/user/page';
-import Report from './routes/report/page';
-import Layout from './layouts/standard/layout/Layout.tsx';
-import ProtectedRoute from './components/ProtectedRoute';
-import DashboardLayout from './layouts/dashboard/layout/DashboardLayout.tsx';
-import Settings from './routes/settings/page.tsx';
-import WebsocketProvider from './providers/WebsocketProvider.tsx';
+import About from './about/page.tsx';
+import Dashboard from './dashboard/page.tsx';
+import Login from './login/page.tsx';
+import Root from './page.tsx';
+import UserPage from './user/page.tsx';
+import Report from './report/page.tsx';
+import Layout from '../layouts/standard/layout/Layout.tsx';
+import ProtectedRoute from './ProtectedRoute.tsx';
+import DashboardLayout from '../layouts/dashboard/layout/DashboardLayout.tsx';
+import Settings from './settings/page.tsx';
+import WebsocketProvider from '../providers/WebsocketProvider.tsx';
 
 const router = createHashRouter([
   {

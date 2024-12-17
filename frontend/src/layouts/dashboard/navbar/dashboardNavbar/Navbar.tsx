@@ -1,9 +1,10 @@
-import UserMenu from './userMenu/UserMenu.tsx';
-import ThemeSwitch from '../../../components/ThemeSwitch.tsx';
+import UserMenu from '../userMenu/UserMenu.tsx';
+import ThemeSwitch from '../../../shared/ThemeSwitch.tsx';
 import { Anchor, Burger, Card, Flex, Group } from '@mantine/core';
-import StatusIndicator from './StatusIndicator.tsx';
-import RateLimitStatus from './rateLimitStatus/RateLimitStatus.tsx';
+import StatusIndicator from '../StatusIndicator.tsx';
+import RateLimitStatus from '../rateLimitStatus/RateLimitStatus.tsx';
 import { Link } from 'react-router-dom';
+import classes from './Navbar.module.scss';
 
 interface NavbarProps {
   onSidebarOpen?: () => void;
@@ -14,9 +15,7 @@ interface NavbarProps {
  */
 const Navbar = ({ onSidebarOpen }: NavbarProps) => {
   return (
-    <Card
-      style={{ margin: 0, borderRadius: 0, marginBottom: 0, height: '5em' }}
-    >
+    <Card className={classes.card}>
       <nav>
         <Group justify="space-between">
           <Flex gap={10}>

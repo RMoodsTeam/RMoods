@@ -6,7 +6,7 @@ import {
 } from '@mantine/core';
 import { FaDesktop, FaMoon, FaSun } from 'react-icons/fa';
 import { useAtom } from 'jotai';
-import { colorModeAtom } from '../atoms.ts';
+import { colorModeAtom } from '../../atoms.ts';
 
 const ThemeSwitch = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();

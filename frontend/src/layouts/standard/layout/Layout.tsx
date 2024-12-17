@@ -1,25 +1,14 @@
 import { Outlet } from 'react-router-dom';
 import Footer from '../footer/Footer.tsx';
-import { Box, Flex } from '@mantine/core';
+import { Flex } from '@mantine/core';
 import Navbar from '../navbar/Navbar.tsx';
+import classes from './Layout.module.scss';
 
 const Layout = () => {
   return (
-    <Flex
-      style={{
-        minHeight: '100vh',
-        flexDirection: 'column',
-        transition: 'background-color 0.5s ease',
-      }}
-    >
+    <Flex className={classes.outer}>
       <Navbar />
-      <Flex
-        style={{
-          // flex 1 to fill the entire available space
-          flex: '1',
-          padding: '2rem 15%',
-        }}
-      >
+      <Flex className={classes.inner}>
         <Outlet />
       </Flex>
       <Footer />
