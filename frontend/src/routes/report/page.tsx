@@ -16,14 +16,14 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
-import { DataSource } from '../../rmoods/client/types.ts';
+import { DataSource } from './schema.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from './DataSourceTable.tsx';
 import {
   ReportFormValidationSchema,
   ReportFormValues,
   RowWrapper,
-} from './types.ts';
+} from './schema.ts';
 import { transformJson } from './transformJson.ts';
 import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
 import { ErrorBoundary } from 'react-error-boundary';

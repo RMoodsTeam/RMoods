@@ -1,5 +1,5 @@
 import authFetch from './authFetch.ts';
-import { ReportFormAdaptedValues } from '../../routes/report/types.ts';
+import { ReportFormAdaptedValues } from '../../routes/report/schema.ts';
 
 export type ReportRequest = ReportFormAdaptedValues;
 
@@ -14,7 +14,7 @@ export class RMoodsClient {
    *
    * Sends a POST request to the RMoods API to request a report
    * based on the given request object. The request object should be a valid
-   * `FeedRequest` object as defined in the types.ts file.
+   * `FeedRequest` object as defined in the schema.ts file.
    *
    * The function will throw an error if the request fails for any reason.
    * We expect a `ReportAck` to come back from this request.

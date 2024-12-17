@@ -1,7 +1,7 @@
 import React from 'react';
 import { Title } from '@mantine/core';
 import LoremIpsum from './LoremIpsum';
-import { ScrollToTop } from './ScrollToTop.tsx';
+import { ScrollToTop } from '../layouts/shared/ScrollToTop.tsx';
 
 const Demo: React.FC = () => {
   return (
