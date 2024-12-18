@@ -1,11 +1,15 @@
+name: Visual Regression
+
 on:
   push:
-    branches:
-      - ['210-setup-percy']
+    branches: ['210-setup-percy']
+
 jobs:
-  name: CI
-  build:
+  visual_regression:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -13,6 +17,6 @@ jobs:
           node-version: 22.11.0
       - run: npm ci
       - run: npm run build
-      - run: percy exec -- npx cypress run --headless
+      - run: npm run percy:run
         env:
-          PERCY_TOKEN: $
+          PERCY_TOKEN: ${{secrets.PERCY_TOKEN}}
