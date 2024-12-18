@@ -1,11 +1,11 @@
 import { Box, Title } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
-import { PageFallback } from '../PageFallback.tsx';
+import { PageFallback } from '../../PageFallback';
 
-const Settings = () => {
+const UserReportsPage = () => {
   return (
     <Box>
-      <Title order={1}>Settings</Title>
+      <Title order={1}>My Reports</Title>
     </Box>
   );
 };
@@ -13,7 +13,7 @@ const Settings = () => {
 export default function () {
   return (
     <ErrorBoundary FallbackComponent={PageFallback}>
-      <Settings />
+      <UserReportsPage />
     </ErrorBoundary>
   );
 }

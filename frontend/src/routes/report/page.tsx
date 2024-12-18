@@ -16,18 +16,13 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
-import { DataSource } from './schema.ts';
+import { DataSource, ReportFormValidationSchema, ReportFormValues, RowWrapper } from './schema.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from './DataSourceTable.tsx';
-import {
-  ReportFormValidationSchema,
-  ReportFormValues,
-  RowWrapper,
-} from './schema.ts';
 import { transformJson } from './transformJson.ts';
 import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
 import { ErrorBoundary } from 'react-error-boundary';
-import { PageFallback } from '../fallbacks/PageFallback.tsx';
+import { PageFallback } from '../PageFallback.tsx';
 import { IconLock, IconWorld } from '@tabler/icons-react';
 
 /**

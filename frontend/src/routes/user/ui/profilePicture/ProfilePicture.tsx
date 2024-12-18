@@ -1,9 +1,10 @@
 import React from 'react';
-import { Image, Box, Flex } from '@mantine/core';
-import { changeDefaultGoogleProfilePictureSize } from '../../../utility/changeDefaultGoogleProfilePictureSize.ts';
+import { Flex, Image } from '@mantine/core';
+import { changeDefaultGoogleProfilePictureSize } from '../../../../utility/changeDefaultGoogleProfilePictureSize.ts';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ProfilePictureFallback } from '../profilePictureFallback/ProfilePictureFallback.tsx';
 import classes from './ProfilePicture.module.scss';
+
 /**
  * Props for the ProfilePicture component.
  */

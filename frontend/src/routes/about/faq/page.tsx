@@ -1,7 +1,7 @@
-import Section from './Section';
+import Section from './Section.tsx';
 import { Box } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
-import { PageFallback } from '../fallbacks/PageFallback.tsx';
+import { PageFallback } from '../../PageFallback.tsx';
 
 /**
  * About page, contains information about the project and the team.
