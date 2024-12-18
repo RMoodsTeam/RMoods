@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box, Divider, Flex, Text, Title } from '@mantine/core';
 import ProfilePicture from '../profilePicture/ProfilePicture.tsx';
-import { User } from '../userPage/page.tsx';
+import { User } from '../../page.tsx';
 import classes from './UserCard.module.scss';
+
 /**
  * Props for the UserCard component.
  */

@@ -1,4 +1,4 @@
-import { Button, Image, Center, Box } from '@mantine/core';
+import { Box, Button, Center, Image } from '@mantine/core';
 import classes from './GoogleSignInButton.module.scss';
 
 export default function GoogleSignInButton({

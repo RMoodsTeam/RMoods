@@ -1,13 +1,13 @@
 import { Box, Flex, Loader, Text } from '@mantine/core';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
-import UserCard from '../userCard/UserCard.tsx';
-import StatisticItem from '../statisticItem/StatisticItem.tsx';
-import { JwtClaims } from '../../../rmoods/jwt.ts';
-import authFetch from '../../../rmoods/client/authFetch.ts';
+import UserCard from './ui/userCard/UserCard.tsx';
+import StatisticItem from './ui/statisticItem/StatisticItem.tsx';
+import { JwtClaims } from '../../rmoods/jwt.ts';
+import authFetch from '../../rmoods/client/authFetch.ts';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
-import { PageFallback } from '../../PageFallback.tsx';
+import { PageFallback } from '../PageFallback.tsx';
 import classes from './page.module.scss';
 
 /**

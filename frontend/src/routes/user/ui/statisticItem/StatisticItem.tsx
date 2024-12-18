@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Text } from '@mantine/core';
 import classes from './StatisticItem.module.scss';
+
 /**
  * Props for the StatisticItem component.
  */
