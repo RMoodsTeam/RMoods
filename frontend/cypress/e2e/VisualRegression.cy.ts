@@ -1,37 +1,30 @@
 // Whenever a new page is created, we can add a new test to take a snapshot of the page
 describe('Visual Regression tests', () => {
   it('Creates "/" snapshot', () => {
-    cy.visit('http://localhost:8000/#/');
-    cy.percySnapshot('Home');
+    cy.visitPageAndScreenshotIt('');
   });
 
   it('Creates "/about" snapshot', () => {
-    cy.visit('http://localhost:8000/#/about');
-    cy.percySnapshot('About');
+    cy.visitPageAndScreenshotIt('about');
   });
 
   it('Creates "/dashboard" snapshot', () => {
-    cy.visit('http://localhost:8000/#/dashboard');
-    cy.percySnapshot('Dashboard');
+    cy.visitPageAndScreenshotIt('dashboard');
   });
 
   it('Creates "/login" snapshot', () => {
-    cy.visit('http://localhost:8000/#/login');
-    cy.percySnapshot('Login');
+    cy.visitPageAndScreenshotIt('login');
   });
 
   it('Creates "/report" snapshot', () => {
-    cy.visit('http://localhost:8000/#/report');
-    cy.percySnapshot('Report');
+    cy.visitPageAndScreenshotIt('report');
   });
 
   it('Creates "/settings" snapshot', () => {
-    cy.visit('http://localhost:8000/#/settings');
-    cy.percySnapshot('Settings');
+    cy.visitPageAndScreenshotIt('settings');
   });
 
   it('Creates "/user" snapshot', () => {
-    cy.visit('http://localhost:8000/#/user');
-    cy.percySnapshot('User');
+    cy.visitPageAndScreenshotIt('user');
   });
 });
