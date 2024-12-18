@@ -19,15 +19,15 @@ const sidebarItems: SidebarEntryProps[] = [
   {
     label: 'My Reports',
     icon: IconReport,
-    link: '/myreports',
+    link: '/user/reports',
   },
   {
     label: 'Browse',
     icon: IconSearch,
     initiallyOpened: true,
     links: [
-      { label: 'Reports', link: '/reports' },
-      { label: 'Users', link: '/users' },
+      { label: 'Reports', link: '/browse/reports' },
+      { label: 'Users', link: '/browse/users' },
     ],
   },
   {
@@ -49,8 +49,8 @@ const sidebarItems: SidebarEntryProps[] = [
     label: 'About',
     icon: IconInfoCircle,
     links: [
-      { label: 'FAQ', link: '/faq' },
-      { label: 'Thesis', link: '/thesis' },
+      { label: 'FAQ', link: '/about/faq' },
+      { label: 'Thesis', link: '/about/thesis' },
     ],
   },
 ];

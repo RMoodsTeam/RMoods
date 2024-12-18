@@ -15,6 +15,7 @@ import Thesis from './about/thesis/page.tsx';
 import BrowseReports from './browse/reports/page.tsx';
 import BrowseUsers from './browse/users/page.tsx';
 import Sandbox from './sandbox/page.tsx';
+import UserReports from './user/reports/page.tsx';
 
 const router = createHashRouter([
   {
@@ -39,6 +40,10 @@ const router = createHashRouter([
         element: <UserPage />,
       },
       {
+        path: '/user/reports',
+        element: <UserReports />,
+      },
+      {
         path: '/settings',
         element: <Settings />,
       },
@@ -53,6 +58,10 @@ const router = createHashRouter([
       {
         path: '/sandbox',
         element: <Sandbox />,
+      },
+      {
+        path: '/releases',
+        element: <Releases />,
       },
     ],
   },
@@ -74,10 +83,6 @@ const router = createHashRouter([
       {
         path: '/login',
         element: <Login />,
-      },
-      {
-        path: '/releases',
-        element: <Releases />,
       },
     ],
   },
