@@ -92,9 +92,7 @@ async def get_sentiment(request: TextRequest):
         )
         return result
 
-    start_generation = time.time()
-    results = process_inputs(process_fn, request.text)
-    generation_time = round(time.time() - start_generation, 2)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="sentiment",
@@ -136,9 +134,7 @@ async def get_language(request: TextRequest):
         )
         return result
 
-    start_generation = time.time()
-    results = process_inputs(process_fn, request.text)
-    generation_time = round(time.time() - start_generation, 2)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="language",
@@ -175,9 +171,7 @@ async def get_sarcasm(request: TextRequest):
         )
         return result
 
-    start_generation = time.time()
-    results = process_inputs(process_fn, request.text)
-    generation_time = round(time.time() - start_generation, 2)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="sarcasm",
@@ -211,9 +205,7 @@ async def get_keywords(request: TextRequest):
         )
         return result
 
-    start_generation = time.time()
-    results = process_inputs(process_fn, request.text)
-    generation_time = round(time.time() - start_generation, 2)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="keywords",
@@ -250,9 +242,7 @@ async def get_spam(request: TextRequest):
         )
         return result
 
-    start_generation = time.time()
-    results = process_inputs(process_fn, request.text)
-    generation_time = round(time.time() - start_generation, 2)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="spam",
@@ -286,9 +276,7 @@ async def get_politics(request: TextRequest):
         )
         return result
 
-    start_generation = time.time()
-    results = process_inputs(process_fn, request.text)
-    generation_time = round(time.time() - start_generation, 2)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="politics",
@@ -340,9 +328,7 @@ async def get_hate_speech(request: TextRequest):
         )
         return result
 
-    start_generation = time.time()
-    results = process_inputs(process_fn, request.text)
-    generation_time = round(time.time() - start_generation, 2)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="hateSpeech",
@@ -374,9 +360,7 @@ async def get_clickbait(request: TextRequest):
         )
         return result
 
-    start_generation = time.time()
-    results = process_inputs(process_fn, request.text)
-    generation_time = round(time.time() - start_generation, 2)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="clickbait",
