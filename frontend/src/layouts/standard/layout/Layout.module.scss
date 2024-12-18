@@ -1,0 +1,10 @@
+.outer {
+  min-height: 100vh;
+  flex-direction: column;
+  transition: background-color 0.5s ease;
+}
+
+.inner {
+  flex: 1;
+  padding: 2em 15%;
+}

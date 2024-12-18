@@ -1,0 +1,11 @@
+.container {
+  flex: 1;
+  margin-top: 5%;
+  margin-bottom: 2em;
+  padding: 2em 12%;
+}
+
+.outer {
+  flex: auto;
+  flex-direction: column;
+}

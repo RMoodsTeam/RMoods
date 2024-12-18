@@ -5,6 +5,7 @@ import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { colorModeAtom } from '../atoms.ts';
 import QueryProvider from './QueryProvider.tsx';
+import { theme } from '../theme.ts';
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
   const colorScheme = useAtomValue(colorModeAtom);
@@ -13,7 +14,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
     <StrictMode>
       <JotaiProvider>
         <QueryProvider>
-          <MantineProvider defaultColorScheme={colorScheme}>
+          <MantineProvider defaultColorScheme={colorScheme} theme={theme}>
             <Notifications />
             <GoogleOAuthProvider clientId="1055063718392-2ajj0s8h3pol9u5fdlt5vg8jep200r6i.apps.googleusercontent.com">
               {children}

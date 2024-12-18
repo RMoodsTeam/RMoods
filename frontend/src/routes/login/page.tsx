@@ -1,10 +1,10 @@
 import { useGoogleLogin } from '@react-oauth/google';
-import GoogleSignInButton from './GoogleSignInButton';
+import GoogleSignInButton from './googleSignInButton/GoogleSignInButton.tsx';
 import { useSetAtom } from 'jotai';
 import Cookies from 'js-cookie';
 import { userInfoAtom } from '../../atoms';
 import { useNavigate } from 'react-router-dom';
-import { Center, Paper, Stack, Title, Box, Card } from '@mantine/core';
+import { Center, Stack, Title, Box, Card } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../fallbacks/PageFallback.tsx';
