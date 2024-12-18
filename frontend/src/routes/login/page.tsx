@@ -4,10 +4,10 @@ import { useSetAtom } from 'jotai';
 import Cookies from 'js-cookie';
 import { userInfoAtom } from '../../atoms';
 import { useNavigate } from 'react-router-dom';
-import { Center, Stack, Title, Box, Card } from '@mantine/core';
+import { Box, Card, Center, Stack, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { ErrorBoundary } from 'react-error-boundary';
-import { PageFallback } from '../fallbacks/PageFallback.tsx';
+import { PageFallback } from '../PageFallback.tsx';
 
 /**
  * Login card with Google sign in button

@@ -1,6 +1,6 @@
 import { Title } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
-import { PageFallback } from '../fallbacks/PageFallback.tsx';
+import { PageFallback } from '../PageFallback.tsx';
 
 /**
  * Dashboard page, gets user info asynchronously

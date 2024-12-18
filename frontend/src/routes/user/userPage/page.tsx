@@ -1,4 +1,4 @@
-import { Box, Text, Loader, Flex } from '@mantine/core';
+import { Box, Flex, Loader, Text } from '@mantine/core';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import UserCard from '../userCard/UserCard.tsx';
@@ -7,8 +7,9 @@ import { JwtClaims } from '../../../rmoods/jwt.ts';
 import authFetch from '../../../rmoods/client/authFetch.ts';
 import { useQuery } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
-import { PageFallback } from '../../fallbacks/PageFallback.tsx';
+import { PageFallback } from '../../PageFallback.tsx';
 import classes from './page.module.scss';
+
 /**
  * User interface representing the user data.
  */

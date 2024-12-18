@@ -1,4 +1,4 @@
-import { Center, Stack, Title, Text, Card } from '@mantine/core';
+import { Card, Center, Stack, Text, Title } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 
 export const PageFallback = ({ error }) => {

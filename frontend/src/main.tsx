@@ -7,7 +7,7 @@ import { RouterProvider } from 'react-router-dom';
 import router from './routes/router.tsx';
 import Providers from './providers/Providers.tsx';
 import { ErrorBoundary } from 'react-error-boundary';
-import { MainFallback } from './routes/fallbacks/MainFallback.tsx';
+import { MainFallback } from './routes/MainFallback.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
