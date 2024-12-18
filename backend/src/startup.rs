@@ -14,6 +14,7 @@ pub fn verify_environment() -> bool {
         GOOGLE_CLIENT_ID,
         GOOGLE_CLIENT_SECRET,
         NLP_URL,
+        NLP_API_KEY,
     ];
     let defined: Vec<String> = std::env::vars().map(|(k, _)| k).collect();
 
