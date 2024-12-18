@@ -1,5 +1,6 @@
 import string
 import json
+import time
 
 def preprocess_data(input_text: str):
     """
@@ -35,3 +36,21 @@ def read_model_file() -> dict:
     """
     with open("version_models.json", "r") as f:
         return json.load(f)
+
+
+def measure_execution_time(func) -> tuple:
+    """
+    Measure the execution time of a function.
+
+    Args:
+        func (function): Function to measure the execution time.
+
+    Returns:
+        tuple: Tuple with the results of the function and the execution time.
+    """
+    start_time = time.time()
+    results = func()
+    end_time = time.time()
+    execution_time = round(end_time - start_time,2)
+
+    return (results, execution_time)
