@@ -84,18 +84,18 @@ export function SidebarEntry({
   if (link) {
     return (
       <UnstyledButton className={classes.control}>
-        <Group justify="space-between" gap={0}>
-          <Flex className={classes.entryFlex}>
-            <ThemeIcon variant="light" size={30}>
-              <Icon className={classes.icon} />
-            </ThemeIcon>
-            <Box ml="md">
-              <Text component={Link} to={link}>
-                {label}
-              </Text>
-            </Box>
-          </Flex>
-        </Group>
+        <Link to={link} className={classes.onlyLink}>
+          <Group justify="space-between" gap={0}>
+            <Flex className={classes.entryFlex}>
+              <ThemeIcon variant="light" size={30}>
+                <Icon className={classes.icon} />
+              </ThemeIcon>
+              <Box ml="md">
+                <Text>{label}</Text>
+              </Box>
+            </Flex>
+          </Group>
+        </Link>
       </UnstyledButton>
     );
   } else {
