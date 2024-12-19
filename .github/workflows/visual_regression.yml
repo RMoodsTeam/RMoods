@@ -20,3 +20,4 @@ jobs:
       - run: npm run percy:run
         env:
           PERCY_TOKEN: ${{secrets.PERCY_TOKEN}}
+          CYPRESS_RMOODS_JWT: ${{secrets.CYPRESS_RMOODS_JWT}}
