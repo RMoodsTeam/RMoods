@@ -16,7 +16,12 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
-import { DataSource, ReportFormValidationSchema, ReportFormValues, RowWrapper } from './schema.ts';
+import {
+  DataSource,
+  ReportFormValidationSchema,
+  ReportFormValues,
+  RowWrapper,
+} from './schema.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from './DataSourceTable.tsx';
 import { transformJson } from './transformJson.ts';
@@ -361,6 +366,15 @@ const Report = () => {
                   })}
                 />
               </Stack>
+              {form.errors.analyses && ( // Display the error message
+                <Input.Error
+                  style={() => ({
+                    marginTop: '6px',
+                  })}
+                >
+                  {form.errors.analyses}
+                </Input.Error>
+              )}
             </Stack>
           </Card>
 
