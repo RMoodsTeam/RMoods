@@ -1,4 +1,4 @@
-import { createTheme } from '@mantine/core';
+import { Card, createTheme } from '@mantine/core';
 
 export const theme = createTheme({
   breakpoints: {
@@ -7,5 +7,15 @@ export const theme = createTheme({
     md: '62em',
     lg: '75em',
     xl: '88em',
+  },
+  components: {
+    Card: Card.extend({
+      defaultProps: {
+        padding: 'lg',
+        shadow: 'md',
+        radius: 'xl',
+        withBorder: true,
+      },
+    }),
   },
 });
