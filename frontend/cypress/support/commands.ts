@@ -9,7 +9,15 @@ declare namespace Cypress {
 Cypress.Commands.add('visitPageAndScreenshotIt', (page: string) => {
   let pageName = page === '' ? 'Home' : page;
   pageName = pageName.charAt(0).toUpperCase() + pageName.slice(1);
-  cy.setCookie('RMOODS_JWT', Cypress.env('RMOODS_JWT'));
+
+  // Cypress automatically adds an env if it is prefixed with CYPRESS_ and when you use it, it strips the prefix
+  const jwt = Cypress.env('RMOODS_JWT');
+  if (!jwt) {
+    cy.log('No JWT found, skipping');
+    return;
+  }
+
+  cy.setCookie('RMOODS_JWT', jwt);
 
   cy.visit('http://localhost:8000/#/' + page);
   if (page !== 'login') {
