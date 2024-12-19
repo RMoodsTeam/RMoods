@@ -1,8 +1,8 @@
 name: Visual Regression
 
 on:
-  push:
-    branches: ['210-setup-percy']
+  pull_request:
+    branches: ['dev']
 
 jobs:
   visual_regression:

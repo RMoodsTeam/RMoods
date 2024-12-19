@@ -4,8 +4,8 @@ describe('Visual Regression tests', () => {
     cy.visitPageAndScreenshotIt('');
   });
 
-  it('Creates "/about" snapshot', () => {
-    cy.visitPageAndScreenshotIt('about');
+  it('Creates "/about/faq" snapshot', () => {
+    cy.visitPageAndScreenshotIt('about/faq');
   });
 
   it('Creates "/dashboard" snapshot', () => {
