@@ -11,6 +11,7 @@ Cypress.Commands.add('visitPageAndScreenshotIt', (page: string) => {
   pageName = pageName.charAt(0).toUpperCase() + pageName.slice(1);
 
   // Cypress automatically adds an env if it is prefixed with CYPRESS_ and when you use it, it strips the prefix
+  // JWT token for this was created on 19th Dec 2024 and is valid for 300 days
   const jwt = Cypress.env('RMOODS_JWT');
   if (!jwt) {
     cy.log('No JWT found, skipping');
