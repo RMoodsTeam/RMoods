@@ -6,7 +6,7 @@ import classes from './Navbar.module.scss';
 const LeftNavItems = () => {
   return (
     <Flex gap={10}>
-      <Anchor component={Link} to="/">
+      <Anchor component={Link} to="/" id="main-button">
         Main
       </Anchor>
       <Anchor component={Link} to="/about">
