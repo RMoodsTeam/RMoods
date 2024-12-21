@@ -1,12 +1,13 @@
-use crate::auth::google::User;
+use crate::auth::user::User;
+use crate::db::db_error::DbError;
 use crate::db::db_stored::DbStoredInner;
 use crate::db::pagination::DbPagination;
 use axum::async_trait;
-use sqlx::{Error, PgPool, Postgres, Transaction};
+use sqlx::{PgPool, Postgres, Transaction};
 
 #[async_trait]
 impl DbStoredInner for User {
-    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
         sqlx::query!(
             r#"
             INSERT INTO users (
@@ -28,10 +29,10 @@ impl DbStoredInner for User {
         .await?;
         Ok(())
     }
-    async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
         unimplemented!()
     }
-    async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
         sqlx::query!(
             r#"
             DELETE FROM users WHERE google_sub = $1
@@ -43,7 +44,7 @@ impl DbStoredInner for User {
         Ok(())
     }
 
-    async fn inner_get_by_id(id: &str, pool: &PgPool) -> Result<Option<Self>, Error> {
+    async fn inner_get_by_id(id: &str, pool: &PgPool) -> Result<Option<Self>, DbError> {
         let user = sqlx::query_as!(
             User,
             r#"
@@ -58,7 +59,7 @@ impl DbStoredInner for User {
         Ok(user)
     }
 
-    async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, Error> {
+    async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, DbError> {
         unimplemented!()
     }
 }

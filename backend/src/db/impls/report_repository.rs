@@ -1,13 +1,13 @@
 use crate::db::db_client::DbClient;
+use crate::db::db_error::DbError;
 use crate::db::from_db::FromDb;
 use crate::db::model::DbReport;
 use crate::db::pagination::DbPagination;
 use crate::nlp::analysis::NlpAnalysisKind;
-use crate::nlp::report::Report;
+use crate::report::report::Report;
 use axum::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::Deserialize;
-use sqlx::Error;
 
 /// Represents a date range for querying reports.
 ///
@@ -159,7 +159,7 @@ impl ReportQuery {
 /// Specifies methods for fetching reports from the database.
 #[async_trait]
 pub trait ReportRepository: Sized {
-    async fn get_by_query(query: ReportQuery, db: &DbClient) -> Result<Vec<Self>, Error>;
+    async fn get_by_query(query: ReportQuery, db: &DbClient) -> Result<Vec<Self>, DbError>;
 }
 
 #[async_trait]
@@ -176,7 +176,7 @@ impl ReportRepository for Report {
     /// It's safe, because the kinds are passed as a [Vec] of [NlpAnalysisKind]s, which are validated by `serde` deserialization.
     ///
     /// **Any changes to this function need to be carefully reviewed to prevent SQL injection.**
-    async fn get_by_query(query: ReportQuery, db: &DbClient) -> Result<Vec<Self>, Error> {
+    async fn get_by_query(query: ReportQuery, db: &DbClient) -> Result<Vec<Self>, DbError> {
         let (limit, offset) = query.pagination.clone().into_limit_and_offset();
 
         let bind_args = query.into_bind_args();

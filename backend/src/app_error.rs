@@ -5,6 +5,7 @@ use serde::Serialize;
 use serde_json::json;
 
 use crate::auth::error::AuthError;
+use crate::db::db_error::DbError;
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::error::RedditError;
 use crate::nlp::error::NlpError;
@@ -88,8 +89,8 @@ impl From<NlpError> for AppError {
     }
 }
 
-impl From<sqlx::Error> for AppError {
-    fn from(_value: sqlx::Error) -> Self {
+impl From<DbError> for AppError {
+    fn from(_value: DbError) -> Self {
         AppError::internal_server_error()
     }
 }

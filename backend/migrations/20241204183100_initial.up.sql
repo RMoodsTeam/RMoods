@@ -124,15 +124,28 @@ CREATE TABLE IF NOT EXISTS reports (
     title           TEXT        NOT NULL,
     description     TEXT        NOT NULL,
     is_public       BOOLEAN     NOT NULL,
+    is_successful   BOOLEAN     NOT NULL,
+    is_in_progress  BOOLEAN     NOT NULL,
+    is_error        BOOLEAN     NOT NULL,
+    error_message   TEXT                 DEFAULT NULL,
     metadata_id     uuid        NOT NULL UNIQUE,
     analyses_map_id uuid        NOT NULL UNIQUE,
     --
     created_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+    CHECK ((is_error = TRUE AND error_message IS NOT NULL) OR
+           (is_error = FALSE AND error_message IS NULL)),
+    CHECK (is_public OR is_error OR is_in_progress),
+    -- xor checks, only one of those state columns can be true
+    CHECK ((is_public AND NOT is_error AND NOT is_in_progress) OR
+           (NOT is_public AND is_error AND NOT is_in_progress) OR
+           (NOT is_public AND NOT is_error AND is_in_progress)),
+
     FOREIGN KEY (user_id) REFERENCES users (id), -- DO NOT CASCADE
     FOREIGN KEY (metadata_id) REFERENCES report_metadata (id) ON DELETE CASCADE,
     FOREIGN KEY (analyses_map_id) REFERENCES report_analyses_maps (id) ON DELETE CASCADE
+
 );
 
 CREATE OR REPLACE TRIGGER update_reports_updated_at

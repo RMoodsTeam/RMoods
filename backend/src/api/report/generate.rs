@@ -1,6 +1,7 @@
 use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
-use crate::auth::google::{GoogleId, JwtUserInfo};
+use crate::auth::google::JwtUserInfo;
+use crate::auth::user::GoogleId;
 use crate::db::db_stored::DbStored;
 use crate::fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
 use crate::fetcher::fetcher::RMoodsFetcher;
@@ -10,7 +11,9 @@ use crate::fetcher::model::reddit_data::RedditFeedData;
 use crate::fetcher::model::user_posts::UserPosts;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::report::{new_report_id, Report, ReportAnalysesMap, ReportMetadata};
+use crate::report::report::{
+    new_report_id, Report, ReportAnalysesMap, ReportMetadata, ReportStatus,
+};
 use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
@@ -39,6 +42,7 @@ pub async fn nlp_analysis<T: RedditFeedData>(
         title: "RMoods Report".to_string(),
         description: "An RMoods report generated from Reddit data.".to_string(),
         is_public: true,
+        status: ReportStatus::Success,
         metadata: ReportMetadata {
             created_at: Utc::now(),
             updated_at: Utc::now(),

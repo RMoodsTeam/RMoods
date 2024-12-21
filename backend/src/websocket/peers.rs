@@ -1,4 +1,4 @@
-use crate::auth::google::GoogleId;
+use crate::auth::user::GoogleId;
 use crate::websocket::{ClientMessage, ConnectionId, WsUserId};
 use std::collections::HashMap;
 use tokio::sync::mpsc::Sender;

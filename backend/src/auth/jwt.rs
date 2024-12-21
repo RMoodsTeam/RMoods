@@ -1,5 +1,6 @@
 use crate::auth::error::AuthError;
-use crate::auth::google::{JwtUserInfo, User};
+use crate::auth::google::JwtUserInfo;
+use crate::auth::user::User;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, DecodingKey, Header, TokenData, Validation};
 use log_derive::logfn;
