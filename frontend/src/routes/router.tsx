@@ -4,7 +4,7 @@ import Dashboard from './dashboard/page.tsx';
 import Login from './login/page.tsx';
 import Root from './page.tsx';
 import UserPage from './user/page.tsx';
-import Report from './report/page.tsx';
+import Report from './report/page/page.tsx';
 import Layout from '../layouts/standard/layout/Layout.tsx';
 import ProtectedRoute from './ProtectedRoute.tsx';
 import DashboardLayout from '../layouts/dashboard/layout/DashboardLayout.tsx';
