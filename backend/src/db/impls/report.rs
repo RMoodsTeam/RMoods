@@ -7,16 +7,15 @@ use crate::report::report::{Report, ReportAnalysesMap, ReportMetadata};
 use crate::report::report_status::ReportStatus;
 use axum::async_trait;
 use sqlx::{PgPool, Postgres, Transaction};
-use uuid::Uuid;
 
 #[async_trait]
 impl DbStoredInner for Report {
     async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
         let metadata_uuid = self.metadata.inner_save(tx).await?;
         let analyses_map_uuid = self.analyses_map.inner_save(tx).await?;
-        let user_uuid = sqlx::query!(
+        let user_id = sqlx::query!(
             r#"
-            SELECT id as "id: Uuid" FROM users WHERE google_sub = $1
+            SELECT google_id as "id: String" FROM users WHERE google_id = $1
             "#,
             self.user_id
         )
@@ -34,7 +33,7 @@ impl DbStoredInner for Report {
             VALUES ($1, $2, $3, $4, $5, $6, $7 , $8, $9, $10, $11)
             "#,
             self.id,
-            user_uuid,
+            user_id,
             self.title,
             self.description,
             self.is_public,
@@ -150,6 +149,8 @@ impl FromDb for Report {
             ReportAnalysesMap::from_db_model(map, pool).await?
         };
 
+        dbg!(&model);
+
         let status = ReportStatus::from_booleans(
             model.is_successful,
             model.is_in_progress,
@@ -157,7 +158,7 @@ impl FromDb for Report {
             model.error_message,
         )?;
 
-        Ok(Report {
+        let res = Ok(Report {
             id: model.display_id,
             user_id: model.user_id,
             title: model.title,
@@ -166,7 +167,11 @@ impl FromDb for Report {
             status,
             metadata,
             analyses_map,
-        })
+        });
+
+        dbg!(&res);
+
+        res
     }
 }
 
@@ -174,12 +179,11 @@ impl FromDb for Report {
 mod test {
     use crate::db::db_client::DbClient;
     use crate::db::db_stored::DbStored;
-    use crate::db::impls::test_util::insert_test_user;
-    use crate::report::report_status::ReportStatus;
+    use crate::db::impls::test_util::{get_test_report, get_test_user};
+    use crate::report::report::Report;
 
     #[sqlx::test]
     async fn test_report_save() {
-        use crate::report::report::{Report, ReportAnalysesMap, ReportMetadata};
         use sqlx::postgres::PgPoolOptions;
         let pool = PgPoolOptions::new()
             .max_connections(1)
@@ -188,24 +192,116 @@ mod test {
             .unwrap();
         let db = DbClient::new(pool);
 
-        let user_id = insert_test_user(&db.raw_db()).await.unwrap();
+        let user = get_test_user();
+        user.save(&db).await.unwrap();
 
-        let report = Report {
-            id: nanoid::nanoid!(),
-            user_id,
-            title: "Test Report".to_string(),
-            description: "Test Description".to_string(),
-            is_public: false,
-            status: ReportStatus::InProgress,
-            metadata: ReportMetadata {
-                created_at: chrono::Utc::now(),
-                updated_at: chrono::Utc::now(),
-            },
-            analyses_map: ReportAnalysesMap {
-                analyses: Default::default(),
-            },
-        };
-
+        let report = get_test_report("Test Report".to_string(), user.id);
         report.save(&db).await.unwrap();
+    }
+
+    #[sqlx::test]
+    async fn test_report_get_by_id() {
+        use sqlx::postgres::PgPoolOptions;
+        let pool = PgPoolOptions::new()
+            .max_connections(1)
+            .connect(std::env!("DATABASE_URL"))
+            .await
+            .unwrap();
+        let db = DbClient::new(pool);
+
+        let user = get_test_user();
+        user.save(&db).await.unwrap();
+
+        let report = get_test_report("Test Report".to_string(), user.id);
+        report.save(&db).await.unwrap();
+
+        let fetched_report = Report::get_by_id(&report.id, &db).await.unwrap().unwrap();
+
+        assert_eq!(fetched_report.id, report.id);
+        assert_eq!(fetched_report.user_id, report.user_id);
+        assert_eq!(fetched_report.title, report.title);
+        assert_eq!(fetched_report.description, report.description);
+        assert_eq!(fetched_report.is_public, report.is_public);
+        assert_eq!(fetched_report.status, report.status);
+        assert_eq!(
+            fetched_report.metadata.created_at,
+            report.metadata.created_at
+        );
+        assert_eq!(
+            fetched_report.metadata.updated_at,
+            report.metadata.updated_at
+        );
+        assert_eq!(
+            fetched_report.analyses_map.analyses.len(),
+            report.analyses_map.analyses.len()
+        );
+    }
+
+    #[sqlx::test]
+    async fn test_report_update() {
+        use sqlx::postgres::PgPoolOptions;
+        let pool = PgPoolOptions::new()
+            .max_connections(1)
+            .connect(std::env!("DATABASE_URL"))
+            .await
+            .unwrap();
+        let db = DbClient::new(pool);
+
+        let user = get_test_user();
+        user.save(&db).await.unwrap();
+
+        let mut report = get_test_report("Test Report".to_string(), user.id);
+        report.save(&db).await.unwrap();
+
+        report.title = "Updated Title".to_string();
+        report.description = "Updated Description".to_string();
+        report.is_public = true;
+        report.status = crate::report::report_status::ReportStatus::Error("Test Error".to_string());
+
+        report.update(&db).await.unwrap();
+
+        let fetched_report = Report::get_by_id(&report.id, &db).await.unwrap().unwrap();
+
+        assert_eq!(fetched_report.id, report.id);
+        assert_eq!(fetched_report.user_id, report.user_id);
+        assert_eq!(fetched_report.title, report.title);
+        assert_eq!(fetched_report.description, report.description);
+        assert_eq!(fetched_report.is_public, report.is_public);
+        assert_eq!(fetched_report.status, report.status);
+        assert_eq!(
+            fetched_report.metadata.created_at,
+            report.metadata.created_at
+        );
+        assert_eq!(
+            fetched_report.metadata.updated_at,
+            report.metadata.updated_at
+        );
+        assert_eq!(
+            fetched_report.analyses_map.analyses.len(),
+            report.analyses_map.analyses.len()
+        );
+    }
+
+    #[sqlx::test]
+    async fn test_report_delete() {
+        use sqlx::postgres::PgPoolOptions;
+        let pool = PgPoolOptions::new()
+            .max_connections(1)
+            .connect(std::env!("DATABASE_URL"))
+            .await
+            .unwrap();
+        let db = DbClient::new(pool);
+
+        let user = get_test_user();
+        user.save(&db).await.unwrap();
+
+        let report = get_test_report("Test Report".to_string(), user.id);
+        report.save(&db).await.unwrap();
+
+        report.delete(&db).await.unwrap();
+
+        let fetched_report = Report::get_by_id(&report.id, &db).await.unwrap();
+
+        assert!(fetched_report.is_none());
     }
 }

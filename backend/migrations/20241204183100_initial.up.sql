@@ -12,9 +12,8 @@ $$ LANGUAGE 'plpgsql';
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS users (
-    id             uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
+    google_id      TEXT        NOT NULL UNIQUE,
     --
-    google_sub     TEXT        NOT NULL UNIQUE,
     name           TEXT        NOT NULL,
     given_name     TEXT        NOT NULL,
     family_name    TEXT,
@@ -120,7 +119,7 @@ CREATE TABLE IF NOT EXISTS reports (
     id              uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     --
     display_id      TEXT        NOT NULL UNIQUE,
-    user_id         uuid        NOT NULL,
+    user_id         TEXT        NOT NULL,               -- TEXT because it's a Google ID, not a UUID
     title           TEXT        NOT NULL,
     description     TEXT        NOT NULL,
     is_public       BOOLEAN     NOT NULL,
@@ -134,15 +133,18 @@ CREATE TABLE IF NOT EXISTS reports (
     created_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CHECK ((is_error = TRUE AND error_message IS NOT NULL) OR
-           (is_error = FALSE AND error_message IS NULL)),
-    CHECK (is_public OR is_error OR is_in_progress),
-    -- xor checks, only one of those state columns can be true
-    CHECK ((is_public AND NOT is_error AND NOT is_in_progress) OR
-           (NOT is_public AND is_error AND NOT is_in_progress) OR
-           (NOT is_public AND NOT is_error AND is_in_progress)),
+    CONSTRAINT report_state_error_always_has_message
+        CHECK
+            ((is_error = TRUE AND error_message IS NOT NULL) OR
+             (is_error = FALSE AND error_message IS NULL)),
 
-    FOREIGN KEY (user_id) REFERENCES users (id), -- DO NOT CASCADE
+    -- xor checks, only one of those state columns can be true
+    CONSTRAINT report_state_xor
+        CHECK ((is_successful AND NOT is_error AND NOT is_in_progress) OR
+               (NOT is_successful AND is_error AND NOT is_in_progress) OR
+               (NOT is_successful AND NOT is_error AND is_in_progress)),
+
+    FOREIGN KEY (user_id) REFERENCES users (google_id), -- DO NOT CASCADE
     FOREIGN KEY (metadata_id) REFERENCES report_metadata (id) ON DELETE CASCADE,
     FOREIGN KEY (analyses_map_id) REFERENCES report_analyses_maps (id) ON DELETE CASCADE
 

@@ -22,11 +22,12 @@ pub(super) struct DbUser {
 }
 
 /// Represents a [Report](crate::report::report::Report)
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub(super) struct DbReport {
     pub(super) id: Uuid,
     //
     pub(super) display_id: ReportId,
+    #[sqlx(rename = "google_id")]
     pub(super) user_id: GoogleId,
     pub(super) title: String,
     pub(super) description: String,

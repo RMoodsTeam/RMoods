@@ -184,7 +184,7 @@ impl ReportRepository for Report {
         let query_str = format!(
             r#"
         SELECT * FROM reports r
-        JOIN users u ON r.user_id = u.id
+        JOIN users u ON r.user_id = u.google_id
         JOIN report_metadata rm ON r.metadata_id = rm.id
         JOIN report_analyses_maps ON r.analyses_map_id = report_analyses_maps.id
         WHERE 

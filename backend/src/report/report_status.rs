@@ -1,7 +1,7 @@
 use crate::report::report_error::ReportError;
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug, PartialEq)]
 pub enum ReportStatus {
     Success,
     InProgress,

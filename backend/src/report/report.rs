@@ -17,7 +17,7 @@ pub struct ReportMetadata {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ReportAnalysesMap {
     pub analyses: HashMap<NlpAnalysisKind, NlpAnalysis>,
 }
@@ -32,7 +32,7 @@ pub fn new_report_id() -> ReportId {
 ///
 /// Based off of NLP analysis of Reddit feeds.
 /// Contains metadata and a list of analyses.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Report {
     pub id: ReportId,
     /// Information about the user that requested the report.
