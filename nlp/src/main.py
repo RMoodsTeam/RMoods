@@ -1,17 +1,17 @@
 import src.authorization as auth
 import src.globals as globals
-import logging
+import time
 
-from src.logger_config import logger
-from src.base_models import *
-from src.models_loading import *
-from src.utils import *
-from src.version_checker import update_model_versions
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.params import Depends
 from langcodes import tag_is_valid, Language
-from contextlib import asynccontextmanager
-from fastapi.security.api_key import APIKey
+from src.base_models import *
+from src.logger_config import logger
+from src.models_loading import *
+from src.process_input import process_inputs
+from src.utils import *
+from src.version_checker import update_model_versions
 
 
 @asynccontextmanager
@@ -49,6 +49,7 @@ async def lifespan(application: FastAPI):
     yield
     logger.info("Application is shutting down")
 
+
 app = FastAPI(lifespan=lifespan)
 
 
@@ -76,11 +77,11 @@ async def get_sentiment(request: TextRequest):
         5: "Surprise"
     }
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         tokenized_text = globals.sentiment_tokenizer([preprocess_data(text)],
                                                      padding=True, truncation=True,
-                                                     max_length=128, return_tensors="pt")
+                                                     max_length=128,
+                                                     return_tensors="pt")
         output = globals.sentiment_model(**tokenized_text)
         probs = output.logits.softmax(dim=-1).tolist()[0]
         confidence = max(probs)
@@ -89,11 +90,13 @@ async def get_sentiment(request: TextRequest):
             labels=[labels[prediction]],
             confidences=[confidence_output(confidence)]
         )
-        results.append(result)
+        return result
+
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="sentiment",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -113,8 +116,7 @@ async def get_language(request: TextRequest):
     if globals.language_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         languages = []
         prediction = globals.language_model.predict(text, k=2)
 
@@ -130,11 +132,13 @@ async def get_language(request: TextRequest):
             labels=languages,
             confidences=[confidence_output(y) for y in prediction[1]]
         )
-        results.append(result)
+        return result
+
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="language",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -158,19 +162,20 @@ async def get_sarcasm(request: TextRequest):
         "0": "NOT_SARCASTIC",
         "1": "SARCASTIC"
     }
-    results = []
 
-    for text in request.text:
+    def process_fn(text):
         predict = globals.sarcastic_pipeline(text)
         result = AnalysisResult(
             labels=[labels[predict[0]["label"].replace("LABEL_", "")]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="sarcasm",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -187,23 +192,24 @@ async def get_keywords(request: TextRequest):
     Returns:
         TextResponse: Keyword extraction results with labels and relevance scores.
     """
-    # Rememeber add author if we wan to use this model
+    # Remember add author if we want to use this model
     # How keywords will work with long text?
     if globals.keyword_model is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         keywords = globals.keyword_model.extract_keywords(text, top_n=5)
         result = AnalysisResult(
             labels=[kw[0] for kw in keywords],
             confidences=[kw[1] for kw in keywords]
         )
-        results.append(result)
+        return result
+
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="keywords",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -228,18 +234,19 @@ async def get_spam(request: TextRequest):
         "1": "SPAM"
     }
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         predict = globals.spam_pipeline(text)
         result = AnalysisResult(
             labels=[labels[predict[0]["label"].replace("LABEL_", "")]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="spam",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -261,18 +268,19 @@ async def get_politics(request: TextRequest):
     if globals.political_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         predict = globals.political_pipeline(text)
         result = AnalysisResult(
             labels=[predict[0]["label"]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="politics",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -292,21 +300,39 @@ async def get_hate_speech(request: TextRequest):
     # Do zamieszczenia bibliografie z linku
     # https: // huggingface.co / Hate - speech - CNERG / dehatebert - mono - english
     # Pamiętamy
-    if globals.hate_speech_pipeline is None:
+    if globals.language_model is None:
+        raise HTTPException(status_code=500, detail="Language model not loaded")
+
+    if (globals.hate_speech_english_pipeline is None or
+            globals.hate_speech_polish_pipeline is None):
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
-        predict = globals.hate_speech_pipeline(text)
+    def detect_language(text):
+        prediction = globals.language_model.predict(text, k=1)
+        lang_tag = prediction[0][0].rsplit("_")[-2]
+        if tag_is_valid(lang_tag):
+            lang_name = Language.get(lang_tag).display_name("en")
+            return lang_name
+        return lang_tag
+
+    def process_fn(text):
+        lang_name = detect_language(text)
+        if lang_name == "Polish":
+            predict = globals.hate_speech_polish_pipeline(text)
+        else:
+            predict = globals.hate_speech_english_pipeline(text)
+
         result = AnalysisResult(
             labels=[predict[0]["label"]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
-        kind="hate_speech",
-        metadata=Metadata(generated_in=0.0),
+        kind="hateSpeech",
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -326,19 +352,20 @@ async def get_clickbait(request: TextRequest):
     if globals.clickbait_pipeline is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
 
-    results = []
-    for text in request.text:
+    def process_fn(text):
         predict = globals.clickbait_pipeline(text)
         result = AnalysisResult(
             labels=[predict[0]["label"]],
             confidences=[confidence_output(predict[0]["score"])]
         )
-        results.append(result)
+        return result
+
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="clickbait",
-        metadata=Metadata(generated_in=0.0),
-        result=results
+        metadata=Metadata(generated_in=generation_time),
+        results=results
     ).json()
 
 

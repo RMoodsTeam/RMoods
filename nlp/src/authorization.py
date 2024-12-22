@@ -9,6 +9,7 @@ api_key_header = APIKeyHeader(name="access_token", auto_error=False)
 load_dotenv()
 API_KEY = os.getenv("NLP_API_KEY")
 
+
 async def get_api_key(api_key: str = Security(api_key_header)):
     """
     Validates the provided API key.
@@ -24,7 +25,8 @@ async def get_api_key(api_key: str = Security(api_key_header)):
     """
     if API_KEY is None:
         raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail="API KEY is not set in the environment"
+            status_code=HTTP_403_FORBIDDEN,
+            detail="API KEY is not set in the environment"
         )
 
     if api_key == API_KEY:

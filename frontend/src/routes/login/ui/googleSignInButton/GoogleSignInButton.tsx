@@ -1,0 +1,29 @@
+import { Box, Button, Center, Image } from '@mantine/core';
+import classes from './GoogleSignInButton.module.scss';
+
+export default function GoogleSignInButton({
+  onClick,
+}: {
+  onClick: () => void;
+}) {
+  return (
+    <Center p="xl">
+      <Button
+        variant="default"
+        onClick={onClick}
+        size="lg"
+        radius="xl"
+        leftSection={
+          <Box className={classes.box}>
+            <Image
+              src="https://www.svgrepo.com/show/303108/google-icon-logo.svg"
+              alt="google logo"
+            />
+          </Box>
+        }
+      >
+        Sign in with Google
+      </Button>
+    </Center>
+  );
+}

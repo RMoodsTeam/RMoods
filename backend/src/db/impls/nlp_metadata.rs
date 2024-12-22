@@ -3,7 +3,7 @@ use crate::db::from_db::FromDb;
 use crate::db::model::DbNlpMetadata;
 use crate::nlp::nlp_response::NlpMetadata;
 use axum::async_trait;
-use sqlx::{Error, Postgres, Transaction};
+use sqlx::{Error, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 #[async_trait]
@@ -27,10 +27,7 @@ impl DbStoredDependentlyInner for NlpMetadata {
 #[async_trait]
 impl FromDb for NlpMetadata {
     type DbModel = DbNlpMetadata;
-    async fn from_db_model(
-        model: Self::DbModel,
-        tx: &mut Transaction<Postgres>,
-    ) -> Result<Self, Error> {
+    async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, Error> {
         Ok(NlpMetadata {
             generated_in: model.generated_in,
         })

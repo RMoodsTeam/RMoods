@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List
 
+
 class TextRequest(BaseModel):
     """Request model for text"""
     text: List[str]

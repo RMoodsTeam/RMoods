@@ -1,14 +1,14 @@
 use crate::db::db_client::DbClient;
+use crate::env::DATABASE_URL;
 use crate::fetcher::fetcher::RMoodsFetcher;
 use crate::fetcher::reddit::connection::RedditConnection;
 use crate::nlp::nlp_client::NlpClient;
 use crate::open_api::ApiDoc;
-use crate::startup::{shutdown_signal, verify_environment};
+use crate::startup::{setup_environment, shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
 use axum::Router;
-use log::{error, info, warn};
 use reqwest::Client;
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use sqlx::{postgres::PgPoolOptions, Postgres};
 use std::net::SocketAddr;
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -44,12 +44,21 @@ pub struct AppState {
 
 /// Run the server, assuming the environment has been already validated.
 async fn run() -> anyhow::Result<()> {
-    let url = std::env::var("DATABASE_URL").expect("DB_URL is set");
+    let db_url = std::env::var(DATABASE_URL).expect("DB_URL is set");
     let pool = PgPoolOptions::new()
         .max_connections(10)
-        .connect(&url)
+        .connect(&db_url)
         .await?;
-    info!("Connected to the database");
+
+    log::info!(
+        "Connected to the database at {}",
+        if db_url.contains("localhost") {
+            "localhost"
+        } else {
+            "remote"
+        }
+    );
+
     let db = DbClient::new(pool);
 
     let http = reqwest::ClientBuilder::new()
@@ -58,11 +67,11 @@ async fn run() -> anyhow::Result<()> {
         // TODO: Abstract this away, put HTTP inside the RedditConnection
         .build()?;
     let fetcher = RMoodsFetcher::new(http.clone()).await?;
-    info!("Connected to Reddit");
+    log::info!("Connected to Reddit");
 
     let nlp_client = NlpClient::new();
 
-    info!("Starting the WebSocket service");
+    log::info!("Starting the WebSocket service");
     let cancellation_token = tokio_util::sync::CancellationToken::new();
 
     let (system_tx, system_rx) = tokio::sync::mpsc::channel(100);
@@ -107,7 +116,7 @@ async fn run() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
 
-    info!("Started the RMoods server at {}", addr);
+    log::info!("Started the RMoods server at {}", addr);
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal(cancellation_token))
         .await?;
@@ -116,22 +125,20 @@ async fn run() -> anyhow::Result<()> {
 }
 
 /// Entry point of the RMoods server.
-/// Validates the environment, initializes the server and runs it.
+/// Sets up and validates the environment, initializes the server and runs it.
 #[tokio::main]
 async fn main() {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "0");
     env_logger::init();
 
-    if dotenvy::dotenv().is_err() {
-        warn!(".env not found. Environment variables will have to be defined outside of .env");
-    }
+    setup_environment();
 
     if !verify_environment() {
-        error!("Invalid environment, aborting.");
+        log::error!("Invalid environment, aborting.");
         std::process::exit(1);
     }
-    info!("Environment OK");
+    log::info!("Environment OK");
 
     let res = run().await;
     if let Err(e) = res {

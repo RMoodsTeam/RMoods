@@ -5,7 +5,7 @@ use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::NlpAnalysis;
 use crate::nlp::report::ReportAnalysesMap;
 use axum::async_trait;
-use sqlx::{Error, Postgres, Transaction};
+use sqlx::{Error, PgPool, Postgres, Transaction};
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -47,10 +47,7 @@ impl DbStoredDependentlyInner for ReportAnalysesMap {
 #[async_trait]
 impl FromDb for ReportAnalysesMap {
     type DbModel = DbReportAnalysesMap;
-    async fn from_db_model(
-        model: Self::DbModel,
-        tx: &mut Transaction<Postgres>,
-    ) -> Result<Self, Error> {
+    async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, Error> {
         let analyses = sqlx::query_as!(
             DbNlpAnalysis,
             r#"
@@ -69,12 +66,12 @@ impl FromDb for ReportAnalysesMap {
             model.sentiment_id,
             model.spam_id
         )
-        .fetch_all(&mut **tx)
+        .fetch_all(pool)
         .await?;
 
         let mut analyses_map = HashMap::new();
         for db_analysis in analyses {
-            let analysis = NlpAnalysis::from_db_model(db_analysis, tx).await?;
+            let analysis = NlpAnalysis::from_db_model(db_analysis, pool).await?;
             analyses_map.insert(analysis.kind.clone(), analysis);
         }
 

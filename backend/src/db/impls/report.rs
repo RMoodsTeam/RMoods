@@ -4,7 +4,7 @@ use crate::db::model::{DbReport, DbReportAnalysesMap, DbReportMetadata};
 use crate::db::pagination::DbPagination;
 use crate::nlp::report::{Report, ReportAnalysesMap, ReportMetadata};
 use axum::async_trait;
-use sqlx::{Error, Postgres, Transaction};
+use sqlx::{Error, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 #[async_trait]
@@ -70,11 +70,8 @@ impl DbStoredInner for Report {
         Ok(())
     }
 
-    async fn inner_get_by_id(
-        id: &str,
-        tx: &mut Transaction<Postgres>,
-    ) -> Result<Option<Self>, Error> {
-        let report = sqlx::query_as!(
+    async fn inner_get_by_id(id: &str, pool: &PgPool) -> Result<Option<Self>, Error> {
+        let db_report = sqlx::query_as!(
             DbReport,
             r#"
             SELECT *
@@ -83,14 +80,27 @@ impl DbStoredInner for Report {
             "#,
             id
         )
-        .fetch_optional(&mut **tx)
+        .fetch_optional(pool)
         .await?;
 
-        let report = match report {
-            Some(report) => report,
+        let report = match db_report {
+            Some(res) => res,
             None => return Ok(None),
         };
 
+        let report = Report::from_db_model(report, pool).await?;
+
+        Ok(Some(report))
+    }
+    async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, Error> {
+        unimplemented!()
+    }
+}
+
+#[async_trait]
+impl FromDb for Report {
+    type DbModel = DbReport;
+    async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, Error> {
         let metadata = {
             let db_metadata = sqlx::query_as!(
                 DbReportMetadata,
@@ -99,12 +109,12 @@ impl DbStoredInner for Report {
             FROM report_metadata
             WHERE id = $1
             "#,
-                report.metadata_id
+                model.metadata_id
             )
-            .fetch_one(&mut **tx)
+            .fetch_one(pool)
             .await?;
 
-            ReportMetadata::from_db_model(db_metadata, tx).await?
+            ReportMetadata::from_db_model(db_metadata, pool).await?
         };
 
         let analyses_map = {
@@ -115,28 +125,22 @@ impl DbStoredInner for Report {
             FROM report_analyses_maps
             WHERE id = $1
             "#,
-                report.analyses_map_id
+                model.analyses_map_id
             )
-            .fetch_one(&mut **tx)
+            .fetch_one(pool)
             .await?;
 
-            ReportAnalysesMap::from_db_model(map, tx).await?
+            ReportAnalysesMap::from_db_model(map, pool).await?
         };
 
-        Ok(Some(Report {
-            id: report.display_id,
-            user_id: report.user_id,
-            title: report.title,
-            description: report.description,
-            is_public: report.is_public,
+        Ok(Report {
+            id: model.display_id,
+            user_id: model.user_id,
+            title: model.title,
+            description: model.description,
+            is_public: model.is_public,
             metadata,
             analyses_map,
-        }))
-    }
-    async fn inner_get_all(
-        pagination: DbPagination,
-        tx: &mut Transaction<Postgres>,
-    ) -> Result<Vec<Self>, Error> {
-        unimplemented!()
+        })
     }
 }
