@@ -16,14 +16,20 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
-import { DataSource, ReportFormValidationSchema, ReportFormValues, RowWrapper } from './schema.ts';
+import {
+  DataSource,
+  ReportFormValidationSchema,
+  ReportFormValues,
+  RowWrapper,
+} from '../schema.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
-import { DataSourceTable } from './DataSourceTable.tsx';
-import { transformJson } from './transformJson.ts';
-import { RMoodsClient } from '../../rmoods/client/RMoodsClient.ts';
+import { DataSourceTable } from '../DataSourceTable.tsx';
+import { transformJson } from '../transformJson.ts';
+import { RMoodsClient } from '../../../rmoods/client/RMoodsClient.ts';
 import { ErrorBoundary } from 'react-error-boundary';
-import { PageFallback } from '../PageFallback.tsx';
+import { PageFallback } from '../../PageFallback.tsx';
 import { IconLock, IconWorld } from '@tabler/icons-react';
+import classes from './page.module.scss';
 
 /**
  * Report component for creating a new report.
@@ -202,11 +208,7 @@ const Report = () => {
                 />
               </Box>
               {form.errors.dataSources && (
-                <Input.Error
-                  style={() => ({
-                    marginTop: '6px',
-                  })}
-                >
+                <Input.Error className={classes.error}>
                   {form.errors.dataSources}
                 </Input.Error>
               )}
@@ -361,6 +363,11 @@ const Report = () => {
                   })}
                 />
               </Stack>
+              {form.errors.analyses && ( // Display the error message
+                <Input.Error className={classes.error}>
+                  {form.errors.analyses}
+                </Input.Error>
+              )}
             </Stack>
           </Card>
 
