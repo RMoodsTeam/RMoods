@@ -43,3 +43,8 @@
     height: var(--mantine-icon-size-md);
     width: var(--mantine-icon-size-md);
 }
+
+.onlyLink {
+  text-decoration: none;
+  color: var(--mantine-color-text);
+}
