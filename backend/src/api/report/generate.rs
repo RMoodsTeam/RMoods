@@ -11,9 +11,8 @@ use crate::fetcher::model::reddit_data::RedditFeedData;
 use crate::fetcher::model::user_posts::UserPosts;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_client::NlpClient;
-use crate::report::report::{
-    new_report_id, Report, ReportAnalysesMap, ReportMetadata, ReportStatus,
-};
+use crate::report::report::{new_report_id, Report, ReportAnalysesMap, ReportMetadata};
+use crate::report::report_status::ReportStatus;
 use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
@@ -42,7 +41,7 @@ pub async fn nlp_analysis<T: RedditFeedData>(
         title: "RMoods Report".to_string(),
         description: "An RMoods report generated from Reddit data.".to_string(),
         is_public: true,
-        status: ReportStatus::Success,
+        status: ReportStatus::InProgress,
         metadata: ReportMetadata {
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -100,9 +99,10 @@ pub async fn generate_report_handler(
         };
 
         match report_res {
-            Ok(report) => {
-                log::warn!("Saving the report");
-                report.save(&state.db).await.unwrap();
+            Ok(mut report) => {
+                log::info!("Report successfully generated: {}", report.id);
+                report.status = ReportStatus::Success;
+                report.update(&state.db).await.unwrap();
                 state
                     .system_tx
                     .send(SystemMessage::ReportDone((report.id, user_info.id)))
@@ -110,6 +110,7 @@ pub async fn generate_report_handler(
                     .unwrap();
             }
             Err(e) => {
+                log::error!("Error generating report: {:?}", e);
                 state
                     .system_tx
                     .send(ReportError((AppError::from(e), user_info.id)))

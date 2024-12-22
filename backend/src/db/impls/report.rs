@@ -3,7 +3,8 @@ use crate::db::db_stored::{DbStoredDependentlyInner, DbStoredInner};
 use crate::db::from_db::FromDb;
 use crate::db::model::{DbReport, DbReportAnalysesMap, DbReportMetadata};
 use crate::db::pagination::DbPagination;
-use crate::report::report::{Report, ReportAnalysesMap, ReportMetadata, ReportStatus};
+use crate::report::report::{Report, ReportAnalysesMap, ReportMetadata};
+use crate::report::report_status::ReportStatus;
 use axum::async_trait;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
@@ -49,16 +50,25 @@ impl DbStoredInner for Report {
 
         Ok(())
     }
+    /// Updates the report in the database.
+    ///
+    /// This method updates the report's title, description, public status, and status.
+    /// The metadata and analyses map are not updated, as they are not expected to change.
     async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
         sqlx::query!(
             r#"
             UPDATE reports
-            SET title = $1, description = $2, is_public = $3
-            WHERE display_id = $4
+            SET title = $1, description = $2, is_public = $3,
+            is_successful = $4, is_in_progress = $5, is_error = $6, error_message = $7
+            WHERE display_id = $8
             "#,
             self.title,
             self.description,
             self.is_public,
+            self.status.is_successful(),
+            self.status.is_in_progress(),
+            self.status.is_error(),
+            self.status.error_message(),
             self.id
         )
         .execute(&mut **tx)
@@ -165,10 +175,11 @@ mod test {
     use crate::db::db_client::DbClient;
     use crate::db::db_stored::DbStored;
     use crate::db::impls::test_util::insert_test_user;
+    use crate::report::report_status::ReportStatus;
 
     #[sqlx::test]
     async fn test_report_save() {
-        use crate::report::report::{Report, ReportAnalysesMap, ReportMetadata, ReportStatus};
+        use crate::report::report::{Report, ReportAnalysesMap, ReportMetadata};
         use sqlx::postgres::PgPoolOptions;
         let pool = PgPoolOptions::new()
             .max_connections(1)
