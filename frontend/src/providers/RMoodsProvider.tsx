@@ -25,20 +25,20 @@ const RMoodsProvider = ({ children }) => {
   });
   const setUserInfoAtom = useSetAtom(userInfoAtom);
 
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  if (!userInfo) {
-    throw new Error('Failed to fetch user data');
-  }
-
   if (!jwt) {
     throw new Error('No JWT token found');
   }
 
+  if (!userInfo) {
+    throw new Error('Failed to fetch user data: No such user');
+  }
+
   if (error) {
-    throw new Error('Failed to fetch user data');
+    throw new Error('Failed to fetch user data: ' + error.message);
+  }
+
+  if (isLoading) {
+    return <Loader />;
   }
 
   setUserInfoAtom(userInfo);
