@@ -60,8 +60,8 @@ export const FeedSortingSchema = z
   });
 
 const ReportFormAdaptedSchema = z.object({
-  title: z.string(),
-  description: z.string().max(500),
+  title: z.string().min(1).max(50),
+  description: z.string().max(2000),
   isPublic: z.boolean(),
   dataRequest: z.object({
     resourceKind: FeedKindSchema,
