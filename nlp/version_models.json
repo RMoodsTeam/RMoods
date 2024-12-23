@@ -3,7 +3,8 @@
     "english"
   ],
   "sentiment": [
-    "english"
+    "english",
+    "polish"
   ],
   "sarcasm": [
     "english"
@@ -19,6 +20,9 @@
     "polish"
   ],
   "clickbait": [
+    "english"
+  ],
+  "ai_detector": [
     "english"
   ]
 }
