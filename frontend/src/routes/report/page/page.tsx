@@ -11,6 +11,7 @@ import {
   Select,
   Stack,
   Text,
+  Textarea,
   TextInput,
   Title,
 } from '@mantine/core';
@@ -145,6 +146,23 @@ const Report = () => {
               <TextInput
                 placeholder="eg. Sentiment on r/AskReddit"
                 {...form.getInputProps('title')}
+              />
+            </Stack>
+          </Card>
+
+          <Card>
+            <Stack>
+              <Title order={2}>Description</Title>
+              <Text>
+                Add a description to your report. It may help others understand
+                what it's about and what conclusions can be drawn from it.
+              </Text>
+              <Textarea
+                placeholder="Enter your description"
+                minRows={5}
+                autosize
+                maxRows={5}
+                {...form.getInputProps('description')}
               />
             </Stack>
           </Card>

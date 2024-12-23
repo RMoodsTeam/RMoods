@@ -86,8 +86,8 @@ export const FetchSizeSchema = z.string();
  */
 export const ReportFormValuesSchema = z.object({
   title: z.string().min(1, { message: 'Title cannot be empty' }),
-  description: z.string().max(500, {
-    message: 'Description must be shorter than 500 characters',
+  description: z.string().max(2000, {
+    message: 'Description must be shorter than 2000 characters',
   }),
   isPublic: z.enum(['true', 'false']),
   resourceKind: FeedKindSchema,
