@@ -13,16 +13,23 @@ export const FeedKindSchema = z.enum([
   'postComments',
 ]);
 
-export const AnalysisTypeSchema = z.object({
-  language: z.boolean(),
-  sentiment: z.boolean(),
-  sarcasm: z.boolean(),
-  spam: z.boolean(),
-  politics: z.boolean(),
-  hateSpeech: z.boolean(),
-  clickbait: z.boolean(),
-  trolling: z.boolean(),
-});
+export const AnalysisTypeSchema = z
+  .object({
+    language: z.boolean(),
+    sentiment: z.boolean(),
+    sarcasm: z.boolean(),
+    spam: z.boolean(),
+    politics: z.boolean(),
+    hateSpeech: z.boolean(),
+    clickbait: z.boolean(),
+    trolling: z.boolean(),
+  })
+  .refine(
+    (value) => {
+      return Object.values(value).some((val) => val === true);
+    },
+    { message: 'At least 1 analysis type is required' }
+  );
 
 export const FeedSortingKindSchema = z.enum([
   'hot',

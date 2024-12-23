@@ -1,0 +1,23 @@
+name: Visual Regression
+
+on:
+  pull_request:
+    branches: ['dev']
+
+jobs:
+  visual_regression:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.11.0
+      - run: npm ci
+      - run: npm run build
+      - run: npm run percy:run
+        env:
+          PERCY_TOKEN: ${{secrets.PERCY_TOKEN}}
+          CYPRESS_RMOODS_JWT: ${{secrets.CYPRESS_RMOODS_JWT}}

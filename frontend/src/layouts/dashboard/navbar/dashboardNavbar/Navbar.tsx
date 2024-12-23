@@ -21,7 +21,7 @@ const Navbar = ({ onSidebarOpen }: NavbarProps) => {
           <Flex gap={10}>
             <Group>
               <Burger onClick={onSidebarOpen} hiddenFrom={'md'} />
-              <Anchor component={Link} to="/">
+              <Anchor component={Link} to="/" id="main-button">
                 Main
               </Anchor>
               <Anchor component={Link} to="/about">

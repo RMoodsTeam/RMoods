@@ -1,5 +1,6 @@
 import src.authorization as auth
 import src.globals as globals
+import time
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
@@ -91,11 +92,11 @@ async def get_sentiment(request: TextRequest):
         )
         return result
 
-    results = process_inputs(process_fn, request.text)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="sentiment",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -133,11 +134,11 @@ async def get_language(request: TextRequest):
         )
         return result
 
-    results = process_inputs(process_fn, request.text)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="language",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -170,11 +171,11 @@ async def get_sarcasm(request: TextRequest):
         )
         return result
 
-    results = process_inputs(process_fn, request.text)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="sarcasm",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -204,11 +205,11 @@ async def get_keywords(request: TextRequest):
         )
         return result
 
-    results = process_inputs(process_fn, request.text)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="keywords",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -241,11 +242,11 @@ async def get_spam(request: TextRequest):
         )
         return result
 
-    results = process_inputs(process_fn, request.text)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="spam",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -275,11 +276,11 @@ async def get_politics(request: TextRequest):
         )
         return result
 
-    results = process_inputs(process_fn, request.text)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="politics",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -315,7 +316,7 @@ async def get_hate_speech(request: TextRequest):
         return lang_tag
 
     def process_fn(text):
-        lang_name= detect_language(text)
+        lang_name = detect_language(text)
         if lang_name == "Polish":
             predict = globals.hate_speech_polish_pipeline(text)
         else:
@@ -327,11 +328,11 @@ async def get_hate_speech(request: TextRequest):
         )
         return result
 
-    results = process_inputs(process_fn, request.text)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="hateSpeech",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
@@ -359,11 +360,11 @@ async def get_clickbait(request: TextRequest):
         )
         return result
 
-    results = process_inputs(process_fn, request.text)
+    results, generation_time = measure_execution_time(lambda: process_inputs(process_fn, request.text))
 
     return TextResponse(
         kind="clickbait",
-        metadata=Metadata(generated_in=0.0),
+        metadata=Metadata(generated_in=generation_time),
         results=results
     ).json()
 
