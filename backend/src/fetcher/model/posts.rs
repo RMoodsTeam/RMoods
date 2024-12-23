@@ -1,5 +1,5 @@
 use crate::cast;
-use crate::fetcher::feed_request::{DataSource, FetcherFeedRequest};
+use crate::fetcher::feed_request::{DataSource, FetcherDataRequest};
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::model::reddit_data::RedditFeedData;
 use crate::fetcher::reddit::model::{RawContainer, RawPost};
@@ -33,13 +33,13 @@ impl RedditFeedData for Posts {
         Ok(Self { list: posts })
     }
     fn create_reddit_request(
-        request: &FetcherFeedRequest,
+        request: &FetcherDataRequest,
         source: DataSource,
         after: Option<String>,
     ) -> Self::RequestType {
         Self::RequestType {
             subreddit: source.name,
-            sorting: request.sorting,
+            sorting: request.sort_by,
             after,
         }
     }

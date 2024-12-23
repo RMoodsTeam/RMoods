@@ -3,7 +3,7 @@ use crate::app_error::AppError;
 use crate::auth::google::JwtUserInfo;
 use crate::auth::user::GoogleId;
 use crate::db::db_stored::DbStored;
-use crate::fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
+use crate::fetcher::feed_request::{FetcherDataRequest, RedditFeedKind};
 use crate::fetcher::fetcher::RMoodsFetcher;
 use crate::fetcher::model::post_comments::PostComments;
 use crate::fetcher::model::posts::Posts;
@@ -11,7 +11,9 @@ use crate::fetcher::model::reddit_data::RedditFeedData;
 use crate::fetcher::model::user_posts::UserPosts;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_client::NlpClient;
+use crate::nlp::nlp_request::NlpRequest;
 use crate::report::report::{new_report_id, Report, ReportAnalysesMap, ReportMetadata};
+use crate::report::report_request::ReportRequest;
 use crate::report::report_status::ReportStatus;
 use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
@@ -26,12 +28,12 @@ use std::collections::HashMap;
 pub async fn nlp_analysis<T: RedditFeedData>(
     nlp_client: &NlpClient,
     data: T,
-    analysis_kinds: Vec<NlpAnalysisKind>,
+    nlp_request: NlpRequest,
     user_id: GoogleId,
 ) -> Result<Report, AppError> {
     let texts = data.extract_texts();
     let analyses = nlp_client
-        .analyze_parallel(analysis_kinds, &texts)
+        .analyze_parallel(nlp_request, &texts)
         .await?
         .into_iter()
         .collect::<HashMap<_, _>>();
@@ -57,44 +59,44 @@ pub async fn nlp_analysis<T: RedditFeedData>(
 /// 2. Creates an NLP report from the data.
 async fn generate_report<T: RedditFeedData>(
     fetcher: &mut RMoodsFetcher,
-    feed_request: FetcherFeedRequest,
+    report_request: ReportRequest,
     nlp: &NlpClient,
     user_info: &GoogleId,
 ) -> Result<Report, AppError> {
-    let analysis_kinds = feed_request.analyses.clone();
-    let (data, _) = fetcher.fetch_feed::<T>(feed_request).await?;
-    let report = nlp_analysis(nlp, data, analysis_kinds, user_info.clone()).await?;
+    let (data, _) = fetcher.fetch_feed::<T>(report_request.data_request).await?;
+    let report = nlp_analysis(nlp, data, report_request.nlp_request, user_info.clone()).await?;
     Ok(report)
 }
 
 pub async fn generate_report_handler(
     State(mut state): State<AppState>,
     user_info: JwtUserInfo,
-    feed_request: FetcherFeedRequest,
+    report_request: ReportRequest,
 ) -> Result<ReportAck, AppError> {
-    log::debug!("Validating feed request: {:?}", feed_request);
-    feed_request.validate()?;
+    log::debug!("Validating feed request: {:?}", report_request);
+    report_request.data_request.validate()?;
     log::debug!("Feed request is valid");
     log::debug!("Generating report for user: {}", user_info.id);
 
     tokio::spawn(async move {
         let nlp = &state.nlp_client;
-        let report_res = match feed_request.resource_kind {
+        let report_res = match report_request.data_request.resource_kind {
             RedditFeedKind::UserPosts => {
-                generate_report::<UserPosts>(&mut state.fetcher, feed_request, nlp, &user_info.id)
+                generate_report::<UserPosts>(&mut state.fetcher, report_request, nlp, &user_info.id)
                     .await
             }
             RedditFeedKind::PostComments => {
                 generate_report::<PostComments>(
                     &mut state.fetcher,
-                    feed_request,
+                    report_request,
                     nlp,
                     &user_info.id,
                 )
                 .await
             }
             RedditFeedKind::SubredditPosts => {
-                generate_report::<Posts>(&mut state.fetcher, feed_request, nlp, &user_info.id).await
+                generate_report::<Posts>(&mut state.fetcher, report_request, nlp, &user_info.id)
+                    .await
             }
         };
 

@@ -1,10 +1,6 @@
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::request::feed_sorting::FeedSorting;
-use crate::nlp::analysis::NlpAnalysisKind;
-use axum::async_trait;
-use axum::body::Bytes;
-use axum::extract::{FromRequest, Request};
-use http::StatusCode;
+use axum::extract::FromRequest;
 use log_derive::logfn;
 use serde::Deserialize;
 use std::fmt::Debug;
@@ -36,20 +32,18 @@ pub struct DataSource {
 /// Represents a request to fetch a feed from Reddit.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FetcherFeedRequest {
+pub struct FetcherDataRequest {
     /// Determines what kind of feed do we fetch and make a report on.
     pub resource_kind: RedditFeedKind,
-    /// Determines what NLP reports do we want to generate.
-    pub analyses: Vec<NlpAnalysisKind>,
     /// Determines the data sources for the feed.
     pub data_sources: Vec<DataSource>,
     /// Determines how many posts do we want to use to fulfill that report request.
     pub size: u16,
     /// Determines the sorting of the feed.
-    pub sorting: FeedSorting,
+    pub sort_by: FeedSorting,
 }
 
-impl FetcherFeedRequest {
+impl FetcherDataRequest {
     /// Validate a feed request.
     ///
     /// * Data sources cannot be empty.
@@ -131,31 +125,6 @@ impl FetcherFeedRequest {
     }
 }
 
-#[async_trait]
-impl<S> FromRequest<S> for FetcherFeedRequest
-where
-    S: Send + Sync,
-{
-    type Rejection = StatusCode;
-    async fn from_request(request: Request, state: &S) -> Result<Self, Self::Rejection> {
-        log::debug!("Extracting FetcherFeedRequest");
-        let body = match Bytes::from_request(request, state).await {
-            Ok(body) => body,
-            Err(_) => return Err(StatusCode::BAD_REQUEST),
-        };
-        match serde_json::from_slice(&body) {
-            Ok(feed_request) => {
-                log::debug!("Extracted FetcherFeedRequest successfully");
-                Ok(feed_request)
-            }
-            Err(e) => {
-                log::error!("Failed to extract FetcherFeedRequest: {e:?}");
-                Err(StatusCode::BAD_REQUEST)
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     const JSON: &str = r#"
@@ -173,7 +142,7 @@ mod tests {
                 }
             ],
             "size": 10,
-            "sorting": {
+            "sortBy": {
               "kind": "hot"
             }
         }
@@ -181,24 +150,17 @@ mod tests {
 
     #[test]
     fn test_deserialize_feed_request() {
-        let feed_request: super::FetcherFeedRequest = serde_json::from_str(JSON).unwrap();
+        let feed_request: super::FetcherDataRequest = serde_json::from_str(JSON).unwrap();
         assert_eq!(feed_request.resource_kind, super::RedditFeedKind::UserPosts);
-        assert_eq!(
-            feed_request.analyses,
-            vec![
-                super::NlpAnalysisKind::Language,
-                super::NlpAnalysisKind::Sentiment
-            ]
-        );
         assert_eq!(feed_request.data_sources.len(), 2);
         assert_eq!(feed_request.size, 10);
         assert_eq!(
-            feed_request.sorting,
+            feed_request.sort_by,
             crate::fetcher::reddit::request::feed_sorting::FeedSorting::Hot
         );
     }
 
-    fn testing_request() -> super::FetcherFeedRequest {
+    fn testing_request() -> super::FetcherDataRequest {
         serde_json::from_str(JSON).unwrap()
     }
 

@@ -1,4 +1,4 @@
-use crate::fetcher::feed_request::FetcherFeedRequest;
+use crate::fetcher::feed_request::FetcherDataRequest;
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::model::reddit_data::{RedditAboutData, RedditFeedData};
 use crate::fetcher::reddit::ratelimit_headers::RatelimitHeaders;
@@ -37,7 +37,7 @@ impl RMoodsFetcher {
     #[logfn(err = "ERROR", fmt = "Failed to fetch feed: {0}")]
     pub async fn fetch_feed<T: RedditFeedData>(
         &mut self,
-        request: FetcherFeedRequest,
+        request: FetcherDataRequest,
     ) -> Result<(T, u16), FetcherError> {
         info!("Fetching feed: {:?}", request);
 

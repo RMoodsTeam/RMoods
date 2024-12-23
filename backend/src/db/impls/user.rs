@@ -56,7 +56,6 @@ impl DbStoredInner for User {
         )
         .fetch_optional(pool)
         .await?;
-        dbg!(&user);
         Ok(user)
     }
 

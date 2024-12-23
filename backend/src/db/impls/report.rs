@@ -149,8 +149,6 @@ impl FromDb for Report {
             ReportAnalysesMap::from_db_model(map, pool).await?
         };
 
-        dbg!(&model);
-
         let status = ReportStatus::from_booleans(
             model.is_successful,
             model.is_in_progress,
@@ -158,7 +156,7 @@ impl FromDb for Report {
             model.error_message,
         )?;
 
-        let res = Ok(Report {
+        Ok(Report {
             id: model.display_id,
             user_id: model.user_id,
             title: model.title,
@@ -167,11 +165,7 @@ impl FromDb for Report {
             status,
             metadata,
             analyses_map,
-        });
-
-        dbg!(&res);
-
-        res
+        })
     }
 }
 
