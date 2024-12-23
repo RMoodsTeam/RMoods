@@ -5,6 +5,8 @@ import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.params import Depends
+
+from docs.conf import language
 from src.base_models import *
 from src.logger_config import logger
 from src.models_loading import *
@@ -31,7 +33,7 @@ async def lifespan(application: FastAPI):
         raise
 
     models = [
-        "language", "sentiment", "ai_detector", "sarcasm", "spam",
+        "language", "sentiment", "llm", "sarcasm", "spam",
         "political", "hate_speech", "clickbait", "keywords"
     ]
 
@@ -388,9 +390,9 @@ async def get_clickbait(request: TextRequest):
     ).json()
 
 
-@app.post("/ai-detector", response_model=TextResponse,
+@app.post("/llm", response_model=TextResponse,
           dependencies=[Depends(auth.get_api_key)])
-async def get_ai_bots(request: TextRequest):
+async def get_llm(request: TextRequest):
     """
     Detect if the text is written by a AI bot or by human.
 
@@ -398,21 +400,21 @@ async def get_ai_bots(request: TextRequest):
         request (TextRequest): Contains a list of text strings to analyze.
 
     Returns:
-        dict: Troll detection results.
+        dict: Llm detection results.
     """
-    if (gl.ai_detector_pipeline_english is None):
+    if (gl.llm_pipeline_english is None):
         raise HTTPException(status_code=500, detail="Model not loaded")
 
     def process_fn(text):
         text = preprocess_data(text)
-        prediction = gl.ai_detector_pipeline_english(text)
+        prediction = gl.llm_pipeline_english(text)
         confidence = prediction[0]["score"]
         if confidence > 0.5:
-            label="AI"
+            label = "llm"
             confidence = confidence_output(confidence)
         else:
-            label="Human"
-            confidence = confidence_output(1-confidence)
+            label = "human"
+            confidence = confidence_output(1 - confidence)
 
         result = AnalysisResult(
             labels=[label],
@@ -423,9 +425,33 @@ async def get_ai_bots(request: TextRequest):
     results, generation_time = measure_execution_time(
         lambda: process_inputs(process_fn, request.text))
 
-
     return TextResponse(
-        kind="aiDetector",
+        kind="llm",
         metadata=Metadata(generated_in=generation_time),
         results=results
+    ).json()
+
+
+@app.post("/info/langs", response_model=ModelSupportedLanguages,
+          dependencies=[Depends(auth.get_api_key)])
+async def get_languages():
+    """
+    Get languages used in the application.
+
+    Returns:
+        ModelSupportedLanguages: Languages used in the application.
+    """
+    with open("version_models.json", "r") as file:
+        data = json.load(file)
+
+    return ModelSupportedLanguages(
+        sentiment=data.get("sentiment", []),
+        language=data.get("language", []),
+        sarcasm=data.get("sarcasm", []),
+        keywords=data.get("keywords", []),
+        spam=data.get("spam", []),
+        political=data.get("political", []),
+        hateSpeech=data.get("hate_speech", []),
+        clickbait=data.get("clickbait", []),
+        llm=data.get("llm", [])
     ).json()

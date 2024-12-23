@@ -9,4 +9,4 @@ hate_speech_english_pipeline = None
 hate_speech_polish_pipeline = None
 clickbait_pipeline = None
 keyword_model = None
-ai_detector_pipeline_english = None
+llm_pipeline_english = None

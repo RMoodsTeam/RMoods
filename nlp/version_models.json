@@ -1,6 +1,6 @@
 {
   "language": [
-    "english"
+    "all"
   ],
   "sentiment": [
     "english",
@@ -22,7 +22,10 @@
   "clickbait": [
     "english"
   ],
-  "ai_detector": [
+  "llm": [
     "english"
+  ],
+  "keywords": [
+    "all"
   ]
 }

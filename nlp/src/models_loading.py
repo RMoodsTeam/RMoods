@@ -3,10 +3,8 @@ import fasttext
 import src.globals as g
 import src.utils as utils
 
-from transformers import (AutoTokenizer, AutoModelForSequenceClassification, pipeline,
-                          AutoModel)
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 from keybert import KeyBERT
-from sentence_transformers import SentenceTransformer
 
 
 def load_model(model_name: str):
@@ -66,6 +64,6 @@ def load_model(model_name: str):
         elif model_name == "clickbait":
             g.clickbait_pipeline = pipeline("text-classification", model=model,
                                             tokenizer=tokenizer)
-        elif model_name == "ai_detector":
-            g.ai_detector_pipeline_english = pipeline("text-classification",
-                                                   model=model, tokenizer=tokenizer)
+        elif model_name == "llm":
+            g.llm_pipeline_english = pipeline("text-classification",
+                                                      model=model, tokenizer=tokenizer)
