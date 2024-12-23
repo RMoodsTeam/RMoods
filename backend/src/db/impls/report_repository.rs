@@ -1,4 +1,4 @@
-use crate::auth::google::GoogleId;
+use crate::auth::user::GoogleId;
 use crate::db::db_client::DbClient;
 use crate::db::db_error::DbError;
 use crate::db::from_db::FromDb;
@@ -210,7 +210,7 @@ impl ReportRepository for Report {
         AND rm.report_created_at >= $2 AND rm.report_created_at <= $3
         AND {}
         AND r.title LIKE '%$4%'
-        AND (r.is_public = TRUE OR (u.google_sub = $5 AND $6))
+        AND (r.is_public = TRUE OR (u.google_id = $5 AND $6))
         LIMIT $7 OFFSET $8
         "#,
             bind_args.contained_analysis_kinds_clauses

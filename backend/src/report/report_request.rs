@@ -1,5 +1,7 @@
 use crate::fetcher::feed_request::FetcherDataRequest;
 use crate::nlp::nlp_request::NlpRequest;
+use crate::validation::validated::Validated;
+use crate::validation::validation_error::ValidationError;
 use axum::async_trait;
 use axum::body::Bytes;
 use axum::extract::{FromRequest, Request};
@@ -38,5 +40,13 @@ where
                 Err(StatusCode::BAD_REQUEST)
             }
         }
+    }
+}
+
+impl Validated for ReportRequest {
+    fn validate(&self) -> Result<(), ValidationError> {
+        self.data_request.validate()?;
+        self.nlp_request.validate()?;
+        Ok(())
     }
 }

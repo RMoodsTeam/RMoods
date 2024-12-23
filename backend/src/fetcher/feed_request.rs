@@ -1,5 +1,6 @@
-use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::request::feed_sorting::FeedSorting;
+use crate::validation::validated::Validated;
+use crate::validation::validation_error::ValidationError;
 use axum::extract::FromRequest;
 use log_derive::logfn;
 use serde::Deserialize;
@@ -43,7 +44,7 @@ pub struct FetcherDataRequest {
     pub sort_by: FeedSorting,
 }
 
-impl FetcherDataRequest {
+impl Validated for FetcherDataRequest {
     /// Validate a feed request.
     ///
     /// * Data sources cannot be empty.
@@ -55,10 +56,10 @@ impl FetcherDataRequest {
     /// * No data sources for UserPosts and SubredditPosts should have a `post_id`.
     /// * At least one analysis has to be requested.
     #[logfn(err = "ERROR", fmt = "Failed to validate feed request: {0}")]
-    pub fn validate(&self) -> Result<(), FetcherError> {
+    fn validate(&self) -> Result<(), ValidationError> {
         // Check if there are any data sources
         if self.data_sources.is_empty() {
-            return Err(FetcherError::InvalidFeedRequest(
+            return Err(ValidationError::Invalid(
                 "Data sources cannot be empty".to_string(),
             ));
         }
@@ -66,14 +67,14 @@ impl FetcherDataRequest {
         // Check if the sum of all shares is 100
         let sum: u8 = self.data_sources.iter().map(|ds| ds.share).sum();
         if sum != 100 {
-            return Err(FetcherError::InvalidFeedRequest(
+            return Err(ValidationError::Invalid(
                 "The sum of all shares should be 100".to_string(),
             ));
         }
 
         // Disallow any data sources with share = 0
         if self.data_sources.iter().any(|ds| ds.share == 0) {
-            return Err(FetcherError::InvalidFeedRequest(
+            return Err(ValidationError::Invalid(
                 "Data sources should have a share greater than 0".to_string(),
             ));
         }
@@ -85,7 +86,7 @@ impl FetcherDataRequest {
             .iter()
             .any(|ds| ds.name.chars().any(|c| !char_is_legal(c)));
         if names_contain_illegal_chars {
-            return Err(FetcherError::InvalidFeedRequest(
+            return Err(ValidationError::Invalid(
                 "Data source names should only contain alphanumeric characters".to_string(),
             ));
         }
@@ -101,7 +102,7 @@ impl FetcherDataRequest {
                     .any(|c| !c.is_ascii_alphanumeric())
         });
         if post_ids_contain_illegal_chars {
-            return Err(FetcherError::InvalidFeedRequest(
+            return Err(ValidationError::Invalid(
                 "Post IDs should only contain alphanumeric characters".to_string(),
             ));
         }
@@ -109,24 +110,17 @@ impl FetcherDataRequest {
         // Check if data sources are declared correctly
         if self.resource_kind == RedditFeedKind::PostComments {
             if self.data_sources.iter().any(|ds| ds.post_id.is_none()) {
-                return Err(FetcherError::InvalidFeedRequest(
+                return Err(ValidationError::Invalid(
                     "All data sources for PostComments should have a post_id".to_string(),
                 ));
             }
         } else {
             if self.data_sources.iter().any(|ds| ds.post_id.is_some()) {
-                return Err(FetcherError::InvalidFeedRequest(
+                return Err(ValidationError::Invalid(
                     "No data sources for UserPosts and SubredditPosts should have a post_id"
                         .to_string(),
                 ));
             }
-        }
-
-        // Check if at least one analysis has been requested
-        if self.analyses.is_empty() {
-            return Err(FetcherError::InvalidFeedRequest(
-                "At least one analysis has to be requested".to_string(),
-            ));
         }
 
         Ok(())
@@ -135,6 +129,8 @@ impl FetcherDataRequest {
 
 #[cfg(test)]
 mod tests {
+    use crate::validation::validated::Validated;
+
     const JSON: &str = r#"
         {
             "resourceKind": "userPosts",
@@ -273,13 +269,6 @@ mod tests {
                 share: 50,
             },
         ];
-        assert!(feed_request.validate().is_err());
-    }
-
-    #[test]
-    fn test_validate_feed_request_no_analyses() {
-        let mut feed_request = testing_request();
-        feed_request.analyses.clear();
         assert!(feed_request.validate().is_err());
     }
 }

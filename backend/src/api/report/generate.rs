@@ -15,6 +15,7 @@ use crate::nlp::nlp_request::NlpRequest;
 use crate::report::report::{new_report_id, Report, ReportAnalysesMap, ReportMetadata};
 use crate::report::report_request::ReportRequest;
 use crate::report::report_status::ReportStatus;
+use crate::validation::validated::Validated;
 use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
@@ -74,7 +75,7 @@ pub async fn generate_report_handler(
     report_request: ReportRequest,
 ) -> Result<ReportAck, AppError> {
     log::debug!("Validating feed request: {:?}", report_request);
-    report_request.data_request.validate()?;
+    report_request.validate()?;
     log::debug!("Feed request is valid");
     log::debug!("Generating report for user: {}", user_info.id);
 
