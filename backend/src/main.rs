@@ -27,7 +27,10 @@ mod fetcher;
 mod logging;
 mod nlp;
 mod open_api;
+mod report;
 mod startup;
+mod util;
+mod validation;
 mod websocket;
 
 /// State to be shared between all routes.

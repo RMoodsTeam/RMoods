@@ -5,9 +5,11 @@ use serde::Serialize;
 use serde_json::json;
 
 use crate::auth::error::AuthError;
+use crate::db::db_error::DbError;
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::error::RedditError;
 use crate::nlp::error::NlpError;
+use crate::validation::validation_error::ValidationError;
 
 /// Public-facing error kind. Contains an HTTP status code and a message describing the error.
 #[derive(Debug, Getters, Clone, Serialize)]
@@ -88,9 +90,15 @@ impl From<NlpError> for AppError {
     }
 }
 
-impl From<sqlx::Error> for AppError {
-    fn from(_value: sqlx::Error) -> Self {
+impl From<DbError> for AppError {
+    fn from(_value: DbError) -> Self {
         AppError::internal_server_error()
+    }
+}
+
+impl From<ValidationError> for AppError {
+    fn from(value: ValidationError) -> Self {
+        AppError::new(StatusCode::BAD_REQUEST, value.to_string())
     }
 }
 

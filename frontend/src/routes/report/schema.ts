@@ -60,13 +60,18 @@ export const FeedSortingSchema = z
   });
 
 const ReportFormAdaptedSchema = z.object({
-  name: z.string(),
-  resourceKind: FeedKindSchema,
+  title: z.string().min(1).max(50),
+  description: z.string().max(2000),
   isPublic: z.boolean(),
-  size: z.number().min(1).max(500),
-  sorting: FeedSortingSchema,
-  dataSources: z.array(DataSourceSchema),
-  analyses: z.array(z.string()),
+  dataRequest: z.object({
+    resourceKind: FeedKindSchema,
+    size: z.number().min(1).max(500),
+    sortBy: FeedSortingSchema,
+    dataSources: z.array(DataSourceSchema).min(1),
+  }),
+  nlpRequest: z.object({
+    analyses: z.array(z.string()),
+  }),
 });
 
 export const RowWrapperSchema = z.object({
@@ -76,10 +81,19 @@ export const RowWrapperSchema = z.object({
 
 export const FetchSizeSchema = z.string();
 
-export const ReportFormValidationSchema = z.object({
-  name: z.string().min(1, { message: 'Name must be longer than 1 character' }),
-  resourceKind: FeedKindSchema,
+/*
+ * Flattened schema for the form values, later converted to the backend format.
+ */
+export const ReportFormValuesSchema = z.object({
+  title: z
+    .string()
+    .min(1, { message: "Title can't be empty" })
+    .max(50, "Title can't be longer than 50 characters"),
+  description: z.string().max(2000, {
+    message: "Description can't be longer than 2000 characters",
+  }),
   isPublic: z.enum(['true', 'false']),
+  resourceKind: FeedKindSchema,
   size: FetchSizeSchema, // string due to form api constraints
   sortBy: FeedSortingKindSchema,
   time: FeedSortingTimeSchema.nullable(),
@@ -96,7 +110,7 @@ const ReportResponseSchema = z.object({
 
 export type MantineReportForm = UseFormReturnType<ReportFormValues>;
 export type ReportResponse = z.infer<typeof ReportResponseSchema>;
-export type ReportFormValues = z.infer<typeof ReportFormValidationSchema>;
+export type ReportFormValues = z.infer<typeof ReportFormValuesSchema>;
 export type RowWrapper = z.infer<typeof RowWrapperSchema>;
 export type ReportFormAdaptedValues = z.infer<typeof ReportFormAdaptedSchema>;
 export type FeedKind = z.infer<typeof FeedKindSchema>;
