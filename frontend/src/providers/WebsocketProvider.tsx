@@ -3,13 +3,14 @@ import { useAtom } from 'jotai';
 import { useEffect, useRef } from 'react';
 import { wsConnectionStatusAtom } from '../atoms.ts';
 import { handleMessage } from '../routes/report/websocketMethods.tsx';
+import BACKEND_URL from '../constants/backendUrl.ts';
 
 const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   const connection = useRef<WebSocket | null>(null);
   const [, setWsConnectionStatus] = useAtom(wsConnectionStatusAtom);
   useEffect(() => {
     const ws = new WebSocket(
-      `ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
+      `ws://${BACKEND_URL}/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
     );
 
     ws.onmessage = handleMessage;
