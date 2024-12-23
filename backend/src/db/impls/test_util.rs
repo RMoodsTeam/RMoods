@@ -5,7 +5,7 @@
 use crate::auth::user::{GoogleId, User};
 use crate::report::report::{Report, ReportAnalysesMap, ReportMetadata};
 use crate::report::report_status::ReportStatus;
-use chrono::Utc;
+use crate::util::get_utc_timestamp;
 use std::collections::HashMap;
 
 pub(super) fn get_test_user() -> User {
@@ -29,8 +29,8 @@ pub(super) fn get_test_report(title: String, user_id: GoogleId) -> Report {
         is_public: false,
         status: ReportStatus::InProgress,
         metadata: ReportMetadata {
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
+            created_at: get_utc_timestamp(),
+            updated_at: get_utc_timestamp(),
         },
         analyses_map: ReportAnalysesMap {
             analyses: HashMap::new(),

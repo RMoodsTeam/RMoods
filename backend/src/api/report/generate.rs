@@ -15,6 +15,7 @@ use crate::nlp::nlp_request::NlpRequest;
 use crate::report::report::{new_report_id, Report, ReportAnalysesMap, ReportMetadata};
 use crate::report::report_request::ReportRequest;
 use crate::report::report_status::ReportStatus;
+use crate::util::get_utc_timestamp;
 use crate::validation::validated::Validated;
 use crate::websocket::SystemMessage;
 use crate::websocket::SystemMessage::ReportError;
@@ -46,8 +47,8 @@ pub async fn nlp_analysis<T: RedditFeedData>(
         is_public: true,
         status: ReportStatus::InProgress,
         metadata: ReportMetadata {
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
+            created_at: get_utc_timestamp(),
+            updated_at: get_utc_timestamp(),
         },
         analyses_map: ReportAnalysesMap { analyses },
     };

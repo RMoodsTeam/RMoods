@@ -6,6 +6,7 @@ use crate::db::model::DbReport;
 use crate::db::pagination::DbPagination;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::report::report::Report;
+use crate::util::get_utc_timestamp;
 use axum::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::Deserialize;
@@ -150,7 +151,7 @@ impl ReportQuery {
         let start_date = self
             .start_date
             .unwrap_or(NaiveDateTime::UNIX_EPOCH.and_utc());
-        let end_date = self.end_date.unwrap_or(Utc::now());
+        let end_date = self.end_date.unwrap_or(get_utc_timestamp());
         let title_pattern = self.title_pattern.unwrap_or("".to_string());
 
         ReportQueryBindArgs {
@@ -298,7 +299,7 @@ mod tests {
 
     #[test]
     fn test_into_where_clauses_date_range() {
-        let now = Utc::now();
+        let now = get_utc_timestamp();
         let query = ReportQuery {
             start_date: Some(now - chrono::Duration::days(1)),
             end_date: Some(now),
@@ -312,7 +313,7 @@ mod tests {
 
     #[test]
     fn test_into_where_clauses_date_range_empty() {
-        let now = Utc::now();
+        let now = get_utc_timestamp();
         let query = ReportQuery::default();
         let args = query.into_bind_args();
 
@@ -377,8 +378,8 @@ mod tests {
                     NlpAnalysisKind::Sentiment,
                     NlpAnalysisKind::HateSpeech,
                 ],
-                start_date: Some(Utc::now() - chrono::Duration::days(3)),
-                end_date: Some(Utc::now()),
+                start_date: Some(get_utc_timestamp() - chrono::Duration::days(3)),
+                end_date: Some(get_utc_timestamp()),
                 title_pattern: Some("test".to_string()),
                 include_my_reports: true,
                 pagination: DbPagination::new(0, 10),

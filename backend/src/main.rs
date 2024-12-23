@@ -29,6 +29,7 @@ mod nlp;
 mod open_api;
 mod report;
 mod startup;
+mod util;
 mod validation;
 mod websocket;
 
