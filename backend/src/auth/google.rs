@@ -1,6 +1,7 @@
 use crate::auth::error::AuthError;
 use crate::auth::jwt::decode_jwt;
 use crate::auth::middleware::jwt_from_header_or_uri;
+use crate::auth::user::{GoogleId, User};
 use axum::async_trait;
 use axum::extract::FromRequestParts;
 use derive_getters::Getters;
@@ -19,23 +20,6 @@ pub struct GoogleTokenResponse {
     token_type: String,
     id_token: String,
 }
-
-#[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
-pub struct User {
-    /// Unique user ID
-    #[serde(rename = "sub")]
-    #[sqlx(rename = "google_id")]
-    pub id: String,
-    pub name: String,
-    pub given_name: String,
-    pub family_name: Option<String>,
-    /// URL to the user's picture
-    pub picture: String,
-    pub email: String,
-    pub email_verified: bool,
-}
-
-pub type GoogleId = String;
 
 #[derive(Serialize, Deserialize, Getters, Clone, Debug)]
 pub struct JwtUserInfo {

@@ -1,4 +1,5 @@
 use crate::fetcher::reddit::error::RedditError;
+use crate::validation::validation_error::ValidationError;
 use thiserror::Error;
 
 /// Describe the possible errors that can occur while fetching data from Reddit.
@@ -16,5 +17,5 @@ pub enum FetcherError {
     /// Error while validating the feed request.
     /// This is used to signal that the request is invalid.
     #[error("Invalid feed request: {0}")]
-    InvalidFeedRequest(String),
+    InvalidFeedRequest(#[from] ValidationError),
 }
