@@ -2,8 +2,12 @@ import {
   Box,
   Button,
   Card,
+  Center,
   Group,
+  JsonInput,
   Select,
+  Stack,
+  Text,
   Textarea,
   Title,
 } from '@mantine/core';
@@ -12,10 +16,11 @@ import { PageFallback } from '../PageFallback.tsx';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import authFetch from '../../rmoods/client/authFetch';
+import { IconAlertCircle } from '@tabler/icons-react';
 
 const fetchNlpResponse = async (text, analysis) => {
   const response = await authFetch(
-    `http://localhost:8001/api/playground?analysis=${analysis}`,
+    `http://localhost:8001/api/sandbox?analysis=${analysis}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -34,66 +39,87 @@ const NlpSandbox = () => {
   const [text, setText] = useState('');
   const [analysis, setAnalysis] = useState('language');
   const [result, setResult] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: (variables: { text: string; analysis: string }) =>
       fetchNlpResponse(variables.text, variables.analysis),
-    onSuccess: (data) => setResult(JSON.stringify(data, null, 2)),
-    onError: (error) => setResult(`Error: ${error.message}`),
+    onSuccess: (data) => {
+      setResult(JSON.stringify(data, null, 2));
+      setError(null);
+    },
+    onError: (error) => setError(error.message),
   });
 
   const handleAnalyze = () => {
     if (!text.trim()) {
-      setResult('Error: Input text cannot be empty.');
+      setError('Input text cannot be empty.');
       return;
     }
     mutation.mutate({ text, analysis });
   };
 
   return (
-    <Box w="100%" p="md">
-      <Title order={1} mb="lg">
-        NLP Sandbox
-      </Title>
-      <Group grow align="stretch" h="calc(100% - 60px)">
-        <Card shadow="sm" p="md">
-          <Textarea
-            label="Enter text to analyze"
-            placeholder="Type or paste your text here..."
-            mb="md"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-          <Select
-            label="Analysis type"
-            data={[
-              { value: 'language', label: 'Language Detection' },
-              { value: 'sentiment', label: 'Sentiment Analysis' },
-              { value: 'sarcasm', label: 'Sarcasm Detection' },
-              { value: 'spam', label: 'Spam Detection' },
-              { value: 'politics', label: 'Political Bias' },
-              { value: 'hate_speech', label: 'Hate Speech' },
-              { value: 'clickbait', label: 'Clickbait Detection' },
-              { value: 'keywords', label: 'Keywords Extraction' },
-            ]}
-            mb="md"
-            value={analysis}
-            onChange={(value) => setAnalysis(value || 'language')}
-          />
-          <Button onClick={handleAnalyze} disabled={mutation.isPending}>
-            {mutation.isPending ? 'Analyzing...' : 'Analyze'}
-          </Button>
+    <Box>
+      <Stack>
+        <Title order={1}>NLP Sandbox</Title>
+        <Card>
+          <Stack>
+            <Text>
+              You can try out all of RMoods NLP models here. You'll see raw
+              responses, which during report generation are aggregated and
+              analyzed to provide a high-level overview of the data you've
+              requested!
+            </Text>
+            <Group grow align="stretch">
+              <Stack>
+                <Textarea
+                  placeholder="Type or paste your text here"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  autosize
+                  minRows={14}
+                  maxRows={14}
+                />
+                <Select
+                  label="Analysis"
+                  data={[
+                    { value: 'language', label: 'Language Detection' },
+                    { value: 'sentiment', label: 'Sentiment Analysis' },
+                    { value: 'sarcasm', label: 'Sarcasm Detection' },
+                    { value: 'spam', label: 'Spam Detection' },
+                    { value: 'politics', label: 'Political Bias' },
+                    { value: 'hateSpeech', label: 'Hate Speech' },
+                    { value: 'clickbait', label: 'Clickbait Detection' },
+                    { value: 'keywords', label: 'Keywords Extraction' },
+                  ]}
+                  value={analysis}
+                  onChange={(value) => setAnalysis(value || 'language')}
+                />
+                <Button onClick={handleAnalyze} disabled={mutation.isPending}>
+                  {mutation.isPending ? 'Analyzing...' : 'Analyze'}
+                </Button>
+              </Stack>
+              {error ? (
+                <Center>
+                  <Stack>
+                    <Center>
+                      <IconAlertCircle size={48} color="red" />
+                    </Center>
+                    <Center>
+                      <Text size="sm" color="red">
+                        {error}
+                      </Text>
+                    </Center>
+                  </Stack>
+                </Center>
+              ) : (
+                <JsonInput autosize value={result} minRows={20} />
+              )}
+            </Group>
+          </Stack>
         </Card>
-        <Card shadow="sm" p="md">
-          <Textarea
-            label="Results"
-            placeholder="Analysis results will appear here..."
-            mb="md"
-            readOnly
-            value={result}
-          />
-        </Card>
-      </Group>
+      </Stack>
     </Box>
   );
 };

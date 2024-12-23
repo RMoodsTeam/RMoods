@@ -3,7 +3,7 @@ use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::NlpAnalysis;
 use crate::AppState;
 use axum::extract::{Query, State};
-use axum::{debug_handler, Json};
+use axum::Json;
 use log_derive::logfn;
 use serde::Deserialize;
 
@@ -17,7 +17,6 @@ pub struct PlaygroundBody {
     text: String,
 }
 
-#[debug_handler]
 #[logfn(err = "ERROR", fmt = "Failed to analyze text in playground: {:?}")]
 pub async fn playground(
     State(state): State<AppState>,
