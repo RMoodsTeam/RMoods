@@ -1,50 +1,93 @@
-# Styling standards
-This file contains the styling  standards for the project's frontend.
+# Frontend Styling Standards
 
-## CSS preprocessor and postprocessor
-We have to remember that we use preprocessor and postprocessor (Sass and PostCSS). That means that module files should end in `.scss` and not `.css`. We also have a few predefined functions (src/_mantine.scss)
+## Core Configuration
 
-## No inline styles
-Using `styles` prop is not allowed. Any CSS style that is applied to a component should be a defined prop in the component's documentation. See next section for how to style components.
+### Preprocessor Setup
+- **Primary**: Sass (`.scss`)
+- **Secondary**: PostCSS
+- **Utility Functions**: Available in `src/_mantine.scss`
 
-## Module CSS
-Any CSS written should be in a module file next to the `.tsx` file. Those two files should be contained in a directory with the same name so an example structure would be:
+## File Structure
 ```
-src/
-  components/
-    Button/
-      Button.tsx
-      Button.module.scss
+component/  
+├── ComponentName/  
+│   ├── ComponentName.tsx  
+│   └── ComponentName.module.scss
+```
+## Routes Structure
+```
+routes/  
+├── routeName/  
+│   └── page.tsx  
+└── ui/  
+  └── ComponentName/  
+  ├── ComponentName.tsx  
+  └── ComponentName.module.scss  
 ```
 
-## Naming conventions
-As we are using CSS modules, we don't need to worry about class name collisions. We should stick to KISS principle and use simple class names. Names should be a single word, lowercase and using camelCase in case of multiple words. For example:
+## Implementation Guidelines
+
+### CSS Modules
+```typescript jsx
+// ComponentName.tsx
+import classes from './ComponentName.module.scss';
+
+export function ComponentName() {
+  return <Box className={classes.container}>...</Box>;
+}
+// ComponentName.module.scss
+.container {
+// styles
+}
+```
+### Class Naming
 ```css
-.button {
-  background-color: red;
-}
+// ✅ Correct
+.container {}
+.buttonPrimary {}
+.navItem {}
 
-.buttonPrimary {
-  background-color: blue;
-}
+// ❌ Incorrect
+.Container {}
+.button-primary {}
+.nav_item {}
 ```
 
-## Importing CSS
-When importing `.module.scss` file in a `.tsx` file, the import should look like this:
-```tsx
-import classes from './Button.module.scss';
+### Styling Hierarchy
+
+- CSS Modules (Preferred)
+- Mantine Props (For basic properties or non-obvious styling)
+- Inline Styles (Prohibited)
+
+### Mantine Usage
+```typescript jsx
+// ✅ Correct (only if the prop has a specified name in the component's documentation)
+<Button gap='md'/>
+
+// ❌ Incorrect
+<Button styles={{ root: { backgroundColor: 'blue' }}} />
 ```
 
-## Structure in `/routes` direcrory
-In `/routes` directory components that are related to the route but are not the page itself have to be in a `/ui` directory. For example:
+## Technical Requirements
+
+### File Extensions
+Every style file should end with `.module.scss`
+
+### Import Conventions
 ```
-src/
-  routes/
-    login/
-      page.tsx
-    ui/
-      Button/
-      Button.tsx
-      Button.module.scss
+// Every styles import should be named 'classes'
+import classes from './ComponentName.module.scss';
 ```
 
+### Module Resolution
+
+- All style modules must be typed
+- Use relative paths for component-specific imports
+- Use absolute paths for shared resources
+
+## Prohibited Practices
+- Direct usage of .css files
+- Inline styles via style prop
+- Non-modular CSS
+- Global styles (except for root-level configuration)
+- Style prop usage in Mantine components
