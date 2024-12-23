@@ -85,9 +85,12 @@ export const FetchSizeSchema = z.string();
  * Flattened schema for the form values, later converted to the backend format.
  */
 export const ReportFormValuesSchema = z.object({
-  title: z.string().min(1, { message: 'Title cannot be empty' }),
+  title: z
+    .string()
+    .min(1, { message: "Title can't be empty" })
+    .max(50, "Title can't be longer than 50 characters"),
   description: z.string().max(2000, {
-    message: 'Description must be shorter than 2000 characters',
+    message: "Description can't be longer than 2000 characters",
   }),
   isPublic: z.enum(['true', 'false']),
   resourceKind: FeedKindSchema,

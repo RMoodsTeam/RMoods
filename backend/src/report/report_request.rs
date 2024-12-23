@@ -45,6 +45,18 @@ where
 
 impl Validated for ReportRequest {
     fn validate(&self) -> Result<(), ValidationError> {
+        if self.title.len() > 50 {
+            return Err(ValidationError::Invalid(
+                "Report title can't be longer than 50 characters".to_string(),
+            ));
+        }
+
+        if self.description.len() > 2000 {
+            return Err(ValidationError::Invalid(
+                "Report description can't be longer than 2000 characters".to_string(),
+            ));
+        }
+
         self.data_request.validate()?;
         self.nlp_request.validate()?;
         Ok(())
