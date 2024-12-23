@@ -1,3 +1,4 @@
+use crate::auth::google::GoogleId;
 use crate::db::db_client::DbClient;
 use crate::db::db_error::DbError;
 use crate::db::from_db::FromDb;
@@ -52,6 +53,11 @@ pub struct ReportQuery {
     /// The query will return reports where the title contains this string. It's used as `LIKE %<pattern>%`.
     #[serde(rename = "title")]
     pub title_pattern: Option<String>,
+
+    /// Whether include reports belonging to the requesting user.
+    #[serde(rename = "mine")]
+    pub include_my_reports: bool,
+
     /// Pagination parameters for the query.
     ///
     /// If not provided, the default values are used: page 1, 30 items per page.
@@ -67,6 +73,7 @@ impl Default for ReportQuery {
             start_date: None,
             end_date: None,
             title_pattern: None,
+            include_my_reports: false,
             pagination: DbPagination::default(),
         }
     }
@@ -111,6 +118,8 @@ struct ReportQueryBindArgs {
     ///
     /// If not provided in the query, it's an empty string. It's used as `LIKE %<pattern>%`.
     title_pattern: String,
+    /// Whether to only fetch reports belonging to the requesting user.
+    include_my_reports: bool,
 }
 
 impl ReportQuery {
@@ -122,7 +131,7 @@ impl ReportQuery {
     /// For example, if the username pattern is not provided, it's an empty string, which will match any username.
     /// Another example: the date range, where if it's not provided, the start date is the UNIX epoch and the end date is the current date and time, which will match any report.
     fn into_bind_args(self) -> ReportQueryBindArgs {
-        let user_name_pattern = self.user_name_pattern.unwrap_or(String::new());
+        let user_name_pattern = self.user_name_pattern.unwrap_or("".to_string());
         let contained_analysis_kinds_clauses = if self.contained_analysis_kinds.is_empty() {
             "1=1".to_string()
         } else {
@@ -150,6 +159,7 @@ impl ReportQuery {
             start_date,
             end_date,
             title_pattern,
+            include_my_reports: self.include_my_reports,
         }
     }
 }
@@ -159,7 +169,11 @@ impl ReportQuery {
 /// Specifies methods for fetching reports from the database.
 #[async_trait]
 pub trait ReportRepository: Sized {
-    async fn get_by_query(query: ReportQuery, db: &DbClient) -> Result<Vec<Self>, DbError>;
+    async fn get_by_query(
+        query: ReportQuery,
+        requesting_user_id: GoogleId,
+        db: &DbClient,
+    ) -> Result<Vec<Self>, DbError>;
 }
 
 #[async_trait]
@@ -176,7 +190,11 @@ impl ReportRepository for Report {
     /// It's safe, because the kinds are passed as a [Vec] of [NlpAnalysisKind]s, which are validated by `serde` deserialization.
     ///
     /// **Any changes to this function need to be carefully reviewed to prevent SQL injection.**
-    async fn get_by_query(query: ReportQuery, db: &DbClient) -> Result<Vec<Self>, DbError> {
+    async fn get_by_query(
+        query: ReportQuery,
+        requesting_user_id: GoogleId,
+        db: &DbClient,
+    ) -> Result<Vec<Self>, DbError> {
         let (limit, offset) = query.pagination.clone().into_limit_and_offset();
 
         let bind_args = query.into_bind_args();
@@ -192,7 +210,8 @@ impl ReportRepository for Report {
         AND rm.report_created_at >= $2 AND rm.report_created_at <= $3
         AND {}
         AND r.title LIKE '%$4%'
-        LIMIT $5 OFFSET $6
+        AND (r.is_public = TRUE OR (u.google_sub = $5 AND $6))
+        LIMIT $7 OFFSET $8
         "#,
             bind_args.contained_analysis_kinds_clauses
         );
@@ -202,6 +221,8 @@ impl ReportRepository for Report {
             .bind(bind_args.start_date)
             .bind(bind_args.end_date)
             .bind(bind_args.title_pattern)
+            .bind(requesting_user_id)
+            .bind(bind_args.include_my_reports)
             .bind(limit)
             .bind(offset)
             .fetch_all(db.raw_db())
@@ -333,8 +354,10 @@ mod tests {
                 start_date: None,
                 end_date: None,
                 title_pattern: None,
+                include_my_reports: false,
                 pagination: DbPagination::default(),
             },
+            GoogleId::from("test".to_string()),
             &db,
         )
         .await
@@ -357,8 +380,10 @@ mod tests {
                 start_date: Some(Utc::now() - chrono::Duration::days(3)),
                 end_date: Some(Utc::now()),
                 title_pattern: Some("test".to_string()),
+                include_my_reports: true,
                 pagination: DbPagination::new(0, 10),
             },
+            GoogleId::from("test".to_string()),
             &db,
         )
         .await

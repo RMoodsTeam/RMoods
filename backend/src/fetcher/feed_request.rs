@@ -53,6 +53,7 @@ impl FetcherDataRequest {
     /// * Post IDs should only contain alphanumeric characters.
     /// * All data sources for PostComments should have a `post_id`.
     /// * No data sources for UserPosts and SubredditPosts should have a `post_id`.
+    /// * At least one analysis has to be requested.
     #[logfn(err = "ERROR", fmt = "Failed to validate feed request: {0}")]
     pub fn validate(&self) -> Result<(), FetcherError> {
         // Check if there are any data sources
@@ -119,6 +120,13 @@ impl FetcherDataRequest {
                         .to_string(),
                 ));
             }
+        }
+
+        // Check if at least one analysis has been requested
+        if self.analyses.is_empty() {
+            return Err(FetcherError::InvalidFeedRequest(
+                "At least one analysis has to be requested".to_string(),
+            ));
         }
 
         Ok(())
@@ -265,6 +273,13 @@ mod tests {
                 share: 50,
             },
         ];
+        assert!(feed_request.validate().is_err());
+    }
+
+    #[test]
+    fn test_validate_feed_request_no_analyses() {
+        let mut feed_request = testing_request();
+        feed_request.analyses.clear();
         assert!(feed_request.validate().is_err());
     }
 }
