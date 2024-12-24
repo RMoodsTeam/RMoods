@@ -32,9 +32,10 @@ mod tests {
             return fetcher;
         }
 
+        dotenvy::dotenv().ok();
         let http = get_http();
         let fetcher = Mutex::new(RMoodsFetcher::new(http.clone()).await.unwrap());
-        FETCHER.set(fetcher).unwrap();
+        FETCHER.set(fetcher).ok();
         FETCHER.get().unwrap()
     }
 
@@ -57,10 +58,11 @@ mod tests {
     async fn fetch_about_nonexistent_user() {
         let fetcher = get_fetcher().await;
         let mut fetcher_lock = fetcher.lock().await;
+
         let request = UserAboutRequest {
             username: random_string(20),
         };
-        let user = fetcher.fetch_about::<UserAbout>(request).await;
+        let user = fetcher_lock.fetch_about::<UserAbout>(request).await;
         assert!(user.is_err());
     }
 
@@ -71,7 +73,7 @@ mod tests {
         let request = SubredditAboutRequest {
             subreddit: "programming".to_string(),
         };
-        let sub = fetcher
+        let sub = fetcher_lock
             .fetch_about::<SubredditAbout>(request)
             .await
             .unwrap();
@@ -85,7 +87,7 @@ mod tests {
         let request = SubredditAboutRequest {
             subreddit: random_string(20),
         };
-        let sub = fetcher.fetch_about::<SubredditAbout>(request).await;
+        let sub = fetcher_lock.fetch_about::<SubredditAbout>(request).await;
         assert!(sub.is_err());
     }
     // TODO: Feed fetching tests
