@@ -1,15 +1,12 @@
-import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Menu } from '@mantine/core';
-import authFetch from '../../../../rmoods/client/authFetch.ts';
-import { jwtDecode } from 'jwt-decode';
-import { JwtClaims } from '../../../../rmoods/jwt.ts';
 import { changeDefaultGoogleProfilePictureSize } from '../../../../utility/changeDefaultGoogleProfilePictureSize.ts';
-import { useQuery } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
 import { UserMenuFallback } from './UserMenuFallback.tsx';
 import { logout } from '../../../../utility/logout.ts';
 import classes from './UserMenu.module.scss';
+import { useAtomValue } from 'jotai';
+import { userInfoAtom } from '../../../../atoms.ts';
 
 /**
  * User interface representing the user data.
@@ -46,18 +43,11 @@ const fetchUserData = async (): Promise<User> => {
 const UserMenu = () => {
   const navigate = useNavigate();
 
-  const { data, error } = useQuery<User, Error>({
-    queryKey: ['userData'],
-    queryFn: fetchUserData,
-  });
-
-  if (error) {
-    throw new Error('Failed to fetch user data');
-  }
+  const userInfo = useAtomValue(userInfoAtom);
 
   const size = 45;
-  const resizedPicture = data?.picture
-    ? changeDefaultGoogleProfilePictureSize(data.picture, size)
+  const resizedPicture = userInfo?.picture
+    ? changeDefaultGoogleProfilePictureSize(userInfo.picture, size)
     : '';
 
   return (

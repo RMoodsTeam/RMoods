@@ -92,7 +92,10 @@ async fn run() -> anyhow::Result<()> {
     };
 
     // Allow browsers to use GET and PUT from any origin
-    let cors = CorsLayer::new().allow_origin(Any).allow_headers(Any);
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_headers(Any)
+        .allow_methods(Any);
 
     // Add logging
     let tracing = TraceLayer::new_for_http();
