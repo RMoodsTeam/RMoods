@@ -1966,6 +1966,7 @@ dependencies = [
  "log",
  "log-derive",
  "nanoid",
+ "once_cell",
  "rand",
  "reqwest",
  "serde",
