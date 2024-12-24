@@ -1,7 +1,7 @@
 use crate::app_error::AppError;
 use crate::auth::google::JwtUserInfo;
 use crate::db::impls::report_repository::{ReportQuery, ReportRepository};
-use crate::nlp::report::Report;
+use crate::report::report::Report;
 use crate::AppState;
 use axum::extract::State;
 use axum::Json;

@@ -1,5 +1,5 @@
-use crate::auth::google::GoogleId;
-use crate::nlp::report::ReportId;
+use crate::auth::user::GoogleId;
+use crate::report::report::ReportId;
 use chrono::{DateTime, Utc};
 use serde_json::Value;
 use sqlx::types::Uuid;
@@ -21,16 +21,21 @@ pub(super) struct DbUser {
     updated_at: DateTime<Utc>,
 }
 
-/// Represents a [Report](crate::nlp::report::Report)
-#[derive(sqlx::FromRow)]
+/// Represents a [Report](crate::report::report::Report)
+#[derive(sqlx::FromRow, Debug)]
 pub(super) struct DbReport {
     pub(super) id: Uuid,
     //
     pub(super) display_id: ReportId,
+    #[sqlx(rename = "google_id")]
     pub(super) user_id: GoogleId,
     pub(super) title: String,
     pub(super) description: String,
     pub(super) is_public: bool,
+    pub(super) is_successful: bool,
+    pub(super) is_in_progress: bool,
+    pub(super) is_error: bool,
+    pub(super) error_message: Option<String>,
     pub(super) metadata_id: Uuid,
     pub(super) analyses_map_id: Uuid,
     //
@@ -38,7 +43,7 @@ pub(super) struct DbReport {
     pub(super) updated_at: DateTime<Utc>,
 }
 
-/// Represents [ReportMetadata](crate::nlp::report::ReportMetadata) of a report.
+/// Represents [ReportMetadata](crate::report::report::ReportMetadata) of a report.
 #[derive(sqlx::FromRow)]
 pub(super) struct DbReportMetadata {
     pub(super) id: Uuid,
@@ -50,7 +55,7 @@ pub(super) struct DbReportMetadata {
     pub(super) updated_at: DateTime<Utc>,
 }
 
-/// Represents the hashmap of analyses from a [Report](crate::nlp::report::Report).
+/// Represents the hashmap of analyses from a [Report](crate::report::report::Report).
 #[derive(sqlx::FromRow)]
 pub(super) struct DbReportAnalysesMap {
     pub(super) id: Uuid,

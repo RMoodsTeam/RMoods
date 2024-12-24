@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT google_sub as \"id: String\", name, given_name, family_name, picture, email, email_verified\n            FROM users\n            WHERE google_sub = $1\n            ",
+  "query": "\n            SELECT google_id as \"id: String\", name, given_name, family_name, picture, email, email_verified\n            FROM users\n            WHERE google_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -54,5 +54,5 @@
       false
     ]
   },
-  "hash": "67973dd1d6532d7bc02b3c6b5624d26cd16a121f87088182f3d655d7acc737f9"
+  "hash": "6b65732364b37fcd807322595a7329b7e1f50ac5b11318d7f275b05fdfd039fe"
 }

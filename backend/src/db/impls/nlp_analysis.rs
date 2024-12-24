@@ -1,15 +1,16 @@
+use crate::db::db_error::DbError;
 use crate::db::db_stored::DbStoredDependentlyInner;
 use crate::db::from_db::FromDb;
 use crate::db::model::{DbNlpAnalysis, DbNlpMetadata};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
 use axum::async_trait;
-use sqlx::{Error, PgPool, Postgres, Transaction};
+use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 #[async_trait]
 impl DbStoredDependentlyInner for NlpAnalysis {
-    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<Uuid, Error> {
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<Uuid, DbError> {
         let metadata_uuid = self.metadata.inner_save(tx).await?;
         let id = sqlx::query!(
             r#"
@@ -31,7 +32,7 @@ impl DbStoredDependentlyInner for NlpAnalysis {
 #[async_trait]
 impl FromDb for NlpAnalysis {
     type DbModel = DbNlpAnalysis;
-    async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, Error> {
+    async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, DbError> {
         let nlp_metadata = sqlx::query_as!(
             DbNlpMetadata,
             r#"SELECT * FROM nlp_metadata WHERE id = $1"#,

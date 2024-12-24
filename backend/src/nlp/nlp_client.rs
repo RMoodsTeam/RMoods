@@ -1,6 +1,7 @@
 use crate::env::{NLP_API_KEY, NLP_URL};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::error::NlpError;
+use crate::nlp::nlp_request::NlpRequest;
 use crate::nlp::nlp_response::NlpAnalysis;
 use log_derive::logfn;
 use serde_json::Value;
@@ -14,7 +15,7 @@ pub struct NlpClient {
 }
 
 #[derive(Serialize, Debug)]
-struct NlpRequest {
+struct NlpServiceRequest {
     text: Vec<String>,
 }
 
@@ -69,7 +70,7 @@ impl NlpClient {
 
         log::debug!("Handling only first 10 inputs. Truncating each input to 100 characters.");
         // TODO: Add parallel processing for large inputs, input sampling
-        let nlp_request = NlpRequest {
+        let nlp_request = NlpServiceRequest {
             text: truncate_inputs(input, 100),
         };
 
@@ -88,10 +89,11 @@ impl NlpClient {
 
     pub async fn analyze_parallel(
         &self,
-        analysis_kinds: Vec<NlpAnalysisKind>,
+        nlp_request: NlpRequest,
         input: &Vec<String>,
     ) -> Result<Vec<(NlpAnalysisKind, NlpAnalysis)>, NlpError> {
-        let futures = analysis_kinds
+        let futures = nlp_request
+            .analyses
             .clone()
             .into_iter()
             .map(|kind| self.analyze(kind, input))
@@ -102,7 +104,8 @@ impl NlpClient {
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(analysis_kinds
+        Ok(nlp_request
+            .analyses
             .into_iter()
             .zip(analyses.into_iter())
             .collect())
