@@ -9,7 +9,7 @@ const LeftNavItems = () => {
       <Anchor component={Link} to="/" id="main-button">
         Main
       </Anchor>
-      <Anchor component={Link} to="/about">
+      <Anchor component={Link} to="/about/faq">
         About
       </Anchor>
       <Anchor component={Link} to="/dashboard">
