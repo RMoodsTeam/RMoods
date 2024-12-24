@@ -1,6 +1,7 @@
 use crate::app_error::AppError;
-use crate::auth::google::{GoogleId, JwtUserInfo};
-use crate::nlp::report::ReportId;
+use crate::auth::google::JwtUserInfo;
+use crate::auth::user::GoogleId;
+use crate::report::report::ReportId;
 use crate::AppState;
 use axum::extract::{ConnectInfo, State, WebSocketUpgrade};
 use axum::response::IntoResponse;

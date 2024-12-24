@@ -12,9 +12,8 @@ $$ LANGUAGE 'plpgsql';
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS users (
-    id             uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
+    google_id      TEXT        NOT NULL UNIQUE,
     --
-    google_sub     TEXT        NOT NULL UNIQUE,
     name           TEXT        NOT NULL,
     given_name     TEXT        NOT NULL,
     family_name    TEXT,
@@ -120,19 +119,35 @@ CREATE TABLE IF NOT EXISTS reports (
     id              uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     --
     display_id      TEXT        NOT NULL UNIQUE,
-    user_id         uuid        NOT NULL,
+    user_id         TEXT        NOT NULL,               -- TEXT because it's a Google ID, not a UUID
     title           TEXT        NOT NULL,
     description     TEXT        NOT NULL,
     is_public       BOOLEAN     NOT NULL,
+    is_successful   BOOLEAN     NOT NULL,
+    is_in_progress  BOOLEAN     NOT NULL,
+    is_error        BOOLEAN     NOT NULL,
+    error_message   TEXT                 DEFAULT NULL,
     metadata_id     uuid        NOT NULL UNIQUE,
     analyses_map_id uuid        NOT NULL UNIQUE,
     --
     created_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (user_id) REFERENCES users (id), -- DO NOT CASCADE
+    CONSTRAINT report_state_error_always_has_message
+        CHECK
+            ((is_error = TRUE AND error_message IS NOT NULL) OR
+             (is_error = FALSE AND error_message IS NULL)),
+
+    -- xor checks, only one of those state columns can be true
+    CONSTRAINT report_state_xor
+        CHECK ((is_successful AND NOT is_error AND NOT is_in_progress) OR
+               (NOT is_successful AND is_error AND NOT is_in_progress) OR
+               (NOT is_successful AND NOT is_error AND is_in_progress)),
+
+    FOREIGN KEY (user_id) REFERENCES users (google_id), -- DO NOT CASCADE
     FOREIGN KEY (metadata_id) REFERENCES report_metadata (id) ON DELETE CASCADE,
     FOREIGN KEY (analyses_map_id) REFERENCES report_analyses_maps (id) ON DELETE CASCADE
+
 );
 
 CREATE OR REPLACE TRIGGER update_reports_updated_at
