@@ -1,5 +1,6 @@
 import authFetch from './authFetch.ts';
 import { ReportFormAdaptedValues } from '../../routes/report/schema.ts';
+import { User } from '../types.ts';
 
 export type ReportRequest = ReportFormAdaptedValues;
 
@@ -35,6 +36,17 @@ export class RMoodsClient {
       }
       return res.json();
     });
+  }
+
+  static async getUserInfo(userId: string): Promise<User> {
+    return await authFetch(`${RMoodsClient.URL}/user?id=${userId}`).then(
+      (res) => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+        return res.json();
+      }
+    );
   }
 
   /**
