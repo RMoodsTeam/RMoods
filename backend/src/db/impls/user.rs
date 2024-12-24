@@ -1,19 +1,20 @@
-use crate::auth::google::User;
+use crate::auth::user::User;
+use crate::db::db_error::DbError;
 use crate::db::db_stored::DbStoredInner;
 use crate::db::pagination::DbPagination;
 use axum::async_trait;
-use sqlx::{Error, PgPool, Postgres, Transaction};
+use sqlx::{PgPool, Postgres, Transaction};
 
 #[async_trait]
 impl DbStoredInner for User {
-    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
         sqlx::query!(
             r#"
             INSERT INTO users (
-            google_sub, name, given_name, family_name, picture, email, email_verified
+            google_id, name, given_name, family_name, picture, email, email_verified
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7)
-            ON CONFLICT (google_sub) DO UPDATE
+            ON CONFLICT (google_id) DO UPDATE
             SET name = $2, given_name = $3, family_name = $4, picture = $5, email = $6, email_verified = $7
             "#,
             self.id,
@@ -28,13 +29,13 @@ impl DbStoredInner for User {
         .await?;
         Ok(())
     }
-    async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
         unimplemented!()
     }
-    async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), Error> {
+    async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
         sqlx::query!(
             r#"
-            DELETE FROM users WHERE google_sub = $1
+            DELETE FROM users WHERE google_id = $1
             "#,
             self.id
         )
@@ -43,13 +44,13 @@ impl DbStoredInner for User {
         Ok(())
     }
 
-    async fn inner_get_by_id(id: &str, pool: &PgPool) -> Result<Option<Self>, Error> {
+    async fn inner_get_by_id(id: &str, pool: &PgPool) -> Result<Option<Self>, DbError> {
         let user = sqlx::query_as!(
             User,
             r#"
-            SELECT google_sub as "id: String", name, given_name, family_name, picture, email, email_verified
+            SELECT google_id as "id: String", name, given_name, family_name, picture, email, email_verified
             FROM users
-            WHERE google_sub = $1
+            WHERE google_id = $1
             "#,
             id
         )
@@ -58,7 +59,7 @@ impl DbStoredInner for User {
         Ok(user)
     }
 
-    async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, Error> {
+    async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, DbError> {
         unimplemented!()
     }
 }

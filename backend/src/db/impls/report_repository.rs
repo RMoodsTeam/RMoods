@@ -1,14 +1,15 @@
-use crate::auth::google::GoogleId;
+use crate::auth::user::GoogleId;
 use crate::db::db_client::DbClient;
+use crate::db::db_error::DbError;
 use crate::db::from_db::FromDb;
 use crate::db::model::DbReport;
 use crate::db::pagination::DbPagination;
 use crate::nlp::analysis::NlpAnalysisKind;
-use crate::nlp::report::Report;
+use crate::report::report::Report;
+use crate::util::get_utc_timestamp;
 use axum::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::Deserialize;
-use sqlx::Error;
 
 /// Represents a date range for querying reports.
 ///
@@ -150,7 +151,7 @@ impl ReportQuery {
         let start_date = self
             .start_date
             .unwrap_or(NaiveDateTime::UNIX_EPOCH.and_utc());
-        let end_date = self.end_date.unwrap_or(Utc::now());
+        let end_date = self.end_date.unwrap_or(get_utc_timestamp());
         let title_pattern = self.title_pattern.unwrap_or("".to_string());
 
         ReportQueryBindArgs {
@@ -173,7 +174,7 @@ pub trait ReportRepository: Sized {
         query: ReportQuery,
         requesting_user_id: GoogleId,
         db: &DbClient,
-    ) -> Result<Vec<Self>, Error>;
+    ) -> Result<Vec<Self>, DbError>;
 }
 
 #[async_trait]
@@ -194,7 +195,7 @@ impl ReportRepository for Report {
         query: ReportQuery,
         requesting_user_id: GoogleId,
         db: &DbClient,
-    ) -> Result<Vec<Self>, Error> {
+    ) -> Result<Vec<Self>, DbError> {
         let (limit, offset) = query.pagination.clone().into_limit_and_offset();
 
         let bind_args = query.into_bind_args();
@@ -202,7 +203,7 @@ impl ReportRepository for Report {
         let query_str = format!(
             r#"
         SELECT * FROM reports r
-        JOIN users u ON r.user_id = u.id
+        JOIN users u ON r.user_id = u.google_id
         JOIN report_metadata rm ON r.metadata_id = rm.id
         JOIN report_analyses_maps ON r.analyses_map_id = report_analyses_maps.id
         WHERE 
@@ -210,7 +211,7 @@ impl ReportRepository for Report {
         AND rm.report_created_at >= $2 AND rm.report_created_at <= $3
         AND {}
         AND r.title LIKE '%$4%'
-        AND (r.is_public = TRUE OR (u.google_sub = $5 AND $6))
+        AND (r.is_public = TRUE OR (u.google_id = $5 AND $6))
         LIMIT $7 OFFSET $8
         "#,
             bind_args.contained_analysis_kinds_clauses
@@ -298,7 +299,7 @@ mod tests {
 
     #[test]
     fn test_into_where_clauses_date_range() {
-        let now = Utc::now();
+        let now = get_utc_timestamp();
         let query = ReportQuery {
             start_date: Some(now - chrono::Duration::days(1)),
             end_date: Some(now),
@@ -312,7 +313,7 @@ mod tests {
 
     #[test]
     fn test_into_where_clauses_date_range_empty() {
-        let now = Utc::now();
+        let now = get_utc_timestamp();
         let query = ReportQuery::default();
         let args = query.into_bind_args();
 
@@ -377,8 +378,8 @@ mod tests {
                     NlpAnalysisKind::Sentiment,
                     NlpAnalysisKind::HateSpeech,
                 ],
-                start_date: Some(Utc::now() - chrono::Duration::days(3)),
-                end_date: Some(Utc::now()),
+                start_date: Some(get_utc_timestamp() - chrono::Duration::days(3)),
+                end_date: Some(get_utc_timestamp()),
                 title_pattern: Some("test".to_string()),
                 include_my_reports: true,
                 pagination: DbPagination::new(0, 10),

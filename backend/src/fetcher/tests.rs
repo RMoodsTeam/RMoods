@@ -4,9 +4,7 @@ mod tests {
     use crate::fetcher::model::subreddit_info::SubredditAbout;
     use crate::fetcher::model::user_info::UserAbout;
     use crate::fetcher::reddit::request::{SubredditAboutRequest, UserAboutRequest};
-    use lazy_static::lazy_static;
     use reqwest::{Client, ClientBuilder};
-    use std::sync::LazyLock;
 
     fn random_string(len: usize) -> String {
         use rand::distributions::Alphanumeric;
@@ -19,49 +17,63 @@ mod tests {
             .collect()
     }
 
-    lazy_static! {
-        static ref HTTP: Client = ClientBuilder::new().user_agent("RMoods").build().unwrap();
+    use once_cell::sync::OnceCell;
+    use tokio::sync::Mutex;
+
+    static HTTP: OnceCell<Client> = OnceCell::new();
+    static FETCHER: OnceCell<Mutex<RMoodsFetcher>> = OnceCell::new();
+
+    fn get_http() -> &'static Client {
+        HTTP.get_or_init(|| ClientBuilder::new().user_agent("RMoods").build().unwrap())
     }
 
-    static INIT: LazyLock<tokio::sync::Mutex<Option<RMoodsFetcher>>> =
-        LazyLock::new(|| tokio::sync::Mutex::new(None));
-
-    async fn init() -> RMoodsFetcher {
-        let mut fetcher = INIT.lock().await;
-        if fetcher.is_none() {
-            let _ = dotenvy::dotenv();
-            *fetcher = Some(RMoodsFetcher::new(HTTP.clone()).await.unwrap());
+    async fn get_fetcher() -> &'static Mutex<RMoodsFetcher> {
+        if let Some(fetcher) = FETCHER.get() {
+            return fetcher;
         }
-        fetcher.clone().unwrap()
+
+        dotenvy::dotenv().ok();
+        let http = get_http();
+        let fetcher = Mutex::new(RMoodsFetcher::new(http.clone()).await.unwrap());
+        FETCHER.set(fetcher).ok();
+        FETCHER.get().unwrap()
     }
 
     #[tokio::test]
     async fn fetch_about_user() {
-        let mut fetcher = init().await;
+        let fetcher = get_fetcher().await;
+        let mut fetcher_lock = fetcher.lock().await;
+
         let request = UserAboutRequest {
             username: "spez".to_string(),
         };
-        let user = fetcher.fetch_about::<UserAbout>(request).await.unwrap();
+        let user = fetcher_lock
+            .fetch_about::<UserAbout>(request)
+            .await
+            .unwrap();
         assert_eq!(user.info.name, "spez");
     }
 
     #[tokio::test]
     async fn fetch_about_nonexistent_user() {
-        let mut fetcher = init().await;
+        let fetcher = get_fetcher().await;
+        let mut fetcher_lock = fetcher.lock().await;
+
         let request = UserAboutRequest {
             username: random_string(20),
         };
-        let user = fetcher.fetch_about::<UserAbout>(request).await;
+        let user = fetcher_lock.fetch_about::<UserAbout>(request).await;
         assert!(user.is_err());
     }
 
     #[tokio::test]
     async fn fetch_about_subreddit() {
-        let mut fetcher = init().await;
+        let fetcher = get_fetcher().await;
+        let mut fetcher_lock = fetcher.lock().await;
         let request = SubredditAboutRequest {
             subreddit: "programming".to_string(),
         };
-        let sub = fetcher
+        let sub = fetcher_lock
             .fetch_about::<SubredditAbout>(request)
             .await
             .unwrap();
@@ -70,11 +82,12 @@ mod tests {
 
     #[tokio::test]
     async fn fetch_about_nonexistent_subreddit() {
-        let mut fetcher = init().await;
+        let fetcher = get_fetcher().await;
+        let mut fetcher_lock = fetcher.lock().await;
         let request = SubredditAboutRequest {
             subreddit: random_string(20),
         };
-        let sub = fetcher.fetch_about::<SubredditAbout>(request).await;
+        let sub = fetcher_lock.fetch_about::<SubredditAbout>(request).await;
         assert!(sub.is_err());
     }
     // TODO: Feed fetching tests

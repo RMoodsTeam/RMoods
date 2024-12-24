@@ -1,6 +1,7 @@
-use crate::auth::google::GoogleId;
+use crate::auth::user::GoogleId;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::nlp_response::NlpAnalysis;
+use crate::report::report_status::ReportStatus;
 use chrono::{DateTime, Utc};
 use nanoid::nanoid;
 use serde::Serialize;
@@ -16,7 +17,7 @@ pub struct ReportMetadata {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ReportAnalysesMap {
     pub analyses: HashMap<NlpAnalysisKind, NlpAnalysis>,
 }
@@ -31,7 +32,7 @@ pub fn new_report_id() -> ReportId {
 ///
 /// Based off of NLP analysis of Reddit feeds.
 /// Contains metadata and a list of analyses.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Report {
     pub id: ReportId,
     /// Information about the user that requested the report.
@@ -40,6 +41,7 @@ pub struct Report {
     pub description: String,
     /// Whether the report is public.
     pub is_public: bool,
+    pub status: ReportStatus,
     pub metadata: ReportMetadata,
     pub analyses_map: ReportAnalysesMap,
 }
