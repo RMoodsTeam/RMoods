@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ "**" ]
 
-env:
-  VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
-
 jobs:
   build:
     runs-on: ubuntu-latest

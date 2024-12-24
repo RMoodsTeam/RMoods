@@ -10,7 +10,7 @@ const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [, setWsConnectionStatus] = useAtom(wsConnectionStatusAtom);
   useEffect(() => {
     const ws = new WebSocket(
-      `ws://${BACKEND_URL}/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
+      `ws://${BACKEND_URL.slice(7)}/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
     );
 
     ws.onmessage = handleMessage;
