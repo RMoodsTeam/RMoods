@@ -4,12 +4,11 @@ use crate::validation::validation_error::ValidationError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-#[error("Error generating report: {0}")]
 pub enum ReportError {
-    #[error("Error fetching Reddit data: {0}")]
+    #[error("Failed to fetch Reddit data - {0}")]
     FetcherError(#[from] FetcherError),
-    #[error("Error during NLP analysis: {0}")]
+    #[error("Failed to perform NLP analysis")]
     NlpError(#[from] NlpError),
-    #[error("Error validating report: {0}")]
+    #[error("Failed to validate: {0}")]
     ValidationError(#[from] ValidationError),
 }
