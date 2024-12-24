@@ -37,14 +37,12 @@ export class RMoodsClient {
   }
 
   static async getUserInfo(userId: string): Promise<User> {
-    return await authFetch(`${RMoodsClient.URL}/user?id=${userId}`).then(
-      (res) => {
-        if (!res.ok) {
-          throw new Error('Failed to fetch user data');
-        }
-        return res.json();
+    return await authFetch(`/user?id=${userId}`).then((res) => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch user data');
       }
-    );
+      return res.json();
+    });
   }
 
   /**

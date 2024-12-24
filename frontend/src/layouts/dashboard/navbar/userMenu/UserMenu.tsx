@@ -7,6 +7,10 @@ import { logout } from '../../../../utility/logout.ts';
 import classes from './UserMenu.module.scss';
 import { useAtomValue } from 'jotai';
 import { userInfoAtom } from '../../../../atoms.ts';
+import { jwtDecode } from 'jwt-decode';
+import authFetch from '../../../../rmoods/client/authFetch.ts';
+import { JwtClaims } from '../../../../rmoods/jwt.ts';
+import Cookies from 'js-cookie';
 
 /**
  * User interface representing the user data.

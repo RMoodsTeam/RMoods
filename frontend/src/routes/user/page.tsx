@@ -6,6 +6,10 @@ import { PageFallback } from '../PageFallback.tsx';
 import classes from './page.module.scss';
 import { useAtomValue } from 'jotai';
 import { userInfoAtom } from '../../atoms.ts';
+import authFetch from '../../rmoods/client/authFetch.ts';
+import { jwtDecode } from 'jwt-decode';
+import { JwtClaims } from '../../rmoods/jwt.ts';
+import Cookies from 'js-cookie';
 
 /**
  * User interface representing the user data.
