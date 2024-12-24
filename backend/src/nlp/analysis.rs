@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// The NLP service will return a response with the same kind of analysis.
 ///
 /// Each analysis uses a different NLP model to analyze the text.
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Hash, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Hash, Eq, Copy)]
 #[serde(rename_all = "camelCase")]
 pub enum NlpAnalysisKind {
     Clickbait,
