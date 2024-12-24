@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE reports\n            SET title = $1, description = $2, is_public = $3,\n            is_successful = $4, is_in_progress = $5, is_error = $6, error_message = $7\n            WHERE display_id = $8\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7a28f44d47ace268a5436fa74a3b484f15271ba6e83ca5f0697a3ce2a6417880"
+}

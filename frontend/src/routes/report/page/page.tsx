@@ -11,17 +11,13 @@ import {
   Select,
   Stack,
   Text,
+  Textarea,
   TextInput,
   Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
-import {
-  DataSource,
-  ReportFormValidationSchema,
-  ReportFormValues,
-  RowWrapper,
-} from '../schema.ts';
+import { DataSource, ReportFormValues, ReportFormValuesSchema, RowWrapper } from '../schema.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from '../DataSourceTable.tsx';
 import { transformJson } from '../transformJson.ts';
@@ -39,7 +35,8 @@ import classes from './page.module.scss';
 const Report = () => {
   const form = useForm<ReportFormValues>({
     initialValues: {
-      name: '',
+      title: '',
+      description: '',
       resourceKind: 'subredditPosts',
       isPublic: 'true',
       size: '30',
@@ -57,7 +54,7 @@ const Report = () => {
         trolling: false,
       },
     },
-    validate: zodResolver(ReportFormValidationSchema),
+    validate: zodResolver(ReportFormValuesSchema),
   });
 
   const [rows, setRows] = useState<RowWrapper[]>([]); // Array to store all rows
@@ -148,7 +145,24 @@ const Report = () => {
               </Text>
               <TextInput
                 placeholder="eg. Sentiment on r/AskReddit"
-                {...form.getInputProps('name')}
+                {...form.getInputProps('title')}
+              />
+            </Stack>
+          </Card>
+
+          <Card>
+            <Stack>
+              <Title order={2}>Description</Title>
+              <Text>
+                Add a description to your report. It may help others understand
+                what it's about and what conclusions can be drawn from it.
+              </Text>
+              <Textarea
+                placeholder="Enter your description"
+                minRows={5}
+                autosize
+                maxRows={5}
+                {...form.getInputProps('description')}
               />
             </Stack>
           </Card>
