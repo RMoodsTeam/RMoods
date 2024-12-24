@@ -31,7 +31,7 @@ const fetchUserData = async (): Promise<User> => {
 
   const data = jwtDecode<JwtClaims>(token);
   const id = data.userInfo.id;
-  const response = await authFetch(`http://localhost:8001/api/user?id=${id}`);
+  const response = await authFetch(`/user?id=${id}`);
   if (!response.ok) {
     throw new Error('Failed to fetch user data');
   }

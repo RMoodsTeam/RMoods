@@ -10,6 +10,7 @@ const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [, setWsConnectionStatus] = useAtom(wsConnectionStatusAtom);
   useEffect(() => {
     const ws = new WebSocket(
+      // .slice(7) removes the `https://` from the URL to make it work with the WebSocket
       `ws://${BACKEND_URL.slice(7)}/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`
     );
 

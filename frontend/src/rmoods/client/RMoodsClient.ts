@@ -1,6 +1,5 @@
 import authFetch from './authFetch.ts';
 import { ReportFormAdaptedValues } from '../../routes/report/schema.ts';
-import BACKEND_URL from '../../constants/backendUrl.ts';
 
 export type ReportRequest = ReportFormAdaptedValues;
 
@@ -20,7 +19,7 @@ export class RMoodsClient {
    * @param request
    */
   static async requestReport(request: ReportRequest): Promise<Response> {
-    return await authFetch(`${BACKEND_URL}/report`, {
+    return await authFetch(`/report`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
