@@ -6,6 +6,7 @@ use crate::nlp::nlp_response::NlpAnalysis;
 use log_derive::logfn;
 use serde_json::Value;
 use serde_with::serde_derive::Serialize;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct NlpClient {
@@ -91,7 +92,7 @@ impl NlpClient {
         &self,
         nlp_request: NlpRequest,
         input: &Vec<String>,
-    ) -> Result<Vec<(NlpAnalysisKind, NlpAnalysis)>, NlpError> {
+    ) -> Result<HashMap<NlpAnalysisKind, NlpAnalysis>, NlpError> {
         let futures = nlp_request
             .analyses
             .clone()
@@ -108,6 +109,8 @@ impl NlpClient {
             .analyses
             .into_iter()
             .zip(analyses.into_iter())
+            .collect::<Vec<_>>()
+            .into_iter()
             .collect())
     }
 }
