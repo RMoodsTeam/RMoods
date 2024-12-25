@@ -7,7 +7,7 @@ use serde::Deserialize;
 use std::fmt::Debug;
 
 /// What kind of feed do we fetch and make a report on?
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum RedditFeedKind {
     UserPosts,
@@ -31,7 +31,7 @@ pub struct DataSource {
 }
 
 /// Represents a request to fetch a feed from Reddit.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FetcherDataRequest {
     /// Determines what kind of feed do we fetch and make a report on.

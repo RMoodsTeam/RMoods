@@ -1,7 +1,7 @@
-use crate::report::report_error::ReportError;
+use crate::validation::validation_error::ValidationError;
 use serde::Serialize;
 
-#[derive(Serialize, Debug, PartialEq)]
+#[derive(Serialize, Debug, PartialEq, Clone)]
 pub enum ReportStatus {
     Success,
     InProgress,
@@ -14,12 +14,12 @@ impl ReportStatus {
         in_progress: bool,
         error: bool,
         error_msg: Option<String>,
-    ) -> Result<Self, ReportError> {
+    ) -> Result<Self, ValidationError> {
         match (success, in_progress, error, error_msg) {
             (true, _, _, _) => Ok(Self::Success),
             (_, true, _, _) => Ok(Self::InProgress),
             (_, _, true, Some(msg)) => Ok(Self::Error(msg)),
-            (_, _, _, _) => Err(ReportError::InvalidState(
+            (_, _, _, _) => Err(ValidationError::Invalid(
                 "Invalid report status".to_string(),
             )),
         }
