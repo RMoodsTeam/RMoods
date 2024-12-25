@@ -33,6 +33,16 @@ impl DbStoredInner for User {
         unimplemented!()
     }
     async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
+        // Delete all reports of that user
+        sqlx::query!(
+            r#"
+            DELETE FROM reports WHERE user_id = $1
+            "#,
+            self.id
+        )
+        .execute(&mut **tx)
+        .await?;
+
         sqlx::query!(
             r#"
             DELETE FROM users WHERE google_id = $1
@@ -61,5 +71,28 @@ impl DbStoredInner for User {
 
     async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, DbError> {
         unimplemented!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::db_stored::DbStored;
+    use crate::db::impls::test_util::{get_db, get_test_user};
+    use serial_test::serial;
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_user_save() {
+        let db = get_db().await;
+        let user = get_test_user();
+
+        user.save(&db).await.unwrap();
+        let user_from_db = User::get_by_id(&user.id, &db).await.unwrap().unwrap();
+        assert_eq!(user, user_from_db);
+
+        user.delete(&db).await.unwrap();
+        let user_from_db = User::get_by_id(&user.id, &db).await.unwrap();
+        assert!(user_from_db.is_none());
     }
 }

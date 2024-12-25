@@ -74,7 +74,7 @@ pub(super) struct DbReportAnalysesMap {
 }
 
 /// Represents a singular [NlpResponse](crate::nlp::nlp_response::NlpResponse) analysis of some kind.
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Debug)]
 pub(super) struct DbNlpAnalysis {
     pub(super) id: Uuid,
     //

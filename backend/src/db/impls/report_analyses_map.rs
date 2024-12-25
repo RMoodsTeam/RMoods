@@ -54,7 +54,7 @@ impl FromDb for ReportAnalysesMap {
             r#"
             SELECT *
             FROM nlp_analyses
-            WHERE nlp_metadata_id IN (
+            WHERE id IN (
                 $1, $2, $3, $4, $5, $6, $7, $8
             )
             "#,

@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 
 /// Metadata for an RMoods report.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct ReportMetadata {
     /// The UNIX timestamp of the report's creation.
     pub created_at: DateTime<Utc>,
@@ -17,7 +17,7 @@ pub struct ReportMetadata {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, PartialEq)]
 pub struct ReportAnalysesMap {
     pub analyses: HashMap<NlpAnalysisKind, NlpAnalysis>,
 }
@@ -32,7 +32,7 @@ pub fn new_report_id() -> ReportId {
 ///
 /// Based off of NLP analysis of Reddit feeds.
 /// Contains metadata and a list of analyses.
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, PartialEq)]
 pub struct Report {
     pub id: ReportId,
     /// Information about the user that requested the report.
