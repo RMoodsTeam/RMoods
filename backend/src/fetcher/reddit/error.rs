@@ -5,11 +5,11 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum RedditError {
     /// We request data for a non-existent subreddit or user etc.
-    #[error("Resource not found: '{0:?}'")]
+    #[error("Resource not found: \"{0}\"")]
     ResourceNotFound(String),
 
     /// The request that fetches the Reddit access token for our app failed.
-    #[error("Failed to fetch Reddit access token for client_id '{0:?}'")]
+    #[error("Failed to fetch Reddit access token for client_id \"{0:?}\"")]
     FailedToFetchAccessToken(String),
 
     /// Some other HTTP error occurred.

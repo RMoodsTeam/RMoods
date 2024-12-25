@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 /// Metadata for the NLP response.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct NlpMetadata {
     /// Time it took to generate the response in seconds.
     #[serde(rename(serialize = "generatedIn"))]
@@ -13,7 +13,7 @@ pub struct NlpMetadata {
 /// Response from the NLP service for some analysis.
 /// Preserves the order of the input texts.
 /// Iterate in lockstep over the two fields to get the corresponding values.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct NlpResponse {
     /// Classification labels. Indicates the result of the analysis.
@@ -23,7 +23,7 @@ pub struct NlpResponse {
 }
 
 /// Represents a full NLP analysis response.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct NlpAnalysis {
     /// Kind of analysis performed.

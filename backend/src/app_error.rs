@@ -9,6 +9,7 @@ use crate::db::db_error::DbError;
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::error::RedditError;
 use crate::nlp::error::NlpError;
+use crate::report::report_error::ReportError;
 use crate::validation::validation_error::ValidationError;
 
 /// Public-facing error kind. Contains an HTTP status code and a message describing the error.
@@ -99,6 +100,12 @@ impl From<DbError> for AppError {
 impl From<ValidationError> for AppError {
     fn from(value: ValidationError) -> Self {
         AppError::new(StatusCode::BAD_REQUEST, value.to_string())
+    }
+}
+
+impl From<ReportError> for AppError {
+    fn from(value: ReportError) -> Self {
+        AppError::new(StatusCode::INTERNAL_SERVER_ERROR, &value.to_string())
     }
 }
 
