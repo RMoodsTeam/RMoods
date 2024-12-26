@@ -28,8 +28,8 @@ pub struct NlpResponse {
 pub struct NlpAnalysis {
     /// Kind of analysis performed.
     pub kind: NlpAnalysisKind,
-    /// Metadata for the response.
-    pub metadata: NlpMetadata,
+    /// Generation time for all the responses combined.
+    pub generated_in: f64,
     /// Results of the analysis.
     pub results: Vec<NlpResponse>,
 }

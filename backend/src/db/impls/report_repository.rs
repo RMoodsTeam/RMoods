@@ -140,7 +140,12 @@ impl ReportQuery {
                 .into_iter()
                 .map(|kind| {
                     format!(
-                        "report_analyses_maps.{}_id IS NOT NULL",
+                        r#"
+                        EXISTS (
+                        SELECT 1 FROM nlp_analyses
+                        WHERE report_id = r.id AND kind = '{}'
+                        )
+                        "#,
                         kind.to_snake_case()
                     )
                 })
@@ -204,11 +209,9 @@ impl ReportRepository for Report {
             r#"
         SELECT * FROM reports r
         JOIN users u ON r.user_id = u.google_id
-        JOIN report_metadata rm ON r.metadata_id = rm.id
-        JOIN report_analyses_maps ON r.analyses_map_id = report_analyses_maps.id
-        WHERE 
+        WHERE
         u.name LIKE '%$1%'
-        AND rm.report_created_at >= $2 AND rm.report_created_at <= $3
+        AND r.created_at >= $2 AND r.created_at <= $3
         AND {}
         AND r.title LIKE '%$4%'
         AND (r.is_public = TRUE OR (u.google_id = $5 AND $6))
@@ -273,10 +276,19 @@ mod tests {
         };
         let args = query.into_bind_args();
 
-        assert_eq!(
-            args.contained_analysis_kinds_clauses,
-            "report_analyses_maps.sentiment_id IS NOT NULL"
-        );
+        let expected = r#"
+            EXISTS (
+            SELECT 1 FROM nlp_analyses
+            WHERE report_id = r.id AND kind = 'sentiment'
+            )
+            "#;
+        let normalized_expected = expected.split_whitespace().collect::<String>();
+        let normalized_actual = args
+            .contained_analysis_kinds_clauses
+            .split_whitespace()
+            .collect::<String>();
+
+        assert_eq!(normalized_actual, normalized_expected);
     }
 
     #[test]
@@ -291,10 +303,28 @@ mod tests {
         };
         let args = query.into_bind_args();
 
-        assert_eq!(
-            args.contained_analysis_kinds_clauses,
-            "report_analyses_maps.sentiment_id IS NOT NULL AND report_analyses_maps.clickbait_id IS NOT NULL AND report_analyses_maps.hate_speech_id IS NOT NULL"
-        );
+        let expected = r#"
+            EXISTS (
+            SELECT 1 FROM nlp_analyses
+            WHERE report_id = r.id AND kind = 'sentiment'
+            ) AND
+            EXISTS (
+            SELECT 1 FROM nlp_analyses
+            WHERE report_id = r.id AND kind = 'clickbait'
+            ) AND
+            EXISTS (
+            SELECT 1 FROM nlp_analyses
+            WHERE report_id = r.id AND kind = 'hate_speech'
+            )
+            "#;
+
+        let normalized_expected = expected.split_whitespace().collect::<String>();
+        let normalized_actual = args
+            .contained_analysis_kinds_clauses
+            .split_whitespace()
+            .collect::<String>();
+
+        assert_eq!(normalized_actual, normalized_expected);
     }
 
     #[test]
@@ -370,7 +400,6 @@ mod tests {
         dotenvy::dotenv().ok();
         let db_url = std::env::var("DATABASE_URL").unwrap();
         let db = DbClient::new(sqlx::PgPool::connect(&db_url).await.unwrap());
-
         let _ = Report::get_by_query(
             ReportQuery {
                 user_name_pattern: Some(String::from("test_user")),
