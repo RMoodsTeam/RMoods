@@ -58,7 +58,7 @@ pub struct ReportQuery {
 
     /// Whether include reports belonging to the requesting user.
     #[serde(rename = "mine")]
-    pub include_my_reports: bool,
+    pub include_my_reports: Option<bool>,
 
     /// Pagination parameters for the query.
     ///
@@ -75,7 +75,7 @@ impl Default for ReportQuery {
             start_date: None,
             end_date: None,
             title_pattern: None,
-            include_my_reports: false,
+            include_my_reports: None,
             pagination: DbPagination::default(),
         }
     }
@@ -140,6 +140,7 @@ impl ReportQuery {
             .unwrap_or(NaiveDateTime::UNIX_EPOCH.and_utc());
         let end_date = self.end_date.unwrap_or(get_utc_timestamp());
         let title_pattern = self.title_pattern.unwrap_or("".to_string());
+        let include_my_reports = self.include_my_reports.unwrap_or(false);
 
         ReportQueryBindArgs {
             user_name_pattern,
@@ -147,7 +148,7 @@ impl ReportQuery {
             start_date,
             end_date,
             title_pattern,
-            include_my_reports: self.include_my_reports,
+            include_my_reports,
         }
     }
 }
@@ -362,7 +363,7 @@ mod tests {
                 start_date: None,
                 end_date: None,
                 title_pattern: None,
-                include_my_reports: false,
+                include_my_reports: None,
                 pagination: DbPagination::default(),
             },
             GoogleId::from("test".to_string()),
@@ -385,7 +386,7 @@ mod tests {
                 start_date: Some(get_utc_timestamp() - chrono::Duration::days(3)),
                 end_date: Some(get_utc_timestamp()),
                 title_pattern: Some("test".to_string()),
-                include_my_reports: true,
+                include_my_reports: Some(true),
                 pagination: DbPagination::new(0, 10),
             },
             GoogleId::from("test".to_string()),
@@ -716,7 +717,7 @@ mod tests {
         let (r1, _, _, _) = get_test_reports();
 
         let query = ReportQuery {
-            include_my_reports: false,
+            include_my_reports: Some(false),
             ..ReportQuery::default()
         };
 
@@ -753,7 +754,7 @@ mod tests {
         let _ = setup().await;
 
         let query = ReportQuery {
-            include_my_reports: true,
+            include_my_reports: Some(true),
             ..ReportQuery::default()
         };
 
