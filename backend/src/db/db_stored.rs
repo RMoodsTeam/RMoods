@@ -66,6 +66,8 @@ pub(super) trait DbStoredInner: Sized {
 
     async fn inner_get_by_id(id: &str, pool: &PgPool) -> Result<Option<Self>, DbError>;
 
+    async fn inner_delete_by_id(id: &str, pg_pool: &PgPool) -> Result<(), DbError>;
+
     async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, DbError>;
 }
 

@@ -108,6 +108,19 @@ impl DbStoredInner for Report {
 
         Ok(Some(report))
     }
+
+    async fn inner_delete_by_id(id: &str, pg_pool: &PgPool) -> Result<(), DbError> {
+        sqlx::query!(
+            r#"
+            DELETE FROM reports WHERE display_id = $1
+            "#,
+            id
+        )
+        .execute(pg_pool)
+        .await?;
+        Ok(())
+    }
+
     async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, DbError> {
         unimplemented!()
     }

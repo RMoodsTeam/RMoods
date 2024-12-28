@@ -59,6 +59,19 @@ impl DbStoredInner for User {
         Ok(user)
     }
 
+    async fn inner_delete_by_id(id: &str, pg_pool: &PgPool) -> Result<(), DbError> {
+        // This cascades and removes all related data except for the owner (user)!
+        sqlx::query!(
+            r#"
+            DELETE FROM users WHERE google_id = $1
+            "#,
+            id
+        )
+        .execute(pg_pool)
+        .await?;
+        Ok(())
+    }
+
     async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, DbError> {
         unimplemented!()
     }

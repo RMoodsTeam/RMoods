@@ -3,7 +3,7 @@ use crate::validation::validated::Validated;
 use crate::validation::validation_error::ValidationError;
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NlpRequest {
     pub analyses: Vec<NlpAnalysisKind>,
