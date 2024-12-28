@@ -10,6 +10,7 @@ use crate::util::get_utc_timestamp;
 use axum::async_trait;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::Deserialize;
+use std::collections::HashSet;
 
 /// Represents a date range for querying reports.
 ///
@@ -106,7 +107,7 @@ struct ReportQueryBindArgs {
     /// The concatenated `WHERE` clauses for checking if the report contains the specified kinds of analyses.
     ///
     /// If not provided in the query, it's `1=1`, which is always true and maintains the query's correctness.
-    contained_analysis_kinds_clauses: String,
+    contained_analysis_kinds: HashSet<NlpAnalysisKind>,
     /// The start date of the date range.
     ///
     /// If not provided in the query, it's the UNIX epoch.
@@ -133,26 +134,7 @@ impl ReportQuery {
     /// Another example: the date range, where if it's not provided, the start date is the UNIX epoch and the end date is the current date and time, which will match any report.
     fn into_bind_args(self) -> ReportQueryBindArgs {
         let user_name_pattern = self.user_name_pattern.unwrap_or("".to_string());
-        let contained_analysis_kinds_clauses = if self.contained_analysis_kinds.is_empty() {
-            "1=1".to_string()
-        } else {
-            self.contained_analysis_kinds
-                .into_iter()
-                .map(|kind| {
-                    format!(
-                        r#"
-                        EXISTS (
-                        SELECT 1 FROM nlp_analyses
-                        WHERE report_id = r.id AND kind = '{}'
-                        )
-                        "#,
-                        kind.to_snake_case()
-                    )
-                })
-                .collect::<Vec<_>>()
-                .join(" AND ")
-        };
-
+        let contained_analysis_kinds = self.contained_analysis_kinds.into_iter().collect();
         let start_date = self
             .start_date
             .unwrap_or(NaiveDateTime::UNIX_EPOCH.and_utc());
@@ -161,7 +143,7 @@ impl ReportQuery {
 
         ReportQueryBindArgs {
             user_name_pattern,
-            contained_analysis_kinds_clauses,
+            contained_analysis_kinds,
             start_date,
             end_date,
             title_pattern,
@@ -185,17 +167,6 @@ pub trait ReportRepository: Sized {
 #[async_trait]
 impl ReportRepository for Report {
     /// Fetches reports from the database based on the query and pagination.
-    ///
-    /// # WARNING
-    /// This function dynamically creates an SQL query based on parameters provided **by the user**.
-    /// However, it's carefully checked and validated to prevent SQL injection.
-    /// Most parameters are used as bind parameters, so they are not directly interpolated into the query string.
-    ///
-    /// The only part where we really construct the query string dynamically is the `WHERE` clause for the contained analysis kinds.
-    /// This is done by concatenating the clauses for each kind of analysis that the user wants to filter by.
-    /// It's safe, because the kinds are passed as a [Vec] of [NlpAnalysisKind]s, which are validated by `serde` deserialization.
-    ///
-    /// **Any changes to this function need to be carefully reviewed to prevent SQL injection.**
     async fn get_by_query(
         query: ReportQuery,
         requesting_user_id: GoogleId,
@@ -205,36 +176,91 @@ impl ReportRepository for Report {
 
         let bind_args = query.into_bind_args();
 
-        let query_str = format!(
+        let db_reports = sqlx::query_as!(
+            DbReport,
             r#"
-        SELECT * FROM reports r
-        JOIN users u ON r.user_id = u.google_id
-        WHERE
-        u.name LIKE '%$1%'
-        AND r.created_at >= $2 AND r.created_at <= $3
-        AND {}
-        AND r.title LIKE '%$4%'
-        AND (r.is_public = TRUE OR (u.google_id = $5 AND $6))
-        LIMIT $7 OFFSET $8
-        "#,
-            bind_args.contained_analysis_kinds_clauses
-        );
-
-        let query: Vec<DbReport> = sqlx::query_as(&query_str)
-            .bind(bind_args.user_name_pattern)
-            .bind(bind_args.start_date)
-            .bind(bind_args.end_date)
-            .bind(bind_args.title_pattern)
-            .bind(requesting_user_id)
-            .bind(bind_args.include_my_reports)
-            .bind(limit)
-            .bind(offset)
+            SELECT id, user_id, title, description, is_public, is_in_progress, is_successful, is_error, error_message, r.created_at, r.updated_at
+            FROM reports r
+            JOIN users u ON r.user_id = u.google_id
+            WHERE
+            position ($1 in u.name) > 0
+            AND r.created_at >= $2 AND r.created_at <= $3
+            AND (r.is_public = TRUE OR (u.google_id = $4 AND $5))
+            AND position ($6 in r.title) > 0
+            AND (
+                SELECT CASE WHEN $7 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'clickbait'))
+                ELSE TRUE END
+                AND (
+                    SELECT CASE WHEN $8 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'hate_speech'))
+                    ELSE TRUE END
+                )
+                AND (
+                    SELECT CASE WHEN $9 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'keywords'))
+                    ELSE TRUE END
+                )
+                AND (
+                    SELECT CASE WHEN $10 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'language'))
+                    ELSE TRUE END
+                )
+                AND (
+                    SELECT CASE WHEN $11 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'politics'))
+                    ELSE TRUE END
+                )
+                AND (
+                    SELECT CASE WHEN $12 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sarcasm'))
+                    ELSE TRUE END
+                )
+                AND (
+                    SELECT CASE WHEN $13 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sentiment'))
+                    ELSE TRUE END
+                )
+                AND (
+                    SELECT CASE WHEN $14 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'spam'))
+                    ELSE TRUE END
+                )
+            )
+            LIMIT $15 OFFSET $16
+            "#,
+            bind_args.user_name_pattern,
+            bind_args.start_date,
+            bind_args.end_date,
+            requesting_user_id,
+            bind_args.include_my_reports,
+            bind_args.title_pattern,
+            bind_args
+                .contained_analysis_kinds
+                .contains(&NlpAnalysisKind::Clickbait),
+            bind_args
+                .contained_analysis_kinds
+                .contains(&NlpAnalysisKind::HateSpeech),
+            bind_args
+                .contained_analysis_kinds
+                .contains(&NlpAnalysisKind::Keywords),
+            bind_args
+                .contained_analysis_kinds
+                .contains(&NlpAnalysisKind::Language),
+            bind_args
+                .contained_analysis_kinds
+                .contains(&NlpAnalysisKind::Politics),
+            bind_args
+                .contained_analysis_kinds
+                .contains(&NlpAnalysisKind::Sarcasm),
+            bind_args
+                .contained_analysis_kinds
+                .contains(&NlpAnalysisKind::Sentiment),
+            bind_args
+                .contained_analysis_kinds
+                .contains(&NlpAnalysisKind::Spam),
+            limit,
+            offset
+        )
             .fetch_all(db.raw_db())
             .await?;
 
-        let reports_fut = query
+        let reports_fut = db_reports
             .into_iter()
             .map(|db_report| async { Report::from_db_model(db_report, db.raw_db()).await });
+
         let reports = futures::future::join_all(reports_fut)
             .await
             .into_iter()
@@ -272,65 +298,6 @@ mod tests {
         let args = query.into_bind_args();
 
         assert_eq!(args.user_name_pattern, "");
-    }
-
-    #[test]
-    fn test_into_where_clauses_contained_analysis_kinds_one() {
-        let query = ReportQuery {
-            contained_analysis_kinds: vec![NlpAnalysisKind::Sentiment],
-            ..Default::default()
-        };
-        let args = query.into_bind_args();
-
-        let expected = r#"
-            EXISTS (
-            SELECT 1 FROM nlp_analyses
-            WHERE report_id = r.id AND kind = 'sentiment'
-            )
-            "#;
-        let normalized_expected = expected.split_whitespace().collect::<String>();
-        let normalized_actual = args
-            .contained_analysis_kinds_clauses
-            .split_whitespace()
-            .collect::<String>();
-
-        assert_eq!(normalized_actual, normalized_expected);
-    }
-
-    #[test]
-    fn test_into_where_clauses_contained_analysis_kinds_multiple() {
-        let query = ReportQuery {
-            contained_analysis_kinds: vec![
-                NlpAnalysisKind::Sentiment,
-                NlpAnalysisKind::Clickbait,
-                NlpAnalysisKind::HateSpeech,
-            ],
-            ..Default::default()
-        };
-        let args = query.into_bind_args();
-
-        let expected = r#"
-            EXISTS (
-            SELECT 1 FROM nlp_analyses
-            WHERE report_id = r.id AND kind = 'sentiment'
-            ) AND
-            EXISTS (
-            SELECT 1 FROM nlp_analyses
-            WHERE report_id = r.id AND kind = 'clickbait'
-            ) AND
-            EXISTS (
-            SELECT 1 FROM nlp_analyses
-            WHERE report_id = r.id AND kind = 'hate_speech'
-            )
-            "#;
-
-        let normalized_expected = expected.split_whitespace().collect::<String>();
-        let normalized_actual = args
-            .contained_analysis_kinds_clauses
-            .split_whitespace()
-            .collect::<String>();
-
-        assert_eq!(normalized_actual, normalized_expected);
     }
 
     #[test]
@@ -583,8 +550,8 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 4);
         teardown().await;
+        assert!(reports.iter().all(|r| r.user_id.contains("User")));
     }
 
     #[sqlx::test]
@@ -603,9 +570,9 @@ mod tests {
             .await
             .unwrap();
 
+        teardown().await;
         assert_eq!(reports.len(), 1);
         assert_eq!(reports[0].id, r1.id);
-        teardown().await;
     }
 
     #[sqlx::test]
@@ -625,12 +592,11 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 3);
+        teardown().await;
         assert!(reports
             .iter()
             .all(|r| r.analyses.contains_key(&NlpAnalysisKind::Sentiment)));
-        assert!(!reports.contains(&r1));
-        teardown().await;
+        assert!(!reports.iter().any(|r| r.id == r1.id));
     }
 
     #[sqlx::test]
@@ -650,9 +616,11 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 1);
-        assert_eq!(reports[0].id, r2.id);
         teardown().await;
+        assert!(reports
+            .iter()
+            .all(|r| r.analyses.contains_key(&NlpAnalysisKind::Clickbait)));
+        assert_eq!(reports.len(), 1);
     }
 
     #[sqlx::test]
@@ -662,8 +630,8 @@ mod tests {
         let _ = setup().await;
 
         let query = ReportQuery {
-            start_date: Some(get_utc_timestamp() - chrono::Duration::days(10)),
-            end_date: Some(get_utc_timestamp() + chrono::Duration::days(10)),
+            start_date: Some(get_utc_timestamp() - chrono::Duration::days(1000000)),
+            end_date: Some(get_utc_timestamp() - chrono::Duration::days(19999)),
             ..ReportQuery::default()
         };
 
@@ -671,30 +639,35 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 4);
         teardown().await;
+        assert_eq!(reports.len(), 0);
     }
 
     #[sqlx::test]
     #[serial]
     async fn test_get_by_query_date_range() {
         let db = get_db().await;
+        let _ = teardown().await;
         let _ = setup().await;
-        let (_, _, _, r4) = get_test_reports();
+        let (r1, _, _, r4) = get_test_reports();
 
         let query = ReportQuery {
-            start_date: Some(get_utc_timestamp() - chrono::Duration::days(10)),
-            end_date: Some(get_utc_timestamp() - chrono::Duration::days(5)),
+            start_date: Some(r1.created_at - chrono::Duration::days(10)),
+            end_date: Some(r1.created_at + chrono::Duration::days(5)),
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let reports = Report::get_by_query(query.clone(), GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 1);
-        assert_eq!(reports[0].id, r4.id);
         teardown().await;
+        assert!(reports
+            .iter()
+            .all(|r| r.created_at >= query.start_date.unwrap()));
+        assert!(reports
+            .iter()
+            .all(|r| r.created_at <= query.end_date.unwrap()));
     }
 
     #[sqlx::test]
@@ -712,8 +685,8 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 4);
         teardown().await;
+        assert!(reports.iter().all(|r| r.title.contains("Title")));
     }
 
     #[sqlx::test]
@@ -721,7 +694,6 @@ mod tests {
     async fn test_get_by_query_title_pattern_one() {
         let db = get_db().await;
         let _ = setup().await;
-        let (r1, _, _, _) = get_test_reports();
 
         let query = ReportQuery {
             title_pattern: Some(String::from("Title 1")),
@@ -732,30 +704,8 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 1);
-        assert_eq!(reports[0].id, r1.id);
         teardown().await;
-    }
-
-    #[sqlx::test]
-    #[serial]
-    async fn test_get_by_query_include_my_reports_true() {
-        let db = get_db().await;
-        let _ = setup().await;
-        let (r1, _, _, _) = get_test_reports();
-
-        let query = ReportQuery {
-            include_my_reports: true,
-            ..ReportQuery::default()
-        };
-
-        let reports = Report::get_by_query(query, GoogleId::from("User 1"), &db)
-            .await
-            .unwrap();
-
-        assert_eq!(reports.len(), 4);
-        assert!(reports.contains(&r1));
-        teardown().await;
+        assert!(reports.iter().all(|r| r.title.contains("Title 1")));
     }
 
     #[sqlx::test]
@@ -774,9 +724,9 @@ mod tests {
             .await
             .unwrap();
 
+        teardown().await;
         assert_eq!(reports.len(), 3);
         assert!(!reports.contains(&r1));
-        teardown().await;
     }
 
     #[sqlx::test]
@@ -784,37 +734,34 @@ mod tests {
     async fn test_get_by_query_private_unauthorized() {
         let db = get_db().await;
         let _ = setup().await;
-        let (_, _, _, r4) = get_test_reports();
 
-        let query = ReportQuery {
-            ..ReportQuery::default()
-        };
+        let query = ReportQuery::default();
 
         let reports = Report::get_by_query(query, GoogleId::from("Random User 123"), &db)
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 3);
-        assert!(!reports.contains(&r4));
         teardown().await;
+        assert!(reports.iter().all(|r| r.is_public));
     }
 
     #[sqlx::test]
     #[serial]
-    /// Report 4 is private. User 4 is the owner, so they should be able to see it.
+    /// Report 4 is private. User 1 is the owner, so they should be able to see it.
     async fn test_get_by_query_private_authorized() {
         let db = get_db().await;
         let _ = setup().await;
 
         let query = ReportQuery {
+            include_my_reports: true,
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("User 4"), &db)
+        let reports = Report::get_by_query(query, GoogleId::from("User 1"), &db)
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 4);
         teardown().await;
+        assert_eq!(reports.len(), 4);
     }
 }

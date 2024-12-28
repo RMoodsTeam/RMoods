@@ -1,0 +1,97 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, user_id, title, description, is_public, is_in_progress, is_successful, is_error, error_message, r.created_at, r.updated_at\n            FROM reports r\n            JOIN users u ON r.user_id = u.google_id\n            WHERE\n            position ($1 in u.name) > 0\n            AND r.created_at >= $2 AND r.created_at <= $3\n            AND (r.is_public = TRUE OR (u.google_id = $4 AND $5))\n            AND position ($6 in r.title) > 0\n            AND (\n                SELECT CASE WHEN $7 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'clickbait'))\n                ELSE TRUE END\n                AND (\n                    SELECT CASE WHEN $8 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'hate_speech'))\n                    ELSE TRUE END\n                )\n                AND (\n                    SELECT CASE WHEN $9 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'keywords'))\n                    ELSE TRUE END\n                )\n                AND (\n                    SELECT CASE WHEN $10 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'language'))\n                    ELSE TRUE END\n                )\n                AND (\n                    SELECT CASE WHEN $11 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'politics'))\n                    ELSE TRUE END\n                )\n                AND (\n                    SELECT CASE WHEN $12 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sarcasm'))\n                    ELSE TRUE END\n                )\n                AND (\n                    SELECT CASE WHEN $13 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sentiment'))\n                    ELSE TRUE END\n                )\n                AND (\n                    SELECT CASE WHEN $14 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'spam'))\n                    ELSE TRUE END\n                )\n            )\n            LIMIT $15 OFFSET $16\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "is_public",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "is_in_progress",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "is_successful",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "is_error",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "error_message",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Bool",
+        "Text",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "17c3d257e705478783a3d269f4facba8e36e024c21cbb1ebca83749e81c9c90b"
+}

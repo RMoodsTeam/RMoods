@@ -24,8 +24,8 @@ pub(super) async fn get_db() -> DbClient {
 
 pub(super) fn get_test_user(id: String) -> User {
     User {
-        id,
-        name: "Test User".to_string(),
+        id: id.clone(),
+        name: id,
         given_name: "Test".to_string(),
         family_name: Some("User".to_string()),
         picture: "https://example.com/picture".to_string(),
