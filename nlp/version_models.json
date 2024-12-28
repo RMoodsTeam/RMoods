@@ -1,9 +1,10 @@
 {
   "language": [
-    "english"
+    "all"
   ],
   "sentiment": [
-    "english"
+    "english",
+    "polish"
   ],
   "sarcasm": [
     "english"
@@ -20,5 +21,11 @@
   ],
   "clickbait": [
     "english"
+  ],
+  "llm": [
+    "english"
+  ],
+  "keywords": [
+    "all"
   ]
 }
