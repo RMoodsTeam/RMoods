@@ -39,7 +39,9 @@ CREATE TABLE IF NOT EXISTS reports (
     CONSTRAINT report_state_xor
         CHECK ((is_successful AND NOT is_error AND NOT is_in_progress) OR
                (NOT is_successful AND is_error AND NOT is_in_progress) OR
-               (NOT is_successful AND NOT is_error AND is_in_progress))
+               (NOT is_successful AND NOT is_error AND is_in_progress)),
+
+    FOREIGN KEY (user_id) REFERENCES users (google_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS nlp_analyses (

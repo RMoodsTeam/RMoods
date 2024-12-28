@@ -98,7 +98,7 @@ mod tests {
     #[serial]
     async fn test_user_save() {
         let db = get_db().await;
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
 
         user.save(&db).await.unwrap();
         let user_from_db = User::get_by_id(&user.id, &db).await.unwrap().unwrap();

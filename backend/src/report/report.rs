@@ -45,6 +45,7 @@ pub struct Report {
 
 impl Report {
     pub fn empty_in_progress(request: ReportRequest, user_id: GoogleId) -> Self {
+        let now = get_utc_timestamp();
         Report {
             id: new_report_id(),
             user_id,
@@ -53,8 +54,8 @@ impl Report {
             is_public: request.is_public,
             status: ReportStatus::InProgress,
             analyses: ReportAnalysesMap::new(),
-            created_at: get_utc_timestamp(),
-            updated_at: get_utc_timestamp(),
+            created_at: now,
+            updated_at: now,
         }
     }
 

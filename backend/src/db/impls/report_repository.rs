@@ -247,6 +247,12 @@ impl ReportRepository for Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::db::db_stored::DbStored;
+    use crate::db::impls::test_util::get_test_user;
+    use crate::nlp::nlp_response::NlpAnalysis;
+    use crate::report::report_status::ReportStatus;
+    use serial_test::serial;
+    use std::collections::HashMap;
     use std::default::Default;
 
     #[test]
@@ -372,11 +378,15 @@ mod tests {
         assert_eq!(args.title_pattern, "");
     }
 
+    async fn get_db() -> DbClient {
+        dotenvy::dotenv().ok();
+        let db_url = std::env::var("DATABASE_URL").unwrap();
+        DbClient::new(sqlx::PgPool::connect(&db_url).await.unwrap())
+    }
+
     #[sqlx::test]
     async fn test_get_by_query_all_none() {
-        dotenvy::dotenv().ok();
-        let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL is set");
-        let db = DbClient::new(sqlx::PgPool::connect(&db_url).await.unwrap());
+        let db = get_db().await;
 
         let _ = Report::get_by_query(
             ReportQuery {
@@ -397,9 +407,7 @@ mod tests {
 
     #[sqlx::test]
     async fn test_get_by_query_all_filled() {
-        dotenvy::dotenv().ok();
-        let db_url = std::env::var("DATABASE_URL").unwrap();
-        let db = DbClient::new(sqlx::PgPool::connect(&db_url).await.unwrap());
+        let db = get_db().await;
         let _ = Report::get_by_query(
             ReportQuery {
                 user_name_pattern: Some(String::from("test_user")),
@@ -418,5 +426,395 @@ mod tests {
         )
         .await
         .unwrap();
+    }
+
+    fn get_test_reports() -> (Report, Report, Report, Report) {
+        let report1 = Report {
+            id: "1".to_string(),
+            user_id: "User 1".to_string(),
+            title: "Title 1".to_string(),
+            description: "".to_string(),
+            is_public: true,
+            status: ReportStatus::Success,
+            analyses: HashMap::from([(
+                NlpAnalysisKind::HateSpeech,
+                NlpAnalysis {
+                    kind: NlpAnalysisKind::HateSpeech,
+                    results: vec![],
+                    generated_in: 0.0,
+                },
+            )]),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        let report2 = Report {
+            id: "2".to_string(),
+            user_id: "User 2".to_string(),
+            title: "Title 2".to_string(),
+            description: "Description 2".to_string(),
+            is_public: true,
+            status: ReportStatus::Success,
+            analyses: HashMap::from([
+                (
+                    NlpAnalysisKind::Sentiment,
+                    NlpAnalysis {
+                        kind: NlpAnalysisKind::Sentiment,
+                        results: vec![],
+                        generated_in: 0.0,
+                    },
+                ),
+                (
+                    NlpAnalysisKind::Clickbait,
+                    NlpAnalysis {
+                        kind: NlpAnalysisKind::Clickbait,
+                        results: vec![],
+                        generated_in: 0.0,
+                    },
+                ),
+            ]),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        let report3 = Report {
+            id: "3".to_string(),
+            user_id: "User 3".to_string(),
+            title: "Title 3".to_string(),
+            description: "Description 3".to_string(),
+            is_public: true,
+            status: ReportStatus::Success,
+            analyses: HashMap::from([
+                (
+                    NlpAnalysisKind::Sentiment,
+                    NlpAnalysis {
+                        kind: NlpAnalysisKind::Sentiment,
+                        results: vec![],
+                        generated_in: 0.0,
+                    },
+                ),
+                (
+                    NlpAnalysisKind::Politics,
+                    NlpAnalysis {
+                        kind: NlpAnalysisKind::Politics,
+                        results: vec![],
+                        generated_in: 0.0,
+                    },
+                ),
+            ]),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        let report4 = Report {
+            id: "4".to_string(),
+            user_id: "User 1".to_string(),
+            title: "Title 4".to_string(),
+            description: "Description 4".to_string(),
+            is_public: false,
+            status: ReportStatus::Success,
+            analyses: HashMap::from([(
+                NlpAnalysisKind::Sentiment,
+                NlpAnalysis {
+                    kind: NlpAnalysisKind::Sentiment,
+                    results: vec![],
+                    generated_in: 0.0,
+                },
+            )]),
+            created_at: Utc::now() - chrono::Duration::days(7),
+            updated_at: Utc::now() - chrono::Duration::days(7),
+        };
+
+        (report1, report2, report3, report4)
+    }
+
+    async fn setup() {
+        let db = get_db().await;
+        teardown().await;
+        let (r1, r2, r3, r4) = get_test_reports();
+        let user1 = get_test_user("User 1".to_string());
+        let user2 = get_test_user("User 2".to_string());
+        let user3 = get_test_user("User 3".to_string());
+
+        user1.save(&db).await.unwrap();
+        user2.save(&db).await.unwrap();
+        user3.save(&db).await.unwrap();
+
+        r1.save(&db).await.unwrap();
+        r2.save(&db).await.unwrap();
+        r3.save(&db).await.unwrap();
+        r4.save(&db).await.unwrap();
+    }
+
+    async fn teardown() {
+        let db = get_db().await;
+
+        sqlx::query!(
+            r#"
+            DELETE FROM reports WHERE 1=1
+            "#,
+        )
+        .execute(db.raw_db())
+        .await
+        .unwrap();
+
+        sqlx::query!(
+            r#"
+            DELETE FROM users WHERE 1=1
+            "#,
+        )
+        .execute(db.raw_db())
+        .await
+        .unwrap();
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_user_name_pattern_all() {
+        let db = get_db().await;
+        let _ = setup().await;
+
+        let query = ReportQuery {
+            user_name_pattern: Some(String::from("User")),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 4);
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_user_name_pattern() {
+        let db = get_db().await;
+        let _ = setup().await;
+        let (r1, _, _, _) = get_test_reports();
+
+        let query = ReportQuery {
+            user_name_pattern: Some(String::from("User 1")),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 1);
+        assert_eq!(reports[0].id, r1.id);
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    /// All reports except the first one have the Sentiment analysis
+    async fn test_get_by_query_contained_analysis_kinds_all() {
+        let db = get_db().await;
+        let _ = setup().await;
+        let (r1, _, _, _) = get_test_reports();
+
+        let query = ReportQuery {
+            contained_analysis_kinds: vec![NlpAnalysisKind::Sentiment],
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 3);
+        assert!(reports
+            .iter()
+            .all(|r| r.analyses.contains_key(&NlpAnalysisKind::Sentiment)));
+        assert!(!reports.contains(&r1));
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    /// Only the second report has the Clickbait analysis
+    async fn test_get_by_query_contained_analysis_kinds_one() {
+        let db = get_db().await;
+        let _ = setup().await;
+        let (_, r2, _, _) = get_test_reports();
+
+        let query = ReportQuery {
+            contained_analysis_kinds: vec![NlpAnalysisKind::Clickbait],
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 1);
+        assert_eq!(reports[0].id, r2.id);
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_date_range_all() {
+        let db = get_db().await;
+        let _ = setup().await;
+
+        let query = ReportQuery {
+            start_date: Some(get_utc_timestamp() - chrono::Duration::days(10)),
+            end_date: Some(get_utc_timestamp() + chrono::Duration::days(10)),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 4);
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_date_range() {
+        let db = get_db().await;
+        let _ = setup().await;
+        let (_, _, _, r4) = get_test_reports();
+
+        let query = ReportQuery {
+            start_date: Some(get_utc_timestamp() - chrono::Duration::days(10)),
+            end_date: Some(get_utc_timestamp() - chrono::Duration::days(5)),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 1);
+        assert_eq!(reports[0].id, r4.id);
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_title_pattern_all() {
+        let db = get_db().await;
+        let _ = setup().await;
+
+        let query = ReportQuery {
+            title_pattern: Some(String::from("Title")),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 4);
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_title_pattern_one() {
+        let db = get_db().await;
+        let _ = setup().await;
+        let (r1, _, _, _) = get_test_reports();
+
+        let query = ReportQuery {
+            title_pattern: Some(String::from("Title 1")),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 1);
+        assert_eq!(reports[0].id, r1.id);
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_include_my_reports_true() {
+        let db = get_db().await;
+        let _ = setup().await;
+        let (r1, _, _, _) = get_test_reports();
+
+        let query = ReportQuery {
+            include_my_reports: true,
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("User 1"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 4);
+        assert!(reports.contains(&r1));
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_include_my_reports_false() {
+        let db = get_db().await;
+        let _ = setup().await;
+        let (r1, _, _, _) = get_test_reports();
+
+        let query = ReportQuery {
+            include_my_reports: false,
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("User 1"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 3);
+        assert!(!reports.contains(&r1));
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_private_unauthorized() {
+        let db = get_db().await;
+        let _ = setup().await;
+        let (_, _, _, r4) = get_test_reports();
+
+        let query = ReportQuery {
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("Random User 123"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 3);
+        assert!(!reports.contains(&r4));
+        teardown().await;
+    }
+
+    #[sqlx::test]
+    #[serial]
+    /// Report 4 is private. User 4 is the owner, so they should be able to see it.
+    async fn test_get_by_query_private_authorized() {
+        let db = get_db().await;
+        let _ = setup().await;
+
+        let query = ReportQuery {
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("User 4"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 4);
+        teardown().await;
     }
 }

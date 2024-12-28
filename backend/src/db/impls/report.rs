@@ -197,7 +197,7 @@ mod test {
     async fn test_report_save() {
         let db = get_db().await;
 
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
 
         let report = get_test_report("Test Report".to_string(), user.id.clone());
@@ -211,7 +211,7 @@ mod test {
     async fn test_report_get_by_id() {
         let db = get_db().await;
 
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
 
         let report = get_test_report("Test Report".to_string(), user.id.clone());
@@ -229,7 +229,7 @@ mod test {
     async fn test_report_update() {
         let db = get_db().await;
 
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
 
         let mut report = get_test_report("Test Report".to_string(), user.id.clone());
@@ -259,7 +259,7 @@ mod test {
     async fn test_report_delete() {
         let db = get_db().await;
 
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
 
         let report = get_test_report("Test Report".to_string(), user.id);
@@ -273,18 +273,29 @@ mod test {
 
     #[sqlx::test]
     #[serial]
-    async fn test_report_delete_no_analyses_after_delete() {
+    async fn test_report_analyses_saving_deleting() {
         let db = get_db().await;
 
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
 
         let report = get_test_report("Test Report".to_string(), user.id);
         report.save(&db).await.unwrap();
 
+        let analyses_before = sqlx::query!(
+            r#"
+            SELECT * FROM nlp_analyses WHERE report_id = $1
+            "#,
+            report.id
+        )
+        .fetch_all(db.raw_db())
+        .await
+        .unwrap();
+        assert!(!analyses_before.is_empty());
+
         report.delete(&db).await.unwrap();
 
-        let analyses_for_that_report = sqlx::query!(
+        let analyses_after = sqlx::query!(
             r#"
             SELECT * FROM nlp_analyses WHERE report_id = $1
             "#,
@@ -294,6 +305,6 @@ mod test {
         .await
         .unwrap();
 
-        assert!(analyses_for_that_report.is_empty());
+        assert!(analyses_after.is_empty());
     }
 }

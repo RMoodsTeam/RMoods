@@ -22,9 +22,9 @@ pub(super) async fn get_db() -> DbClient {
     DbClient::new(pool)
 }
 
-pub(super) fn get_test_user() -> User {
+pub(super) fn get_test_user(id: String) -> User {
     User {
-        id: "12345678".to_string(),
+        id,
         name: "Test User".to_string(),
         given_name: "Test".to_string(),
         family_name: Some("User".to_string()),
