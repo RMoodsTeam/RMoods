@@ -3,6 +3,7 @@ import { useAtom } from 'jotai';
 import { useEffect } from 'react';
 import { wsConnectionStatusAtom } from '../atoms.ts';
 import { handleMessage } from '../routes/report/websocketMethods.tsx';
+import BACKEND_URL from '../constants/backendUrl.ts';
 import useWebSocket from 'react-use-websocket';
 import { notifications } from '@mantine/notifications';
 
@@ -17,9 +18,8 @@ import { notifications } from '@mantine/notifications';
 
 const WebsocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [, setWsConnectionStatus] = useAtom(wsConnectionStatusAtom);
-
   const { sendMessage, lastMessage, readyState } = useWebSocket(
-    `ws://localhost:8001/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`,
+    `ws://${BACKEND_URL.slice(7)}/ws/connect?RMOODS_JWT=${Cookies.get('RMOODS_JWT')}`,
     {
       onOpen: () => {
         console.log('WebSocket connection opened.');
