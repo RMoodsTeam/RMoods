@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT *\n            FROM nlp_analyses\n            WHERE nlp_metadata_id IN (\n                $1, $2, $3, $4, $5, $6, $7, $8\n            )\n            ",
+  "query": "\n            SELECT *\n            FROM nlp_analyses\n            WHERE report_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -10,8 +10,8 @@
       },
       {
         "ordinal": 1,
-        "name": "nlp_metadata_id",
-        "type_info": "Uuid"
+        "name": "report_id",
+        "type_info": "Text"
       },
       {
         "ordinal": 2,
@@ -20,30 +20,28 @@
       },
       {
         "ordinal": 3,
+        "name": "generated_in",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 4,
         "name": "analysis",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Uuid",
-        "Uuid",
-        "Uuid",
-        "Uuid",
-        "Uuid",
-        "Uuid",
-        "Uuid"
+        "Text"
       ]
     },
     "nullable": [
@@ -52,8 +50,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "6fc3355282a1a5d509d3b9d17867a89561e60004c099b80752ecc9a4bfd99c2d"
+  "hash": "797160e6ba68d56856dfef616829601954c6d81fdb27ab06eba12ee12312b8f4"
 }

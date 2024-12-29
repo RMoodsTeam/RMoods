@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub type GoogleId = String;
 
-#[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
+#[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow, PartialEq)]
 pub struct User {
     /// Unique user ID
     #[serde(rename = "sub")]

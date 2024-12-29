@@ -17,21 +17,8 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-/// Metadata for an RMoods report.
-#[derive(Debug, Clone, Serialize)]
-pub struct ReportMetadata {
-    /// The UNIX timestamp of the report's creation.
-    pub created_at: DateTime<Utc>,
-    /// The UNIX timestamp of the report's last update.
-    pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Serialize, Debug, Clone)]
-pub struct ReportAnalysesMap {
-    pub analyses: HashMap<NlpAnalysisKind, NlpAnalysis>,
-}
-
 pub type ReportId = String;
+pub type ReportAnalysesMap = HashMap<NlpAnalysisKind, NlpAnalysis>;
 
 pub fn new_report_id() -> ReportId {
     nanoid!(10)
@@ -41,7 +28,7 @@ pub fn new_report_id() -> ReportId {
 ///
 /// Based off of NLP analysis of Reddit feeds.
 /// Contains metadata and a list of analyses.
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, PartialEq)]
 pub struct Report {
     pub id: ReportId,
     /// Information about the user that requested the report.
@@ -51,12 +38,14 @@ pub struct Report {
     /// Whether the report is public.
     pub is_public: bool,
     pub status: ReportStatus,
-    pub metadata: ReportMetadata,
-    pub analyses_map: ReportAnalysesMap,
+    pub analyses: ReportAnalysesMap,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 impl Report {
     pub fn empty_in_progress(request: ReportRequest, user_id: GoogleId) -> Self {
+        let now = get_utc_timestamp();
         Report {
             id: new_report_id(),
             user_id,
@@ -64,13 +53,9 @@ impl Report {
             description: request.description,
             is_public: request.is_public,
             status: ReportStatus::InProgress,
-            metadata: ReportMetadata {
-                created_at: get_utc_timestamp(),
-                updated_at: get_utc_timestamp(),
-            },
-            analyses_map: ReportAnalysesMap {
-                analyses: HashMap::new(),
-            },
+            analyses: ReportAnalysesMap::new(),
+            created_at: now,
+            updated_at: now,
         }
     }
 
@@ -105,11 +90,11 @@ impl Report {
             .analyze_parallel(request.nlp_request, &text_data)
             .await?;
 
-        Ok(ReportAnalysesMap { analyses })
+        Ok(analyses)
     }
 
-    pub fn fill(&mut self, analyses_map: ReportAnalysesMap) {
-        self.analyses_map = analyses_map;
+    pub fn fill(&mut self, analyses: ReportAnalysesMap) {
+        self.analyses = analyses;
         self.status = ReportStatus::Success;
     }
 }

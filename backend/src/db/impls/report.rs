@@ -1,18 +1,18 @@
 use crate::db::db_error::DbError;
 use crate::db::db_stored::{DbStoredDependentlyInner, DbStoredInner};
 use crate::db::from_db::FromDb;
-use crate::db::model::{DbReport, DbReportAnalysesMap, DbReportMetadata};
+use crate::db::model::{DbNlpAnalysis, DbReport};
 use crate::db::pagination::DbPagination;
-use crate::report::report::{Report, ReportAnalysesMap, ReportMetadata};
+use crate::nlp::nlp_response::NlpAnalysis;
+use crate::report::report::Report;
 use crate::report::report_status::ReportStatus;
 use axum::async_trait;
 use sqlx::{PgPool, Postgres, Transaction};
+use std::collections::HashMap;
 
 #[async_trait]
 impl DbStoredInner for Report {
     async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
-        let metadata_uuid = self.metadata.inner_save(tx).await?;
-        let analyses_map_uuid = self.analyses_map.inner_save(tx).await?;
         let user_id = sqlx::query!(
             r#"
             SELECT google_id as "id: String" FROM users WHERE google_id = $1
@@ -23,14 +23,15 @@ impl DbStoredInner for Report {
         .await?
         .id;
 
-        sqlx::query!(
+        let report_id = sqlx::query!(
             r#"
             INSERT INTO reports (
-            display_id, user_id, title, description, is_public,
-            is_successful, is_in_progress, is_error, error_message, 
-            metadata_id, analyses_map_id
+            id, user_id, title, description, is_public,
+            is_successful, is_in_progress, is_error, error_message,
+            created_at, updated_at
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7 , $8, $9, $10, $11)
+            RETURNING id;
             "#,
             self.id,
             user_id,
@@ -41,11 +42,16 @@ impl DbStoredInner for Report {
             self.status.is_in_progress(),
             self.status.is_error(),
             self.status.error_message(),
-            metadata_uuid,
-            analyses_map_uuid
+            self.created_at,
+            self.updated_at
         )
-        .execute(&mut **tx)
-        .await?;
+        .fetch_one(&mut **tx)
+        .await?
+        .id;
+
+        for (_, analysis) in &self.analyses {
+            analysis.inner_save(report_id.as_str(), tx).await?;
+        }
 
         Ok(())
     }
@@ -58,8 +64,9 @@ impl DbStoredInner for Report {
             r#"
             UPDATE reports
             SET title = $1, description = $2, is_public = $3,
-            is_successful = $4, is_in_progress = $5, is_error = $6, error_message = $7
-            WHERE display_id = $8
+            is_successful = $4, is_in_progress = $5, is_error = $6, error_message = $7,
+            created_at = $8
+            WHERE id = $9
             "#,
             self.title,
             self.description,
@@ -68,7 +75,8 @@ impl DbStoredInner for Report {
             self.status.is_in_progress(),
             self.status.is_error(),
             self.status.error_message(),
-            self.id
+            self.created_at,
+            self.id,
         )
         .execute(&mut **tx)
         .await?;
@@ -77,9 +85,9 @@ impl DbStoredInner for Report {
     async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
         sqlx::query!(
             r#"
-            DELETE FROM reports WHERE display_id = $1
+            DELETE FROM reports WHERE id = $1
             "#,
-            self.id
+            self.id.to_string()
         )
         .execute(&mut **tx)
         .await?;
@@ -92,7 +100,7 @@ impl DbStoredInner for Report {
             r#"
             SELECT *
             FROM reports
-            WHERE display_id = $1
+            WHERE id = $1
             "#,
             id
         )
@@ -112,7 +120,7 @@ impl DbStoredInner for Report {
     async fn inner_delete_by_id(id: &str, pg_pool: &PgPool) -> Result<(), DbError> {
         sqlx::query!(
             r#"
-            DELETE FROM reports WHERE display_id = $1
+            DELETE FROM reports WHERE id = $1
             "#,
             id
         )
@@ -130,38 +138,6 @@ impl DbStoredInner for Report {
 impl FromDb for Report {
     type DbModel = DbReport;
     async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, DbError> {
-        let metadata = {
-            let db_metadata = sqlx::query_as!(
-                DbReportMetadata,
-                r#"
-            SELECT *
-            FROM report_metadata
-            WHERE id = $1
-            "#,
-                model.metadata_id
-            )
-            .fetch_one(pool)
-            .await?;
-
-            ReportMetadata::from_db_model(db_metadata, pool).await?
-        };
-
-        let analyses_map = {
-            let map = sqlx::query_as!(
-                DbReportAnalysesMap,
-                r#"
-            SELECT *
-            FROM report_analyses_maps
-            WHERE id = $1
-            "#,
-                model.analyses_map_id
-            )
-            .fetch_one(pool)
-            .await?;
-
-            ReportAnalysesMap::from_db_model(map, pool).await?
-        };
-
         let status = ReportStatus::from_booleans(
             model.is_successful,
             model.is_in_progress,
@@ -169,95 +145,94 @@ impl FromDb for Report {
             model.error_message,
         )?;
 
+        let analysis = sqlx::query_as!(
+            DbNlpAnalysis,
+            r#"
+            SELECT *
+            FROM nlp_analyses
+            WHERE report_id = $1
+            "#,
+            model.id
+        )
+        .fetch_all(pool)
+        .await?;
+
+        let analyses_futures = analysis
+            .into_iter()
+            .map(|analysis| async { NlpAnalysis::from_db_model(analysis, pool).await });
+
+        let analyses_vec = futures::future::join_all(analyses_futures)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<NlpAnalysis>, DbError>>()?;
+
+        let analyses: HashMap<_, _> = analyses_vec
+            .into_iter()
+            .map(|analysis| (analysis.kind.clone(), analysis))
+            .collect();
+
         Ok(Report {
-            id: model.display_id,
+            id: model.id,
             user_id: model.user_id,
             title: model.title,
             description: model.description,
             is_public: model.is_public,
             status,
-            metadata,
-            analyses_map,
+            created_at: model.created_at,
+            updated_at: model.updated_at,
+            analyses,
         })
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::db::db_client::DbClient;
     use crate::db::db_stored::DbStored;
-    use crate::db::impls::test_util::{get_test_report, get_test_user};
+    use crate::db::impls::test_util::{get_db, get_test_report, get_test_user};
     use crate::report::report::Report;
+    use serial_test::serial;
 
     #[sqlx::test]
+    #[serial]
     async fn test_report_save() {
-        use sqlx::postgres::PgPoolOptions;
-        let pool = PgPoolOptions::new()
-            .max_connections(1)
-            .connect(std::env!("DATABASE_URL"))
-            .await
-            .unwrap();
-        let db = DbClient::new(pool);
+        let db = get_db().await;
 
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
 
-        let report = get_test_report("Test Report".to_string(), user.id);
+        let report = get_test_report("Test Report".to_string(), user.id.clone());
         report.save(&db).await.unwrap();
+
+        user.delete(&db).await.unwrap()
     }
 
     #[sqlx::test]
+    #[serial]
     async fn test_report_get_by_id() {
-        use sqlx::postgres::PgPoolOptions;
-        let pool = PgPoolOptions::new()
-            .max_connections(1)
-            .connect(std::env!("DATABASE_URL"))
-            .await
-            .unwrap();
-        let db = DbClient::new(pool);
+        let db = get_db().await;
 
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
 
-        let report = get_test_report("Test Report".to_string(), user.id);
+        let report = get_test_report("Test Report".to_string(), user.id.clone());
         report.save(&db).await.unwrap();
 
         let fetched_report = Report::get_by_id(&report.id, &db).await.unwrap().unwrap();
+        assert_eq!(fetched_report, report);
 
-        assert_eq!(fetched_report.id, report.id);
-        assert_eq!(fetched_report.user_id, report.user_id);
-        assert_eq!(fetched_report.title, report.title);
-        assert_eq!(fetched_report.description, report.description);
-        assert_eq!(fetched_report.is_public, report.is_public);
-        assert_eq!(fetched_report.status, report.status);
-        assert_eq!(
-            fetched_report.metadata.created_at,
-            report.metadata.created_at
-        );
-        assert_eq!(
-            fetched_report.metadata.updated_at,
-            report.metadata.updated_at
-        );
-        assert_eq!(
-            fetched_report.analyses_map.analyses.len(),
-            report.analyses_map.analyses.len()
-        );
+        fetched_report.delete(&db).await.unwrap();
+        user.delete(&db).await.unwrap();
     }
 
     #[sqlx::test]
+    #[serial]
     async fn test_report_update() {
-        use sqlx::postgres::PgPoolOptions;
-        let pool = PgPoolOptions::new()
-            .max_connections(1)
-            .connect(std::env!("DATABASE_URL"))
-            .await
-            .unwrap();
-        let db = DbClient::new(pool);
+        let db = get_db().await;
 
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
 
-        let mut report = get_test_report("Test Report".to_string(), user.id);
+        let mut report = get_test_report("Test Report".to_string(), user.id.clone());
         report.save(&db).await.unwrap();
 
         report.title = "Updated Title".to_string();
@@ -266,40 +241,25 @@ mod test {
         report.status = crate::report::report_status::ReportStatus::Error("Test Error".to_string());
 
         report.update(&db).await.unwrap();
-
         let fetched_report = Report::get_by_id(&report.id, &db).await.unwrap().unwrap();
 
-        assert_eq!(fetched_report.id, report.id);
-        assert_eq!(fetched_report.user_id, report.user_id);
         assert_eq!(fetched_report.title, report.title);
         assert_eq!(fetched_report.description, report.description);
         assert_eq!(fetched_report.is_public, report.is_public);
         assert_eq!(fetched_report.status, report.status);
-        assert_eq!(
-            fetched_report.metadata.created_at,
-            report.metadata.created_at
-        );
-        assert_eq!(
-            fetched_report.metadata.updated_at,
-            report.metadata.updated_at
-        );
-        assert_eq!(
-            fetched_report.analyses_map.analyses.len(),
-            report.analyses_map.analyses.len()
-        );
+        assert_eq!(fetched_report.created_at, report.created_at);
+        assert_ne!(fetched_report.updated_at, report.updated_at); // updated_at should be updated
+
+        report.delete(&db).await.unwrap();
+        user.delete(&db).await.unwrap();
     }
 
     #[sqlx::test]
+    #[serial]
     async fn test_report_delete() {
-        use sqlx::postgres::PgPoolOptions;
-        let pool = PgPoolOptions::new()
-            .max_connections(1)
-            .connect(std::env!("DATABASE_URL"))
-            .await
-            .unwrap();
-        let db = DbClient::new(pool);
+        let db = get_db().await;
 
-        let user = get_test_user();
+        let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
 
         let report = get_test_report("Test Report".to_string(), user.id);
@@ -308,7 +268,43 @@ mod test {
         report.delete(&db).await.unwrap();
 
         let fetched_report = Report::get_by_id(&report.id, &db).await.unwrap();
-
         assert!(fetched_report.is_none());
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_report_analyses_saving_deleting() {
+        let db = get_db().await;
+
+        let user = get_test_user("123".to_string());
+        user.save(&db).await.unwrap();
+
+        let report = get_test_report("Test Report".to_string(), user.id);
+        report.save(&db).await.unwrap();
+
+        let analyses_before = sqlx::query!(
+            r#"
+            SELECT * FROM nlp_analyses WHERE report_id = $1
+            "#,
+            report.id
+        )
+        .fetch_all(db.raw_db())
+        .await
+        .unwrap();
+        assert!(!analyses_before.is_empty());
+
+        report.delete(&db).await.unwrap();
+
+        let analyses_after = sqlx::query!(
+            r#"
+            SELECT * FROM nlp_analyses WHERE report_id = $1
+            "#,
+            report.id
+        )
+        .fetch_all(db.raw_db())
+        .await
+        .unwrap();
+
+        assert!(analyses_after.is_empty());
     }
 }
