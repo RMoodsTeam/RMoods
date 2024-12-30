@@ -1,4 +1,4 @@
-import { Box, Title, Stack, Group, Button, Checkbox, TextInput, Grid } from '@mantine/core';
+import { Box, Title, Stack, Group, Button, Checkbox, TextInput, Grid, Popover } from '@mantine/core';
 import { DatePicker } from '@mantine/dates';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback';
@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import ReportCard from './ReportCard';
 import { Report } from '../../../rmoods/types.ts';
 import { useLocation, useNavigate } from 'react-router-dom';
+import '@mantine/dates/styles.css';
 
 interface ReportQuery {
   userNamePattern?: string;
@@ -39,11 +40,17 @@ const UserReportsPage = () => {
   const [loading, setLoading] = useState(true);
   const [checkedReports, setCheckedReports] = useState<{ [key: string]: boolean }>({});
   const [checkAll, setCheckAll] = useState(false);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    title: string;
+    startDate: Date | null;
+    endDate: Date | null;
+  }>({
     title: '',
     startDate: null,
     endDate: null,
   });
+  const [startDateOpened, setStartDateOpened] = useState(false);
+  const [endDateOpened, setEndDateOpened] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -88,6 +95,14 @@ const UserReportsPage = () => {
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
+  const applyFilters = () => {
+    const params = new URLSearchParams();
+    if (filters.title) params.set('title', filters.title);
+    if (filters.startDate) params.set('startDate', filters.startDate.toISOString());
+    if (filters.endDate) params.set('endDate', filters.endDate.toISOString());
+    navigate({ search: params.toString() });
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -98,34 +113,63 @@ const UserReportsPage = () => {
         <Title order={1}>My Reports</Title>
       </Group>
 
-      <Grid style={{ marginBottom: '20px' }}>
-        <Grid.Col span={4}>
-          <TextInput
-            placeholder="Title"
-            value={filters.title}
-          />
-        </Grid.Col>
-        <Grid.Col span={3}>
-          <DatePicker
-            allowDeselect
-            value={filters.endDate}
-            onChange={(date) => handleFilterChange('endDate', date)}
-            styles={{
-              calendarHeaderControl: {
-                fontSize: '1rem', 
-                width: '2rem', 
-                height: '2rem', 
-              },
-            }}
-            size='xs'
-          />
-        </Grid.Col>
-        <Grid.Col span={2}>
-          <Button fullWidth>Apply Filters</Button>
-        </Grid.Col>
-      </Grid>
+      <Group style={{ marginBottom: '20px' }}>
+        <TextInput
+          placeholder="Title"
+          value={filters.title}
+          onChange={(event) => handleFilterChange('title', event.currentTarget.value)}
+        />
 
-      <Group style={{ marginTop: '20px', marginBottom: '10px' }}>
+        <Popover
+          opened={startDateOpened}
+          onClose={() => setStartDateOpened(false)}
+          position="bottom"
+          withArrow
+        >
+          <Popover.Target>
+            <Button onClick={() => setStartDateOpened((o) => !o)}>
+              {filters.startDate ? filters.startDate.toLocaleDateString() : 'Start Date'}
+            </Button>
+          </Popover.Target>
+          <Popover.Dropdown>
+            <DatePicker
+              value={filters.startDate}
+              onChange={(date) => {
+                handleFilterChange('startDate', date);
+                setStartDateOpened(false);
+              }}
+            />
+          </Popover.Dropdown>
+        </Popover>
+
+        <Popover
+          opened={endDateOpened}
+          onClose={() => setEndDateOpened(false)}
+          position="bottom"
+          withArrow
+        >
+          <Popover.Target>
+            <Button onClick={() => setEndDateOpened((o) => !o)}>
+              {filters.endDate ? filters.endDate.toLocaleDateString() : 'End Date'}
+            </Button>
+          </Popover.Target>
+          <Popover.Dropdown>
+            <DatePicker
+              value={filters.endDate}
+              onChange={(date) => {
+                handleFilterChange('endDate', date);
+                setEndDateOpened(false);
+              }}
+            />
+          </Popover.Dropdown>
+        </Popover>
+      </Group>
+
+      <Group justify='center' style={{ marginBottom: '20px' }}>
+        <Button onClick={applyFilters}>Apply Filters</Button>
+      </Group>
+
+      <Group style={{ marginTop: '50px', marginBottom: '10px' }}>
         <Checkbox
           style={{ width: '6%', marginLeft: '1.25rem' }}
           checked={checkAll}
