@@ -7,3 +7,17 @@ export interface User {
   email: string;
   picture: string;
 }
+
+export interface Report {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  is_public: boolean;
+  status: {
+    Error?: string;
+  };
+  analyses: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}

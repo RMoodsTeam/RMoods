@@ -48,10 +48,19 @@ export class RMoodsClient {
   /**
    * Fetch information about a subreddit using the `/about/subreddit` endpoint
    */
-  static async fetchAboutSubreddit() {}
+  static async fetchAboutSubreddit() { }
 
   /**
    * Fetch information about a user using the `/about/user` endpoint
    */
-  static async fetchAboutUser() {}
+  static async fetchAboutUser() { }
+
+  static async fetchUserReports(userId: string) {
+    return await authFetch(`/report?id=${userId}&page=1&per_page=3`).then((res) => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch user reports');
+      }
+      return res.json();
+    });
+  }
 }
