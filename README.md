@@ -32,9 +32,9 @@ RMoods is a comprehensive NLP analysis tool for Reddit. It leverages advanced na
 - [About](#about)
 - [Features](#features)
 - [Documentation](#documentation)
-- [Technologies Used](#technologies)
+- [Technologies Used](#technologies-used)
+- [For Developers](#for-developers)
 - [Setup](#setup)
-- [Contributing](#contributing)
 - [Licence](#licence)
 - [Authors](#authors)
 
@@ -57,30 +57,16 @@ RMoods is designed to provide deep insights into the vast amount of data generat
 The documentation for each module is created using CI/CD and avaliable  [here](https://rmoods.online/docs).
 
 ## Technologies Used
-### Frontend
-- **React**
-- **Mantine UI**
+Technologies used and project structure avaliable under our wiki page [here](https://github.com/RMoodsTeam/RMoods/wiki/Project-structure).
 
-### Backend
-- **Rust**
 
-### NLP
-- **Python**
-- **FastAPI**
-- **Transformers**
-
-### Database
-- **PostgreSQL**
-
-### Deployment
-- **Docker**
-- **Github Actions**
-
-## Setup
+## For Developers
 ### For development, install our git hooks by running the install script:
 ```sh
 sh .github/install_hooks.sh
 ```
+
+## Setup
 ### Installation
 
 1. **Clone the repository**
@@ -115,25 +101,22 @@ sh .github/install_hooks.sh
             └── english/
 ```
 **Each folder contains models and configuration files needed to run them. Models are avaliable on https://huggingface.co/ directly or on our GoogleDrive:**<br>
- https://drive.google.com/drive/folders/19VR2THdanIgfQAjLUMARUawKkkg9tL2w?usp=sharing<br>
- https://drive.google.com/drive/folders/1N01cgGwJ_MOhP5J3PqXbF5bXKs821lIw?usp=sharing<br>
- https://drive.google.com/drive/folders/1URQ4wQXP6dLauo3PjnuPIFmQvYaBAz5m?usp=sharing<br>
- https://drive.google.com/drive/folders/1Yfm3zLxjUGwdRs2QtPSITjtpvR1-1YDn?usp=sharing<br>
- https://drive.google.com/drive/folders/1chlgnuJ2Z3mDZd299zr4Zfhh9pAKiehC?usp=sharing<br>
- https://drive.google.com/drive/folders/1p3lPzdUioYmtohtIsAlfEXTDgUfL97Cl?usp=sharing<br>
- https://drive.google.com/drive/folders/1wFb57YgGH_SiymhYGN3BVsr644u776Lz?usp=sharing
+
+
+| Model Name | Link | Language |
+|------------|------|-------|
+| Hate Speech   | [Link](https://drive.google.com/drive/folders/19VR2THdanIgfQAjLUMARUawKkkg9tL2w?usp=sharing) | :poland: :england: |
+| Clickbait   | [Link](https://drive.google.com/drive/folders/1N01cgGwJ_MOhP5J3PqXbF5bXKs821lIw?usp=sharing) | :england: |
+| Sarcasm   | [Link](https://drive.google.com/drive/folders/1URQ4wQXP6dLauo3PjnuPIFmQvYaBAz5m?usp=sharing) | :england: |
+| Language   | [Link](https://drive.google.com/drive/folders/1Yfm3zLxjUGwdRs2QtPSITjtpvR1-1YDn?usp=sharing) | :globe_with_meridians: |
+| Political    | [Link](https://drive.google.com/drive/folders/1chlgnuJ2Z3mDZd299zr4Zfhh9pAKiehC?usp=sharing) | :england: |
+| Spam   | [Link](https://drive.google.com/drive/folders/1p3lPzdUioYmtohtIsAlfEXTDgUfL97Cl?usp=sharing) | :england: |
+| Sentiment    | [Link](https://drive.google.com/drive/folders/1wFb57YgGH_SiymhYGN3BVsr644u776Lz?usp=sharing) | :poland: :england: |
+| KeyWords | [Link](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) | :globe_with_meridians: |
+| LLM | [Link](https://drive.google.com/drive/folders/1V7G3umvlR-ngVh1lHS90duOoDpTN0kyE?usp=sharing) | :england:
 
  **Models that we are using and avaliable languages for them are specified in [nlp/version_models.json](nlp/version_models.json)**
  
-## Contributing
-We welcome contributions from the community! To contribute, please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch (git checkout -b feature-branch).
-3. Make your changes.
-4. Commit your changes (git commit -m 'Add new feature').
-5. Push to the branch (git push origin feature-branch).
-6. Open a pull request.
 
 ## License
 Distributed under GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007. See [license](LICENSE) for more information.
