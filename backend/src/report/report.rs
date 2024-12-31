@@ -1,5 +1,5 @@
 use crate::auth::user::GoogleId;
-use crate::fetcher::feed_request::RedditFeedKind;
+use crate::fetcher::data_request::{FetcherDataRequest, RedditFeedKind};
 use crate::fetcher::model::post_comments::PostComments;
 use crate::fetcher::model::posts::Posts;
 use crate::fetcher::model::reddit_data::RedditFeedData;
@@ -39,6 +39,7 @@ pub struct Report {
     pub is_public: bool,
     pub status: ReportStatus,
     pub analyses: ReportAnalysesMap,
+    pub data_request: FetcherDataRequest,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -54,6 +55,7 @@ impl Report {
             is_public: request.is_public,
             status: ReportStatus::InProgress,
             analyses: ReportAnalysesMap::new(),
+            data_request: request.data_request,
             created_at: now,
             updated_at: now,
         }
@@ -64,7 +66,7 @@ impl Report {
         request: ReportRequest,
         state: &mut AppState,
     ) -> Result<ReportAnalysesMap, ReportError> {
-        let text_data = match request.data_request.resource_kind {
+        let text_data = match request.data_request.feed_kind {
             RedditFeedKind::SubredditPosts => state
                 .fetcher
                 .fetch_feed::<Posts>(request.data_request)

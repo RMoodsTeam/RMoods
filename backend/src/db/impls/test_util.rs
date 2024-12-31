@@ -4,8 +4,10 @@
 
 use crate::auth::user::{GoogleId, User};
 use crate::db::db_client::DbClient;
+use crate::fetcher::data_request::{DataSource, FetcherDataRequest, RedditFeedKind};
+use crate::fetcher::reddit::request::feed_sorting::FeedSorting;
 use crate::nlp::analysis::NlpAnalysisKind;
-use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata, NlpResponse};
+use crate::nlp::nlp_response::{NlpAnalysis, NlpResponse};
 use crate::report::report::Report;
 use crate::report::report_status::ReportStatus;
 use crate::util::get_utc_timestamp;
@@ -46,6 +48,20 @@ pub(super) fn get_test_report(title: String, user_id: GoogleId) -> Report {
         created_at: now,
         updated_at: now,
         analyses: get_test_report_analyses(),
+        data_request: get_test_data_request(),
+    }
+}
+
+pub(super) fn get_test_data_request() -> FetcherDataRequest {
+    FetcherDataRequest {
+        feed_kind: RedditFeedKind::SubredditPosts,
+        data_sources: vec![DataSource {
+            name: "r/askreddit".to_string(),
+            post_id: None,
+            share: 100,
+        }],
+        size: 10,
+        sort_by: FeedSorting::Hot,
     }
 }
 
@@ -58,10 +74,6 @@ pub(super) fn get_test_nlp_analysis(kind: NlpAnalysisKind) -> NlpAnalysis {
         }],
         generated_in: 0.5,
     }
-}
-
-pub(super) fn get_test_nlp_metadata() -> NlpMetadata {
-    NlpMetadata { generated_in: 0.5 }
 }
 
 pub(super) fn get_test_report_analyses() -> HashMap<NlpAnalysisKind, NlpAnalysis> {

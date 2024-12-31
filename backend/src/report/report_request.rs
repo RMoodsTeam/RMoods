@@ -1,4 +1,4 @@
-use crate::fetcher::feed_request::FetcherDataRequest;
+use crate::fetcher::data_request::FetcherDataRequest;
 use crate::nlp::nlp_request::NlpRequest;
 use crate::validation::validated::Validated;
 use crate::validation::validation_error::ValidationError;

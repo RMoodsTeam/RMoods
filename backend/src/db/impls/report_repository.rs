@@ -276,6 +276,8 @@ mod tests {
     use super::*;
     use crate::db::db_stored::DbStored;
     use crate::db::impls::test_util::get_test_user;
+    use crate::fetcher::data_request::{DataSource, FetcherDataRequest, RedditFeedKind};
+    use crate::fetcher::reddit::request::feed_sorting::{FeedSorting, FeedSortingTime};
     use crate::nlp::nlp_response::NlpAnalysis;
     use crate::report::report_status::ReportStatus;
     use serial_test::serial;
@@ -412,6 +414,23 @@ mod tests {
                     generated_in: 0.0,
                 },
             )]),
+            data_request: FetcherDataRequest {
+                feed_kind: RedditFeedKind::UserPosts,
+                data_sources: vec![
+                    DataSource {
+                        name: "spez".to_string(),
+                        post_id: None,
+                        share: 80,
+                    },
+                    DataSource {
+                        name: "spez2".to_string(),
+                        post_id: None,
+                        share: 20,
+                    },
+                ],
+                size: 10,
+                sort_by: FeedSorting::Hot,
+            },
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
@@ -441,6 +460,23 @@ mod tests {
                     },
                 ),
             ]),
+            data_request: FetcherDataRequest {
+                feed_kind: RedditFeedKind::SubredditPosts,
+                data_sources: vec![
+                    DataSource {
+                        name: "Polska".to_string(),
+                        post_id: None,
+                        share: 50,
+                    },
+                    DataSource {
+                        name: "programming".to_string(),
+                        post_id: None,
+                        share: 50,
+                    },
+                ],
+                size: 100,
+                sort_by: FeedSorting::Controversial(FeedSortingTime::Month),
+            },
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
@@ -470,6 +506,33 @@ mod tests {
                     },
                 ),
             ]),
+            data_request: FetcherDataRequest {
+                feed_kind: RedditFeedKind::SubredditPosts,
+                data_sources: vec![
+                    DataSource {
+                        name: "Polska".to_string(),
+                        post_id: None,
+                        share: 25,
+                    },
+                    DataSource {
+                        name: "programming".to_string(),
+                        post_id: None,
+                        share: 25,
+                    },
+                    DataSource {
+                        name: "sakratvelo".to_string(),
+                        post_id: None,
+                        share: 25,
+                    },
+                    DataSource {
+                        name: "europe".to_string(),
+                        post_id: None,
+                        share: 25,
+                    },
+                ],
+                size: 200,
+                sort_by: FeedSorting::Top(FeedSortingTime::All),
+            },
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
@@ -489,6 +552,16 @@ mod tests {
                     generated_in: 0.0,
                 },
             )]),
+            data_request: FetcherDataRequest {
+                feed_kind: RedditFeedKind::SubredditPosts,
+                data_sources: vec![DataSource {
+                    name: "Polska".to_string(),
+                    post_id: Some("1eubxgg".to_string()),
+                    share: 100,
+                }],
+                size: 200,
+                sort_by: FeedSorting::Top(FeedSortingTime::All),
+            },
             created_at: Utc::now() - chrono::Duration::days(7),
             updated_at: Utc::now() - chrono::Duration::days(7),
         };
