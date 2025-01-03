@@ -1,8 +1,9 @@
 use crate::db::db_error::DbError;
 use crate::db::db_stored::{DbStoredDependentlyInner, DbStoredInner};
 use crate::db::from_db::FromDb;
-use crate::db::model::{DbNlpAnalysis, DbReport};
+use crate::db::model::{DbDataRequest, DbNlpAnalysis, DbReport};
 use crate::db::pagination::DbPagination;
+use crate::fetcher::data_request::FetcherDataRequest;
 use crate::nlp::nlp_response::NlpAnalysis;
 use crate::report::report::Report;
 use crate::report::report_status::ReportStatus;
@@ -52,6 +53,8 @@ impl DbStoredInner for Report {
         for (_, analysis) in &self.analyses {
             analysis.inner_save(report_id.as_str(), tx).await?;
         }
+
+        self.data_request.inner_save(report_id.as_str(), tx).await?;
 
         Ok(())
     }
@@ -145,7 +148,7 @@ impl FromDb for Report {
             model.error_message,
         )?;
 
-        let analysis = sqlx::query_as!(
+        let analyses_res = sqlx::query_as!(
             DbNlpAnalysis,
             r#"
             SELECT *
@@ -157,7 +160,7 @@ impl FromDb for Report {
         .fetch_all(pool)
         .await?;
 
-        let analyses_futures = analysis
+        let analyses_futures = analyses_res
             .into_iter()
             .map(|analysis| async { NlpAnalysis::from_db_model(analysis, pool).await });
 
@@ -171,6 +174,20 @@ impl FromDb for Report {
             .map(|analysis| (analysis.kind.clone(), analysis))
             .collect();
 
+        let data_request_res = sqlx::query_as!(
+            DbDataRequest,
+            r#"
+            SELECT *
+            FROM data_requests
+            WHERE report_id = $1
+            "#,
+            model.id
+        )
+        .fetch_one(pool)
+        .await?;
+
+        let data_request = FetcherDataRequest::from_db_model(data_request_res, pool).await?;
+
         Ok(Report {
             id: model.id,
             user_id: model.user_id,
@@ -178,9 +195,10 @@ impl FromDb for Report {
             description: model.description,
             is_public: model.is_public,
             status,
+            analyses,
+            data_request,
             created_at: model.created_at,
             updated_at: model.updated_at,
-            analyses,
         })
     }
 }
@@ -306,5 +324,29 @@ mod test {
         .unwrap();
 
         assert!(analyses_after.is_empty());
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_report_data_request_saving_deleting() {
+        let db = get_db().await;
+
+        let user = get_test_user("123".to_string());
+        user.save(&db).await.unwrap();
+
+        let report = get_test_report("Test Report".to_string(), user.id);
+        report.save(&db).await.unwrap();
+
+        let data_request_before = sqlx::query!(
+            r#"
+            SELECT * FROM data_requests WHERE report_id = $1
+            "#,
+            report.id
+        )
+        .fetch_all(db.raw_db())
+        .await
+        .unwrap();
+
+        assert!(!data_request_before.is_empty());
     }
 }

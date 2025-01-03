@@ -1,4 +1,4 @@
-use crate::fetcher::feed_request::FetcherDataRequest;
+use crate::fetcher::data_request::FetcherDataRequest;
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::model::reddit_data::{RedditAboutData, RedditFeedData};
 use crate::fetcher::reddit::ratelimit_headers::RatelimitHeaders;

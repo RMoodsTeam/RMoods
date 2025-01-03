@@ -44,6 +44,35 @@ CREATE TABLE IF NOT EXISTS reports (
     FOREIGN KEY (user_id) REFERENCES users (google_id) ON DELETE CASCADE
 );
 
+CREATE TABLE data_requests (
+    id           uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
+    report_id    TEXT        NOT NULL UNIQUE,
+    --
+    feed_kind    TEXT        NOT NULL,
+    size         INT         NOT NULL,
+    sort_by_kind TEXT        NOT NULL,
+    sort_by_time TEXT,
+    --
+    created_at   timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (report_id) REFERENCES reports (id) ON DELETE CASCADE
+);
+
+CREATE TABLE data_sources (
+    id              uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
+    data_request_id uuid        NOT NULL,
+    --
+    name            TEXT        NOT NULL,
+    post_id         TEXT,
+    share           INT         NOT NULL,
+    --
+    created_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (data_request_id) REFERENCES data_requests (id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS nlp_analyses (
     id           uuid PRIMARY KEY     DEFAULT uuid_generate_v4(),
     report_id    TEXT        NOT NULL, -- the map that this analysis belongs to
