@@ -40,6 +40,32 @@ pub(super) struct DbReport {
     pub(super) updated_at: DateTime<Utc>,
 }
 
+#[derive(sqlx::FromRow, Debug)]
+pub(super) struct DbDataRequest {
+    pub(super) id: Uuid,
+    pub(super) report_id: ReportId,
+    //
+    pub(super) feed_kind: String,
+    pub(super) size: i32,
+    pub(super) sort_by_kind: String,
+    pub(super) sort_by_time: Option<String>,
+    //
+    pub(super) created_at: DateTime<Utc>,
+    pub(super) updated_at: DateTime<Utc>,
+}
+
+pub(super) struct DbDataSource {
+    pub(super) id: Uuid,
+    pub(super) data_request_id: Uuid,
+    //
+    pub(super) name: String,
+    pub(super) post_id: Option<String>,
+    pub(super) share: i32,
+    //
+    pub(super) created_at: DateTime<Utc>,
+    pub(super) updated_at: DateTime<Utc>,
+}
+
 /// Represents a singular [NlpResponse](crate::nlp::nlp_response::NlpResponse) analysis of some kind.
 #[derive(sqlx::FromRow, Debug)]
 pub(super) struct DbNlpAnalysis {

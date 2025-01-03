@@ -4,6 +4,7 @@ use crate::db::db_error::DbError;
 use crate::db::from_db::FromDb;
 use crate::db::model::DbReport;
 use crate::db::pagination::DbPagination;
+use crate::fetcher::data_request::RedditFeedKind;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::report::report::Report;
 use crate::util::get_utc_timestamp;
@@ -60,6 +61,12 @@ pub struct ReportQuery {
     #[serde(rename = "mine")]
     pub include_my_reports: Option<bool>,
 
+    /// Filter by the feed kind of the report's data request.
+    pub feed_kind: Option<RedditFeedKind>,
+
+    /// Filter by the resource names used in the report's data sources.
+    pub resource: Option<String>,
+
     /// Pagination parameters for the query.
     ///
     /// If not provided, the default values are used: page 1, 30 items per page.
@@ -76,6 +83,8 @@ impl Default for ReportQuery {
             end_date: None,
             title_pattern: None,
             include_my_reports: None,
+            feed_kind: None,
+            resource: None,
             pagination: DbPagination::default(),
         }
     }
@@ -122,6 +131,8 @@ struct ReportQueryBindArgs {
     title_pattern: String,
     /// Whether to only fetch reports belonging to the requesting user.
     include_my_reports: bool,
+    feed_kind_pattern: String,
+    resource_pattern: String,
 }
 
 impl ReportQuery {
@@ -141,6 +152,11 @@ impl ReportQuery {
         let end_date = self.end_date.unwrap_or(get_utc_timestamp());
         let title_pattern = self.title_pattern.unwrap_or("".to_string());
         let include_my_reports = self.include_my_reports.unwrap_or(false);
+        let feed_kind_pattern = self
+            .feed_kind
+            .map(|f| f.to_snake_case())
+            .unwrap_or("".to_string());
+        let resource_pattern = self.resource.unwrap_or("".to_string());
 
         ReportQueryBindArgs {
             user_name_pattern,
@@ -149,6 +165,8 @@ impl ReportQuery {
             end_date,
             title_pattern,
             include_my_reports,
+            feed_kind_pattern,
+            resource_pattern,
         }
     }
 }
@@ -180,47 +198,56 @@ impl ReportRepository for Report {
         let db_reports = sqlx::query_as!(
             DbReport,
             r#"
-            SELECT id, user_id, title, description, is_public, is_in_progress, is_successful, is_error, error_message, r.created_at, r.updated_at
+            SELECT r.id, user_id, title, description, is_public, is_in_progress, is_successful, is_error, error_message, r.created_at, r.updated_at
             FROM reports r
             JOIN users u ON r.user_id = u.google_id
+            JOIN data_requests dr ON r.id = dr.report_id
             WHERE
             position ($1 in u.name) > 0
             AND r.created_at >= $2 AND r.created_at <= $3
             AND (r.is_public = TRUE OR (u.google_id = $4 AND $5))
             AND position ($6 in r.title) > 0
+            AND position ($7 in dr.feed_kind) > 0
+            AND EXISTS (
+                SELECT 1 
+                FROM data_requests dr2
+                JOIN data_sources ds ON dr2.id = ds.data_request_id
+                WHERE dr2.report_id = r.id
+                AND position ($8 in ds.name) > 0 
+            )
             AND (
-                SELECT CASE WHEN $7 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'clickbait'))
+                SELECT CASE WHEN $9 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'clickbait'))
                 ELSE TRUE END
                 AND (
-                    SELECT CASE WHEN $8 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'hate_speech'))
+                    SELECT CASE WHEN $10 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'hate_speech'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $9 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'keywords'))
+                    SELECT CASE WHEN $11 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'keywords'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $10 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'language'))
+                    SELECT CASE WHEN $12 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'language'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $11 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'politics'))
+                    SELECT CASE WHEN $13 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'politics'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $12 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sarcasm'))
+                    SELECT CASE WHEN $14 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sarcasm'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $13 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sentiment'))
+                    SELECT CASE WHEN $15 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sentiment'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $14 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'spam'))
+                    SELECT CASE WHEN $16 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'spam'))
                     ELSE TRUE END
                 )
             )
-            LIMIT $15 OFFSET $16
+            LIMIT $17 OFFSET $18
             "#,
             bind_args.user_name_pattern,
             bind_args.start_date,
@@ -228,6 +255,8 @@ impl ReportRepository for Report {
             requesting_user_id,
             bind_args.include_my_reports,
             bind_args.title_pattern,
+            bind_args.feed_kind_pattern,
+            bind_args.resource_pattern,
             bind_args
                 .contained_analysis_kinds
                 .contains(&NlpAnalysisKind::Clickbait),
@@ -276,6 +305,8 @@ mod tests {
     use super::*;
     use crate::db::db_stored::DbStored;
     use crate::db::impls::test_util::get_test_user;
+    use crate::fetcher::data_request::{DataSource, FetcherDataRequest, RedditFeedKind};
+    use crate::fetcher::reddit::request::feed_sorting::{FeedSorting, FeedSortingTime};
     use crate::nlp::nlp_response::NlpAnalysis;
     use crate::report::report_status::ReportStatus;
     use serial_test::serial;
@@ -364,6 +395,8 @@ mod tests {
                 end_date: None,
                 title_pattern: None,
                 include_my_reports: None,
+                feed_kind: None,
+                resource: None,
                 pagination: DbPagination::default(),
             },
             GoogleId::from("test".to_string()),
@@ -387,6 +420,8 @@ mod tests {
                 end_date: Some(get_utc_timestamp()),
                 title_pattern: Some("test".to_string()),
                 include_my_reports: Some(true),
+                feed_kind: Some(RedditFeedKind::SubredditPosts),
+                resource: Some("Polska".to_string()),
                 pagination: DbPagination::new(0, 10),
             },
             GoogleId::from("test".to_string()),
@@ -412,6 +447,23 @@ mod tests {
                     generated_in: 0.0,
                 },
             )]),
+            data_request: FetcherDataRequest {
+                feed_kind: RedditFeedKind::UserPosts,
+                data_sources: vec![
+                    DataSource {
+                        name: "spez".to_string(),
+                        post_id: None,
+                        share: 80,
+                    },
+                    DataSource {
+                        name: "spez2".to_string(),
+                        post_id: None,
+                        share: 20,
+                    },
+                ],
+                size: 10,
+                sort_by: FeedSorting::Hot,
+            },
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
@@ -441,6 +493,23 @@ mod tests {
                     },
                 ),
             ]),
+            data_request: FetcherDataRequest {
+                feed_kind: RedditFeedKind::SubredditPosts,
+                data_sources: vec![
+                    DataSource {
+                        name: "Polska".to_string(),
+                        post_id: None,
+                        share: 50,
+                    },
+                    DataSource {
+                        name: "programming".to_string(),
+                        post_id: None,
+                        share: 50,
+                    },
+                ],
+                size: 100,
+                sort_by: FeedSorting::Controversial(FeedSortingTime::Month),
+            },
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
@@ -470,6 +539,33 @@ mod tests {
                     },
                 ),
             ]),
+            data_request: FetcherDataRequest {
+                feed_kind: RedditFeedKind::SubredditPosts,
+                data_sources: vec![
+                    DataSource {
+                        name: "Polska".to_string(),
+                        post_id: None,
+                        share: 25,
+                    },
+                    DataSource {
+                        name: "programming".to_string(),
+                        post_id: None,
+                        share: 25,
+                    },
+                    DataSource {
+                        name: "sakratvelo".to_string(),
+                        post_id: None,
+                        share: 25,
+                    },
+                    DataSource {
+                        name: "europe".to_string(),
+                        post_id: None,
+                        share: 25,
+                    },
+                ],
+                size: 200,
+                sort_by: FeedSorting::Top(FeedSortingTime::All),
+            },
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
@@ -489,6 +585,16 @@ mod tests {
                     generated_in: 0.0,
                 },
             )]),
+            data_request: FetcherDataRequest {
+                feed_kind: RedditFeedKind::SubredditPosts,
+                data_sources: vec![DataSource {
+                    name: "Polska".to_string(),
+                    post_id: Some("1eubxgg".to_string()),
+                    share: 100,
+                }],
+                size: 200,
+                sort_by: FeedSorting::Top(FeedSortingTime::All),
+            },
             created_at: Utc::now() - chrono::Duration::days(7),
             updated_at: Utc::now() - chrono::Duration::days(7),
         };
@@ -606,7 +712,6 @@ mod tests {
     async fn test_get_by_query_contained_analysis_kinds_one() {
         let db = get_db().await;
         let _ = setup().await;
-        let (_, r2, _, _) = get_test_reports();
 
         let query = ReportQuery {
             contained_analysis_kinds: vec![NlpAnalysisKind::Clickbait],
@@ -650,7 +755,7 @@ mod tests {
         let db = get_db().await;
         let _ = teardown().await;
         let _ = setup().await;
-        let (r1, _, _, r4) = get_test_reports();
+        let (r1, _, _, _) = get_test_reports();
 
         let query = ReportQuery {
             start_date: Some(r1.created_at - chrono::Duration::days(10)),
@@ -764,5 +869,73 @@ mod tests {
 
         teardown().await;
         assert_eq!(reports.len(), 4);
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_feed_kind_subreddit_posts() {
+        let db = get_db().await;
+        let _ = setup().await;
+
+        let query = ReportQuery {
+            feed_kind: Some(RedditFeedKind::SubredditPosts),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        teardown().await;
+        assert!(reports
+            .iter()
+            .all(|r| r.data_request.feed_kind == RedditFeedKind::SubredditPosts));
+        assert_eq!(reports.len(), 2);
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_feed_kind_user_posts() {
+        let db = get_db().await;
+        let _ = setup().await;
+
+        let query = ReportQuery {
+            feed_kind: Some(RedditFeedKind::UserPosts),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        teardown().await;
+        assert!(reports
+            .iter()
+            .all(|r| r.data_request.feed_kind == RedditFeedKind::UserPosts));
+        assert_eq!(reports.len(), 1);
+    }
+
+    #[sqlx::test]
+    #[serial]
+    async fn test_get_by_query_resource() {
+        let db = get_db().await;
+        let _ = setup().await;
+
+        let query = ReportQuery {
+            resource: Some("Polska".to_string()),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        teardown().await;
+        assert!(reports.iter().all(|r| r
+            .data_request
+            .data_sources
+            .iter()
+            .any(|ds| ds.name == "Polska")));
+        assert_eq!(reports.len(), 2);
     }
 }
