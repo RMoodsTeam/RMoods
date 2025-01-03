@@ -10,6 +10,7 @@ import FilterNavbar from './FilterNavbar.tsx';
 import { useAtomValue } from 'jotai';
 import { userInfoAtom } from '../../../atoms.ts';
 import TableHeader from './TableHeader.tsx';
+import { open } from 'cypress';
 
 
 const UserReportsPage = () => {
