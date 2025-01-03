@@ -14,10 +14,51 @@ export interface Report {
   title: string;
   description: string;
   is_public: boolean;
-  status: {
-    Error?: string;
-  };
-  analyses: Record<string, unknown>;
+  status: ReportStatus;
+  analyses: ReportAnalysesMap;
   created_at: string;
   updated_at: string;
+}
+
+export interface ReportQuery {
+  userNamePattern?: string;
+  containedAnalysisKinds: NlpAnalysisKind[];
+  startDate?: string;
+  endDate?: string;
+  titlePattern?: string;
+  includeMyReports: boolean;
+  pagination: DbPagination;
+}
+
+export interface DbPagination {
+  page: number;
+  perPage: number;
+}
+
+export enum NlpAnalysisKind {
+  Clickbait = 'clickbait',
+  HateSpeech = 'hateSpeech',
+  Keywords = 'keywords',
+  Language = 'language',
+  Politics = 'politics',
+  Sarcasm = 'sarcasm',
+  Sentiment = 'sentiment',
+  Spam = 'spam',
+}
+
+export enum ReportStatus {
+  Success = 'Success',
+  InProgress = 'InProgress',
+  Error = 'Error',
+}
+
+export interface NlpAnalysis {
+  kind: NlpAnalysisKind;
+  generatedIn: string;
+  result: any;
+}
+
+export interface ReportAnalysesMap {
+  nlpAnalysisKind: NlpAnalysisKind;
+  nlpAnalysis: NlpAnalysis;
 }

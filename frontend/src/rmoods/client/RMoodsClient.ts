@@ -1,6 +1,8 @@
 import authFetch from './authFetch.ts';
 import { ReportFormAdaptedValues } from '../../routes/report/schema.ts';
 import { User } from '../types.ts';
+import { userInfoAtom } from '../../atoms.ts';
+import { useAtomValue } from 'jotai';
 
 export type ReportRequest = ReportFormAdaptedValues;
 
@@ -55,8 +57,8 @@ export class RMoodsClient {
    */
   static async fetchAboutUser() { }
 
-  static async fetchUserReports(userId: string) {
-    return await authFetch(`/report?id=${userId}&page=1&per_page=3`).then((res) => {
+  static async fetchUserReports(url: string) {
+    return await authFetch(`/report?${url.toString()}`).then((res) => {
       if (!res.ok) {
         throw new Error('Failed to fetch user reports');
       }
