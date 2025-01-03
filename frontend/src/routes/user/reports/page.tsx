@@ -1,4 +1,4 @@
-import { Box, Title, Stack, Group, Button, Checkbox, Table } from '@mantine/core';
+import { Box, Title, Stack, Group, Button, Loader } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback';
 import { RMoodsClient } from '../../../rmoods/client/RMoodsClient';
@@ -10,7 +10,6 @@ import FilterNavbar from './FilterNavbar.tsx';
 import { useAtomValue } from 'jotai';
 import { userInfoAtom } from '../../../atoms.ts';
 import TableHeader from './TableHeader.tsx';
-import { set } from 'zod';
 
 
 const UserReportsPage = () => {
@@ -29,7 +28,7 @@ const UserReportsPage = () => {
     startDate: null,
     endDate: null,
     nlpKinds: [],
-    reportsPerPage: 1,
+    reportsPerPage: 10,
   });
   const [sortField, setSortField] = useState<string>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -111,11 +110,6 @@ const UserReportsPage = () => {
     setCheckedReports(newCheckedReports);
   };
 
-  const deleteCheckedReports = () => {
-    const checkedIds = Object.keys(checkedReports).filter((id) => checkedReports[id]);
-    console.log('Checked report IDs:', checkedIds);
-  };
-
   const handleFilterChange = (field: string, value: any) => {
     setFilters((prev) => ({ ...prev, [field]: value }));
     if (field !== 'page') {
@@ -157,7 +151,7 @@ const UserReportsPage = () => {
   });
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   return (
@@ -196,12 +190,6 @@ const UserReportsPage = () => {
         </Button>
         <Button onClick={() => setPage((prev) => prev + 1)}>
           Next
-        </Button>
-      </Group>
-
-      <Group justify="right" style={{ marginTop: '20px' }}>
-        <Button onClick={deleteCheckedReports}>
-          Delete Reports
         </Button>
       </Group>
     </Box>

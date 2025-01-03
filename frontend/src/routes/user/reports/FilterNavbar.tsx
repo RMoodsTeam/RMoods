@@ -105,8 +105,8 @@ const FilterNavbar: React.FC<FilterNavbarProps> = ({ filters, onFilterChange, on
                 </Popover>
                 <NumberInput
                     placeholder="Reports per page"
-                    value={filters.reportsPerPage}
                     onChange={(value) => onFilterChange('reportsPerPage', value)}
+                    min={1}
                 />
             </Group>
             <Group justify='center' style={{ marginTop: '20px' }}>
