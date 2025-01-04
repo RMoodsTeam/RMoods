@@ -64,7 +64,7 @@ const ReportFormAdaptedSchema = z.object({
   description: z.string().max(2000),
   isPublic: z.boolean(),
   dataRequest: z.object({
-    resourceKind: FeedKindSchema,
+    feedKind: FeedKindSchema,
     size: z.number().min(1).max(500),
     sortBy: FeedSortingSchema,
     dataSources: z.array(DataSourceSchema).min(1),
@@ -93,7 +93,7 @@ export const ReportFormValuesSchema = z.object({
     message: "Description can't be longer than 2000 characters",
   }),
   isPublic: z.enum(['true', 'false']),
-  resourceKind: FeedKindSchema,
+  feedKind: FeedKindSchema,
   size: FetchSizeSchema, // string due to form api constraints
   sortBy: FeedSortingKindSchema,
   time: FeedSortingTimeSchema.nullable(),

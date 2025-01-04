@@ -37,7 +37,7 @@ const Report = () => {
     initialValues: {
       title: '',
       description: '',
-      resourceKind: 'subredditPosts',
+      feedKind: 'subredditPosts',
       isPublic: 'true',
       size: '30',
       sortBy: 'hot',
@@ -86,13 +86,13 @@ const Report = () => {
         rows.map((row, i) =>
           i === index
             ? {
-                ...row,
-                dataSource: {
-                  ...row.dataSource,
-                  [property]:
-                    property === 'share' ? event : event.target?.value,
-                },
-              }
+              ...row,
+              dataSource: {
+                ...row.dataSource,
+                [property]:
+                  property === 'share' ? event : event.target?.value,
+              },
+            }
             : row
         )
       );
@@ -254,7 +254,7 @@ const Report = () => {
                 {
                   // Only show time selection if sorting by top or controversial
                   form.getInputProps('sortBy').value !== 'top' &&
-                  form.getInputProps('sortBy').value !==
+                    form.getInputProps('sortBy').value !==
                     'controversial' ? null : (
                     <Select
                       name="time"

@@ -26,7 +26,7 @@ async def lifespan(application: FastAPI):
     logger.info("Application is starting")
     logger.info("Checking for model updates")
     try:
-        update_model_versions()
+        # update_model_versions()
         logger.debug("Model versions updated successfully")
     except Exception as e:
         logger.error(f"Failed to update model versions: {e}")
@@ -111,7 +111,7 @@ async def get_sentiment(request: TextRequest):
 
     return TextResponse(
         kind="sentiment",
-        metadata=Metadata(generated_in=generation_time),
+        generatedIn=generation_time,
         results=results
     ).json()
 
@@ -155,7 +155,7 @@ async def get_language(request: TextRequest):
 
     return TextResponse(
         kind="language",
-        metadata=Metadata(generated_in=generation_time),
+        generatedIn=generation_time,
         results=results
     ).json()
 
@@ -194,7 +194,7 @@ async def get_sarcasm(request: TextRequest):
 
     return TextResponse(
         kind="sarcasm",
-        metadata=Metadata(generated_in=generation_time),
+        generatedIn=generation_time,
         results=results
     ).json()
 
@@ -230,7 +230,7 @@ async def get_keywords(request: TextRequest):
 
     return TextResponse(
         kind="keywords",
-        metadata=Metadata(generated_in=generation_time),
+        generatedIn=generation_time,
         results=results
     ).json()
 
@@ -269,7 +269,7 @@ async def get_spam(request: TextRequest):
 
     return TextResponse(
         kind="spam",
-        metadata=Metadata(generated_in=generation_time),
+        generatedIn=generation_time,
         results=results
     ).json()
 
@@ -305,7 +305,7 @@ async def get_politics(request: TextRequest):
 
     return TextResponse(
         kind="politics",
-        metadata=Metadata(generated_in=generation_time),
+        generatedIn=generation_time,
         results=results
     ).json()
 
@@ -351,7 +351,7 @@ async def get_hate_speech(request: TextRequest):
 
     return TextResponse(
         kind="hateSpeech",
-        metadata=Metadata(generated_in=generation_time),
+        generatedIn=generation_time,
         results=results
     ).json()
 
@@ -385,7 +385,7 @@ async def get_clickbait(request: TextRequest):
 
     return TextResponse(
         kind="clickbait",
-        metadata=Metadata(generated_in=generation_time),
+        generatedIn=generation_time,
         results=results
     ).json()
 
@@ -427,7 +427,7 @@ async def get_llm(request: TextRequest):
 
     return TextResponse(
         kind="llm",
-        metadata=Metadata(generated_in=generation_time),
+        generatedIn=generation_time,
         results=results
     ).json()
 

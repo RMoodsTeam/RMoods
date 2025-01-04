@@ -15,17 +15,17 @@ export const transformJson = (
     description: oldJson.description,
     isPublic: oldJson.isPublic === 'true',
     dataRequest: {
-      resourceKind: oldJson.resourceKind,
+      feedKind: oldJson.feedKind,
       size: Number.parseInt(oldJson.size),
       sortBy:
         oldJson.sortBy === 'top' || oldJson.sortBy === 'controversial'
           ? ({
-              kind: oldJson.sortBy,
-              time: oldJson.time,
-            } as FeedSorting)
+            kind: oldJson.sortBy,
+            time: oldJson.time,
+          } as FeedSorting)
           : ({
-              kind: oldJson.sortBy,
-            } as FeedSorting),
+            kind: oldJson.sortBy,
+          } as FeedSorting),
       dataSources: oldJson.dataSources.map((source: DataSource) => {
         if (source.postId === '') {
           source.postId = undefined;
