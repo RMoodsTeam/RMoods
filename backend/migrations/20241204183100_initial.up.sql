@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS users (
-    google_id      TEXT        NOT NULL UNIQUE,
+    google_id      TEXT PRIMARY KEY,
     --
     name           TEXT        NOT NULL,
     given_name     TEXT        NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS reports (
-    id             TEXT        NOT NULL UNIQUE,
+    id             TEXT PRIMARY KEY,
     --
     user_id        TEXT        NOT NULL, -- TEXT because it's a Google ID, not a UUID
     title          TEXT        NOT NULL,
@@ -112,5 +112,17 @@ EXECUTE FUNCTION update_updated_at_column();
 CREATE OR REPLACE TRIGGER update_users_updated_at
     BEFORE UPDATE
     ON users
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+CREATE OR REPLACE TRIGGER update_data_requests_updated_at
+    BEFORE UPDATE
+    ON data_requests
+    FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+CREATE OR REPLACE TRIGGER update_data_sources_updated_at
+    BEFORE UPDATE
+    ON data_sources
     FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();

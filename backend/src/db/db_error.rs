@@ -6,5 +6,5 @@ use thiserror::Error;
 pub enum DbError {
     SqlxError(#[from] sqlx::Error),
     ValidationError(#[from] ValidationError),
-    UserNotFound(String),
+    NotFound(String),
 }
