@@ -21,7 +21,13 @@ impl DbStoredInner for Report {
             self.user_id
         )
         .fetch_one(&mut **tx)
-        .await?
+        .await
+        .map_err(|_| {
+            DbError::UserNotFound(format!(
+                "User with id {} not found. Cannot create a report assigned to them.",
+                self.user_id
+            ))
+        })?
         .id;
 
         let report_id = sqlx::query!(

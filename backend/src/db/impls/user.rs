@@ -92,13 +92,11 @@ mod tests {
     use super::*;
     use crate::db::db_stored::DbStored;
     use crate::db::impls::test_util::{get_db, get_test_user};
-    use serial_test::serial;
 
     #[sqlx::test]
-    #[serial]
     async fn test_user_save() {
         let db = get_db().await;
-        let user = get_test_user("123".to_string());
+        let user = get_test_user(nanoid::nanoid!());
 
         user.save(&db).await.unwrap();
         let user_from_db = User::get_by_id(&user.id, &db).await.unwrap().unwrap();

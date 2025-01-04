@@ -149,7 +149,9 @@ impl ReportQuery {
         let start_date = self
             .start_date
             .unwrap_or(NaiveDateTime::UNIX_EPOCH.and_utc());
-        let end_date = self.end_date.unwrap_or(get_utc_timestamp());
+        let end_date = self
+            .end_date
+            .unwrap_or(get_utc_timestamp() + chrono::Duration::days(1));
         let title_pattern = self.title_pattern.unwrap_or("".to_string());
         let include_my_reports = self.include_my_reports.unwrap_or(false);
         let feed_kind_pattern = self
@@ -204,8 +206,9 @@ impl ReportRepository for Report {
             JOIN data_requests dr ON r.id = dr.report_id
             WHERE
             position ($1 in u.name) > 0
-            AND r.created_at >= $2 AND r.created_at <= $3
-            AND (r.is_public = TRUE OR (u.google_id = $4 AND $5))
+            AND (r.created_at BETWEEN SYMMETRIC $2 AND $3)
+            AND (r.is_public OR r.user_id = $4)
+            AND CASE WHEN $5 IS FALSE AND r.user_id = $4 THEN FALSE ELSE TRUE END
             AND position ($6 in r.title) > 0
             AND position ($7 in dr.feed_kind) > 0
             AND EXISTS (
@@ -303,13 +306,14 @@ impl ReportRepository for Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::auth::user::User;
     use crate::db::db_stored::DbStored;
     use crate::db::impls::test_util::get_test_user;
     use crate::fetcher::data_request::{DataSource, FetcherDataRequest, RedditFeedKind};
     use crate::fetcher::reddit::request::feed_sorting::{FeedSorting, FeedSortingTime};
     use crate::nlp::nlp_response::NlpAnalysis;
     use crate::report::report_status::ReportStatus;
-    use serial_test::serial;
+    use nanoid::nanoid;
     use std::collections::HashMap;
     use std::default::Default;
 
@@ -355,7 +359,7 @@ mod tests {
         assert_eq!(args.start_date, NaiveDateTime::UNIX_EPOCH.and_utc());
         // We need to check the time as well, as the Utc::now() call in the test and the one in the function might be a few milliseconds apart
         // This is why we check if the difference is less than a second
-        assert!(args.end_date - now < chrono::Duration::seconds(1));
+        assert!(args.end_date > now);
     }
 
     #[test]
@@ -432,9 +436,13 @@ mod tests {
     }
 
     fn get_test_reports() -> (Report, Report, Report, Report) {
+        let user1 = nanoid!();
+        let user2 = nanoid!();
+        let user3 = nanoid!();
+
         let report1 = Report {
-            id: "1".to_string(),
-            user_id: "User 1".to_string(),
+            id: nanoid!(),
+            user_id: user1.clone(),
             title: "Title 1".to_string(),
             description: "".to_string(),
             is_public: true,
@@ -464,13 +472,13 @@ mod tests {
                 size: 10,
                 sort_by: FeedSorting::Hot,
             },
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
+            created_at: get_utc_timestamp(),
+            updated_at: get_utc_timestamp(),
         };
 
         let report2 = Report {
-            id: "2".to_string(),
-            user_id: "User 2".to_string(),
+            id: nanoid!(),
+            user_id: user2,
             title: "Title 2".to_string(),
             description: "Description 2".to_string(),
             is_public: true,
@@ -510,13 +518,13 @@ mod tests {
                 size: 100,
                 sort_by: FeedSorting::Controversial(FeedSortingTime::Month),
             },
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
+            created_at: get_utc_timestamp(),
+            updated_at: get_utc_timestamp(),
         };
 
         let report3 = Report {
-            id: "3".to_string(),
-            user_id: "User 3".to_string(),
+            id: nanoid!(),
+            user_id: user3,
             title: "Title 3".to_string(),
             description: "Description 3".to_string(),
             is_public: true,
@@ -566,13 +574,13 @@ mod tests {
                 size: 200,
                 sort_by: FeedSorting::Top(FeedSortingTime::All),
             },
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
+            created_at: get_utc_timestamp() - chrono::Duration::days(7),
+            updated_at: get_utc_timestamp() - chrono::Duration::days(7),
         };
 
         let report4 = Report {
-            id: "4".to_string(),
-            user_id: "User 1".to_string(),
+            id: nanoid!(),
+            user_id: user1,
             title: "Title 4".to_string(),
             description: "Description 4".to_string(),
             is_public: false,
@@ -595,20 +603,23 @@ mod tests {
                 size: 200,
                 sort_by: FeedSorting::Top(FeedSortingTime::All),
             },
-            created_at: Utc::now() - chrono::Duration::days(7),
-            updated_at: Utc::now() - chrono::Duration::days(7),
+            created_at: get_utc_timestamp(),
+            updated_at: get_utc_timestamp(),
         };
 
         (report1, report2, report3, report4)
     }
 
-    async fn setup() {
+    async fn setup() -> ((Report, Report, Report, Report), (User, User, User)) {
         let db = get_db().await;
         teardown().await;
         let (r1, r2, r3, r4) = get_test_reports();
-        let user1 = get_test_user("User 1".to_string());
-        let user2 = get_test_user("User 2".to_string());
-        let user3 = get_test_user("User 3".to_string());
+        let user1 = get_test_user(r1.user_id.clone());
+        let user2 = get_test_user(r2.user_id.clone());
+        let user3 = get_test_user(r3.user_id.clone());
+
+        dbg!((&user1, &user2, &user3));
+        dbg!(r1.clone(), r2.clone(), r3.clone(), r4.clone());
 
         user1.save(&db).await.unwrap();
         user2.save(&db).await.unwrap();
@@ -618,6 +629,8 @@ mod tests {
         r2.save(&db).await.unwrap();
         r3.save(&db).await.unwrap();
         r4.save(&db).await.unwrap();
+
+        ((r1, r2, r3, r4), (user1, user2, user3))
     }
 
     async fn teardown() {
@@ -643,13 +656,12 @@ mod tests {
     }
 
     #[sqlx::test]
-    #[serial]
     async fn test_get_by_query_user_name_pattern_all() {
         let db = get_db().await;
-        let _ = setup().await;
+        let (_, (u1, _, _)) = setup().await;
 
         let query = ReportQuery {
-            user_name_pattern: Some(String::from("User")),
+            user_name_pattern: Some(u1.name.clone()),
             ..ReportQuery::default()
         };
 
@@ -657,38 +669,15 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
-        assert!(reports.iter().all(|r| r.user_id.contains("User")));
+        assert!(!reports.is_empty());
+        assert!(reports.iter().all(|r| r.user_id.contains(&u1.name)));
     }
 
     #[sqlx::test]
-    #[serial]
-    async fn test_get_by_query_user_name_pattern() {
-        let db = get_db().await;
-        let _ = setup().await;
-        let (r1, _, _, _) = get_test_reports();
-
-        let query = ReportQuery {
-            user_name_pattern: Some(String::from("User 1")),
-            ..ReportQuery::default()
-        };
-
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
-            .await
-            .unwrap();
-
-        teardown().await;
-        assert_eq!(reports.len(), 1);
-        assert_eq!(reports[0].id, r1.id);
-    }
-
-    #[sqlx::test]
-    #[serial]
     /// All reports except the first one have the Sentiment analysis
-    async fn test_get_by_query_contained_analysis_kinds_all() {
+    async fn test_get_by_query_contained_analysis_kinds_two_sentiments() {
         let db = get_db().await;
-        let _ = setup().await;
-        let (r1, _, _, _) = get_test_reports();
+        let ((r1, _, _, _), _) = setup().await;
 
         let query = ReportQuery {
             contained_analysis_kinds: vec![NlpAnalysisKind::Sentiment],
@@ -707,11 +696,10 @@ mod tests {
     }
 
     #[sqlx::test]
-    #[serial]
     /// Only the second report has the Clickbait analysis
-    async fn test_get_by_query_contained_analysis_kinds_one() {
+    async fn test_get_by_query_contained_analysis_kinds_one_clickbait() {
         let db = get_db().await;
-        let _ = setup().await;
+        let ((_, r2, _, _), _) = setup().await;
 
         let query = ReportQuery {
             contained_analysis_kinds: vec![NlpAnalysisKind::Clickbait],
@@ -722,16 +710,15 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
         assert!(reports
             .iter()
             .all(|r| r.analyses.contains_key(&NlpAnalysisKind::Clickbait)));
         assert_eq!(reports.len(), 1);
+        assert_eq!(reports[0].id, r2.id);
     }
 
     #[sqlx::test]
-    #[serial]
-    async fn test_get_by_query_date_range_all() {
+    async fn test_get_by_query_date_range_none_long_ago() {
         let db = get_db().await;
         let _ = setup().await;
 
@@ -745,21 +732,17 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
         assert_eq!(reports.len(), 0);
     }
 
     #[sqlx::test]
-    #[serial]
-    async fn test_get_by_query_date_range() {
+    async fn test_get_by_query_date_range_only_r3() {
         let db = get_db().await;
-        let _ = teardown().await;
-        let _ = setup().await;
-        let (r1, _, _, _) = get_test_reports();
+        let ((_, _, r3, _), _) = setup().await;
 
         let query = ReportQuery {
-            start_date: Some(r1.created_at - chrono::Duration::days(10)),
-            end_date: Some(r1.created_at + chrono::Duration::days(5)),
+            start_date: Some(get_utc_timestamp() - chrono::Duration::days(10)),
+            end_date: Some(get_utc_timestamp() - chrono::Duration::days(5)),
             ..ReportQuery::default()
         };
 
@@ -767,7 +750,8 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
+        assert_eq!(reports.len(), 1);
+        assert_eq!(reports[0].id, r3.id);
         assert!(reports
             .iter()
             .all(|r| r.created_at >= query.start_date.unwrap()));
@@ -777,7 +761,30 @@ mod tests {
     }
 
     #[sqlx::test]
-    #[serial]
+    async fn test_get_by_query_date_range_3_recent() {
+        let db = get_db().await;
+        let _ = setup().await;
+
+        let query = ReportQuery {
+            start_date: Some(get_utc_timestamp() - chrono::Duration::days(1)),
+            end_date: Some(get_utc_timestamp() + chrono::Duration::days(1)),
+            ..ReportQuery::default()
+        };
+
+        let reports = Report::get_by_query(query.clone(), GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(reports.len(), 3);
+        assert!(reports
+            .iter()
+            .all(|r| r.created_at >= query.start_date.unwrap()));
+        assert!(reports
+            .iter()
+            .all(|r| r.created_at <= query.end_date.unwrap()));
+    }
+
+    #[sqlx::test]
     async fn test_get_by_query_title_pattern_all() {
         let db = get_db().await;
         let _ = setup().await;
@@ -791,12 +798,10 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
         assert!(reports.iter().all(|r| r.title.contains("Title")));
     }
 
     #[sqlx::test]
-    #[serial]
     async fn test_get_by_query_title_pattern_one() {
         let db = get_db().await;
         let _ = setup().await;
@@ -810,36 +815,32 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
         assert!(reports.iter().all(|r| r.title.contains("Title 1")));
     }
 
     #[sqlx::test]
-    #[serial]
     async fn test_get_by_query_include_my_reports_false() {
         let db = get_db().await;
-        let _ = setup().await;
-        let (r1, _, _, _) = get_test_reports();
+        let ((_, r2, _, _), (_, u2, _)) = setup().await;
 
+        // Catch all except mine
         let query = ReportQuery {
             include_my_reports: Some(false),
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("User 1"), &db)
+        let reports = Report::get_by_query(query, u2.clone().id, &db)
             .await
             .unwrap();
 
-        teardown().await;
-        assert_eq!(reports.len(), 3);
-        assert!(!reports.contains(&r1));
+        assert_eq!(reports.len(), 2); // 2 because the 4th one is private, and 2nd is ours
+        assert!(!reports.contains(&r2));
     }
 
     #[sqlx::test]
-    #[serial]
     async fn test_get_by_query_private_unauthorized() {
         let db = get_db().await;
-        let _ = setup().await;
+        let ((_, _, _, r4), _) = setup().await;
 
         let query = ReportQuery::default();
 
@@ -847,32 +848,29 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
+        assert_eq!(reports.len(), 3);
         assert!(reports.iter().all(|r| r.is_public));
+        assert!(!reports.contains(&r4));
     }
 
     #[sqlx::test]
-    #[serial]
     /// Report 4 is private. User 1 is the owner, so they should be able to see it.
     async fn test_get_by_query_private_authorized() {
         let db = get_db().await;
-        let _ = setup().await;
+        let ((_, _, _, r4), (u1, _, _)) = setup().await;
 
         let query = ReportQuery {
             include_my_reports: Some(true),
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("User 1"), &db)
-            .await
-            .unwrap();
+        let reports = Report::get_by_query(query, u1.id, &db).await.unwrap();
 
-        teardown().await;
+        assert!(reports.contains(&r4));
         assert_eq!(reports.len(), 4);
     }
 
     #[sqlx::test]
-    #[serial]
     async fn test_get_by_query_feed_kind_subreddit_posts() {
         let db = get_db().await;
         let _ = setup().await;
@@ -886,7 +884,6 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
         assert!(reports
             .iter()
             .all(|r| r.data_request.feed_kind == RedditFeedKind::SubredditPosts));
@@ -894,7 +891,6 @@ mod tests {
     }
 
     #[sqlx::test]
-    #[serial]
     async fn test_get_by_query_feed_kind_user_posts() {
         let db = get_db().await;
         let _ = setup().await;
@@ -908,7 +904,6 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
         assert!(reports
             .iter()
             .all(|r| r.data_request.feed_kind == RedditFeedKind::UserPosts));
@@ -916,7 +911,6 @@ mod tests {
     }
 
     #[sqlx::test]
-    #[serial]
     async fn test_get_by_query_resource() {
         let db = get_db().await;
         let _ = setup().await;
@@ -930,7 +924,6 @@ mod tests {
             .await
             .unwrap();
 
-        teardown().await;
         assert!(reports.iter().all(|r| r
             .data_request
             .data_sources
