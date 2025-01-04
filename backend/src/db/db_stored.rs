@@ -22,7 +22,6 @@ pub trait DbStored: DbStoredInner {
     async fn save(&self, db: &DbClient) -> Result<(), DbError> {
         let mut tx = db.raw_db().begin().await?;
         let result = self.inner_save(&mut tx).await;
-        dbg!(&result);
         handle_db_result(result, tx).await.map_err(DbError::from)
     }
     /// Updates the object in the database.

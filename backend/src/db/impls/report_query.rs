@@ -563,9 +563,6 @@ mod tests {
         let user2 = get_test_user(r2.user_id.clone());
         let user3 = get_test_user(r3.user_id.clone());
 
-        dbg!((&user1, &user2, &user3));
-        dbg!(r1.clone(), r2.clone(), r3.clone(), r4.clone());
-
         user1.save(&db).await.unwrap();
         user2.save(&db).await.unwrap();
         user3.save(&db).await.unwrap();
