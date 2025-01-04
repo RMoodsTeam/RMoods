@@ -3,7 +3,6 @@
 // Allowing dead code because these functions are only used in tests.
 
 use crate::auth::user::{GoogleId, User};
-use crate::db::db_client::DbClient;
 use crate::fetcher::data_request::{DataSource, FetcherDataRequest, RedditFeedKind};
 use crate::fetcher::reddit::request::feed_sorting::FeedSorting;
 use crate::nlp::analysis::NlpAnalysisKind;
@@ -12,17 +11,6 @@ use crate::report::report::Report;
 use crate::report::report_status::ReportStatus;
 use crate::util::get_utc_timestamp;
 use std::collections::HashMap;
-
-pub(super) async fn get_db() -> DbClient {
-    dotenvy::dotenv().ok();
-    let pool = sqlx::postgres::PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&std::env::var("DATABASE_URL").unwrap())
-        .await
-        .unwrap();
-
-    DbClient::new(pool)
-}
 
 pub(super) fn get_test_user(id: String) -> User {
     User {

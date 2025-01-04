@@ -21,7 +21,13 @@ impl DbStoredInner for Report {
             self.user_id
         )
         .fetch_one(&mut **tx)
-        .await?
+        .await
+        .map_err(|_| {
+            DbError::NotFound(format!(
+                "User with id {} not found. Cannot create a report assigned to them.",
+                self.user_id
+            ))
+        })?
         .id;
 
         let report_id = sqlx::query!(
@@ -184,7 +190,14 @@ impl FromDb for Report {
             model.id
         )
         .fetch_one(pool)
-        .await?;
+        .await
+        .map_err(|e| match e {
+            sqlx::Error::RowNotFound => DbError::NotFound(format!(
+                "Data request for report with id {} not found",
+                model.id
+            )),
+            _ => DbError::from(e),
+        })?;
 
         let data_request = FetcherDataRequest::from_db_model(data_request_res, pool).await?;
 
@@ -205,15 +218,15 @@ impl FromDb for Report {
 
 #[cfg(test)]
 mod test {
+    use crate::db::db_client::DbClient;
     use crate::db::db_stored::DbStored;
-    use crate::db::impls::test_util::{get_db, get_test_report, get_test_user};
+    use crate::db::impls::test_util::{get_test_report, get_test_user};
     use crate::report::report::Report;
-    use serial_test::serial;
+    use sqlx::PgPool;
 
     #[sqlx::test]
-    #[serial]
-    async fn test_report_save() {
-        let db = get_db().await;
+    async fn test_report_save(pool: PgPool) {
+        let db = DbClient::new(pool);
 
         let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
@@ -225,9 +238,8 @@ mod test {
     }
 
     #[sqlx::test]
-    #[serial]
-    async fn test_report_get_by_id() {
-        let db = get_db().await;
+    async fn test_report_get_by_id(pool: PgPool) {
+        let db = DbClient::new(pool);
 
         let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
@@ -243,9 +255,8 @@ mod test {
     }
 
     #[sqlx::test]
-    #[serial]
-    async fn test_report_update() {
-        let db = get_db().await;
+    async fn test_report_update(pool: PgPool) {
+        let db = DbClient::new(pool);
 
         let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
@@ -273,9 +284,8 @@ mod test {
     }
 
     #[sqlx::test]
-    #[serial]
-    async fn test_report_delete() {
-        let db = get_db().await;
+    async fn test_report_delete(pool: PgPool) {
+        let db = DbClient::new(pool);
 
         let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
@@ -290,9 +300,8 @@ mod test {
     }
 
     #[sqlx::test]
-    #[serial]
-    async fn test_report_analyses_saving_deleting() {
-        let db = get_db().await;
+    async fn test_report_analyses_saving_deleting(pool: PgPool) {
+        let db = DbClient::new(pool);
 
         let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();
@@ -327,9 +336,8 @@ mod test {
     }
 
     #[sqlx::test]
-    #[serial]
-    async fn test_report_data_request_saving_deleting() {
-        let db = get_db().await;
+    async fn test_report_data_request_saving_deleting(pool: PgPool) {
+        let db = DbClient::new(pool);
 
         let user = get_test_user("123".to_string());
         user.save(&db).await.unwrap();

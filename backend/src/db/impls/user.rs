@@ -11,7 +11,7 @@ impl DbStoredInner for User {
         sqlx::query!(
             r#"
             INSERT INTO users (
-            google_id, name, given_name, family_name, picture, email, email_verified
+                google_id, name, given_name, family_name, picture, email, email_verified
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (google_id) DO UPDATE
@@ -90,15 +90,14 @@ impl DbStoredInner for User {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::db::db_client::DbClient;
     use crate::db::db_stored::DbStored;
-    use crate::db::impls::test_util::{get_db, get_test_user};
-    use serial_test::serial;
+    use crate::db::impls::test_util::get_test_user;
 
     #[sqlx::test]
-    #[serial]
-    async fn test_user_save() {
-        let db = get_db().await;
-        let user = get_test_user("123".to_string());
+    async fn test_user_save(pool: PgPool) {
+        let db = DbClient::new(pool);
+        let user = get_test_user(nanoid::nanoid!());
 
         user.save(&db).await.unwrap();
         let user_from_db = User::get_by_id(&user.id, &db).await.unwrap().unwrap();

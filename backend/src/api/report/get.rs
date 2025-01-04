@@ -1,6 +1,6 @@
 use crate::app_error::AppError;
 use crate::auth::google::JwtUserInfo;
-use crate::db::impls::report_repository::{ReportQuery, ReportRepository};
+use crate::db::impls::report_query::{ReportQuery, ReportRepository};
 use crate::report::report::Report;
 use crate::AppState;
 use axum::extract::State;
