@@ -10,14 +10,15 @@ import FilterNavbar from './FilterNavbar.tsx';
 import { useAtomValue } from 'jotai';
 import { userInfoAtom } from '../../../atoms.ts';
 import TableHeader from './TableHeader.tsx';
-import { open } from 'cypress';
 
 
 const UserReportsPage = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
-  const [checkedReports, setCheckedReports] = useState<{ [key: string]: boolean }>({});
-  const [checkAll, setCheckAll] = useState(false);
+  const [sortField, setSortField] = useState<string>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = useState<number>(1);
+  const [prevPage, setPrevPage] = useState<number>(1);
   const [filters, setFilters] = useState<{
     title: string;
     startDate: Date | null;
@@ -31,10 +32,6 @@ const UserReportsPage = () => {
     nlpKinds: [],
     reportsPerPage: 10,
   });
-  const [sortField, setSortField] = useState<string>('created_at');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [page, setPage] = useState<number>(1);
-  const [prevPage, setPrevPage] = useState<number>(1);
 
   const navigate = useNavigate();
   const userInfo = useAtomValue(userInfoAtom);
@@ -50,7 +47,17 @@ const UserReportsPage = () => {
           if (filters.startDate) params.set('start_date', filters.startDate.toISOString());
           if (filters.endDate) params.set('end_date', filters.endDate.toISOString());
           params.set('page', page.toString());
+
+          filters.nlpKinds.forEach(kind => params.append('analyses', kind));
+          navigate({ search: params.toString() });
+
           const data = await RMoodsClient.fetchUserReports(params.toString());
+          if (data.length === 0 && page > 1) {
+            setPage(prevPage);
+          } else {
+            setPrevPage(page);
+            setReports(data);
+          }
           setReports(data);
         } else {
           throw new Error('User name is undefined');
@@ -62,57 +69,12 @@ const UserReportsPage = () => {
       }
     };
 
-    fetchReports();
-  }, [location.search, userInfo]);
-
-  useEffect(() => {
-    const applyFilters = async () => {
-      const params = new URLSearchParams();
-      if (filters.title) params.set('title', filters.title);
-      if (filters.startDate) params.set('start_date', filters.startDate.toISOString());
-      if (filters.endDate) params.set('end_date', filters.endDate.toISOString());
-      if (filters.reportsPerPage) params.set('per_page', filters.reportsPerPage.toString());
-      params.set('page', page.toString());
-      filters.nlpKinds.forEach(kind => params.append('analyses', kind));
-      navigate({ search: params.toString() });
-
-      try {
-        if (userInfo?.name) {
-          params.set('username', userInfo.name);
-          const data = await RMoodsClient.fetchUserReports(params.toString());
-          if (data.length === 0 && page > 1) {
-            setPage(prevPage);
-          } else {
-            setPrevPage(page);
-            setReports(data);
-          }
-        } else {
-          throw new Error('User name is undefined');
-        }
-      } catch (err) {
-        console.error('Failed to fetch reports:', err);
-      }
-    };
-    const timeoutId = setTimeout(applyFilters, 500);
+    const timeoutId = setTimeout(fetchReports, 500);
     return () => clearTimeout(timeoutId);
-  }, [filters, page, userInfo, navigate]);
-
-  const handleCheck = (id: string, checked: boolean) => {
-    setCheckedReports((prev) => ({ ...prev, [id]: checked }));
-  };
-
-  const handleCheckAll = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = event.target.checked;
-    setCheckAll(checked);
-    const newCheckedReports = reports.reduce((acc, report) => {
-      acc[report.id] = checked;
-      return acc;
-    }, {} as { [key: string]: boolean });
-    setCheckedReports(newCheckedReports);
-  };
+  }, [filters, page, navigate, location.search, userInfo]);
 
   const handleFilterChange = (field: string, value: any) => {
-    setFilters((prev) => ({ ...prev, [field]: value }));
+    setFilters((prev) => ({ ...prev, [field]: field === 'reportsPerPage' && !value ? 10 : value }));
     if (field !== 'page') {
       setPage(1);
     }
@@ -168,8 +130,6 @@ const UserReportsPage = () => {
       />
 
       <TableHeader
-        checkAll={checkAll}
-        onCheckAll={handleCheckAll}
         onSort={handleSort}
         sortField={sortField}
         sortOrder={sortOrder}
@@ -179,9 +139,7 @@ const UserReportsPage = () => {
         {sortedReports.map((report) => (
           <ReportCard
             key={report.id}
-            report={report}
-            onCheck={handleCheck}
-            checked={checkedReports[report.id] || false} />
+            report={report} />
         ))}
       </Stack>
 

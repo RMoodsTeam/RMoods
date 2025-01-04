@@ -1,17 +1,12 @@
 import React from 'react';
-import { Card, Text, Checkbox, Group, Box } from '@mantine/core';
-import { Report, ReportStatus, ReportAnalysesMap } from '../../../rmoods/types.ts';
+import { Card, Text, Group, Box } from '@mantine/core';
+import { Report, ReportStatus } from '../../../rmoods/types.ts';
 
 interface ReportCardProps {
   report: Report;
-  onCheck: (id: string, checked: boolean) => void;
-  checked: boolean;
 }
 
-const ReportCard: React.FC<ReportCardProps> = ({ report, onCheck, checked }) => {
-  const handleCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onCheck(report.id, event.target.checked);
-  };
+const ReportCard: React.FC<ReportCardProps> = ({ report }) => {
 
   const renderStatus = (status: ReportStatus) => {
     if (typeof status === 'object' && 'Error' in status) {
@@ -28,25 +23,14 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onCheck, checked }) => 
     }
   };
 
-  const renderAnalyses = (analyses: ReportAnalysesMap) => {
-    return Object.entries(analyses).map(([kind, analysis]) => (
-      <Text key={kind} size='xl'>
-        {kind}: {JSON.stringify(analysis)}
-      </Text>
-    ));
-  };
-
   return (
     <Card shadow="sm" padding="lg" radius='md' style={{ marginBottom: '10px', display: 'flex' }}>
       <Group align="center">
-        <Box style={{ flex: 0.5 }}>
-          <Checkbox onChange={handleCheck} checked={checked} />
-        </Box>
         <Box style={{ flex: 2, textAlign: 'left' }}>
           <Text size='xl'>{report.title}</Text>
         </Box>
         <Box style={{ flex: 4, textAlign: 'left' }}>
-          {renderAnalyses(report.analyses)}
+          <Text size='xl'>{report.description}</Text>
         </Box>
         <Box style={{ flex: 1, textAlign: 'left' }}>
           {renderStatus(report.status)}

@@ -16,6 +16,7 @@ export interface Report {
   is_public: boolean;
   status: ReportStatus;
   analyses: ReportAnalysesMap;
+  data_request: ReportDataRequest;
   created_at: string;
   updated_at: string;
 }
@@ -61,4 +62,35 @@ export interface NlpAnalysis {
 export interface ReportAnalysesMap {
   nlpAnalysisKind: NlpAnalysisKind;
   nlpAnalysis: NlpAnalysis;
+}
+
+interface DataSources {
+  name: string;
+  postId: string;
+  sharer: number;
+}
+
+enum RedditFeedKind {
+  UserPost = 'UserPost',
+  PostComments = 'PostComments',
+  SubredditPosts = 'SubredditPosts'
+}
+
+enum FeedSorting {
+  Hot = 'Hot',
+  New = 'New',
+  Rising = 'Rising',
+  Top = 'Top',
+  Controversial = 'Controversial',
+}
+
+interface SortBy {
+  kind: FeedSorting;
+}
+
+interface ReportDataRequest {
+  feedKind: RedditFeedKind;
+  dataSources: DataSources[];
+  size: number;
+  sortBy: SortBy;
 }
