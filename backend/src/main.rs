@@ -7,6 +7,8 @@ use crate::open_api::ApiDoc;
 use crate::startup::{setup_environment, shutdown_signal, verify_environment};
 use crate::websocket::SystemMessage;
 use axum::Router;
+use http::header::{AUTHORIZATION, CONTENT_TYPE};
+use http::Method;
 use reqwest::Client;
 use sqlx::{postgres::PgPoolOptions, Postgres};
 use std::net::SocketAddr;
@@ -94,8 +96,8 @@ async fn run() -> anyhow::Result<()> {
     // Allow browsers to use GET and PUT from any origin
     let cors = CorsLayer::new()
         .allow_origin(Any)
-        .allow_headers(Any)
-        .allow_methods(Any);
+        .allow_methods(Any)
+        .allow_headers(Any);
 
     // Add logging
     let tracing = TraceLayer::new_for_http();
