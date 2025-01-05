@@ -92,9 +92,7 @@ const RateLimitHoverCard = ({
 
 // Fetcher for Tanstack Query
 const fetchRemainingRequests = async (): Promise<RatelimitResponse[]> => {
-  const response = await authFetch(
-    'http://localhost:8001/api/system/rate-limits'
-  );
+  const response = await authFetch('/system/rate-limits');
   return response.json();
 };
 

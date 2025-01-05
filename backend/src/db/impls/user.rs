@@ -11,7 +11,7 @@ impl DbStoredInner for User {
         sqlx::query!(
             r#"
             INSERT INTO users (
-            google_id, name, given_name, family_name, picture, email, email_verified
+                google_id, name, given_name, family_name, picture, email, email_verified
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (google_id) DO UPDATE
@@ -33,6 +33,16 @@ impl DbStoredInner for User {
         unimplemented!()
     }
     async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
+        // Delete all reports of that user
+        sqlx::query!(
+            r#"
+            DELETE FROM reports WHERE user_id = $1
+            "#,
+            self.id
+        )
+        .execute(&mut **tx)
+        .await?;
+
         sqlx::query!(
             r#"
             DELETE FROM users WHERE google_id = $1
@@ -74,5 +84,27 @@ impl DbStoredInner for User {
 
     async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, DbError> {
         unimplemented!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::db_client::DbClient;
+    use crate::db::db_stored::DbStored;
+    use crate::db::impls::test_util::get_test_user;
+
+    #[sqlx::test]
+    async fn test_user_save(pool: PgPool) {
+        let db = DbClient::new(pool);
+        let user = get_test_user(nanoid::nanoid!());
+
+        user.save(&db).await.unwrap();
+        let user_from_db = User::get_by_id(&user.id, &db).await.unwrap().unwrap();
+        assert_eq!(user, user_from_db);
+
+        user.delete(&db).await.unwrap();
+        let user_from_db = User::get_by_id(&user.id, &db).await.unwrap();
+        assert!(user_from_db.is_none());
     }
 }

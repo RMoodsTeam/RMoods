@@ -8,8 +8,6 @@ export type ReportRequest = ReportFormAdaptedValues;
  * Provides a simple interface to the RMoods Backend API.
  */
 export class RMoodsClient {
-  static URL = 'http://localhost:8001/api';
-
   /**
    * Requests a report from the RMoods API
    *
@@ -22,7 +20,7 @@ export class RMoodsClient {
    * @param request
    */
   static async requestReport(request: ReportRequest): Promise<Response> {
-    return await authFetch(`${RMoodsClient.URL}/report`, {
+    return await authFetch(`/report`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -39,14 +37,12 @@ export class RMoodsClient {
   }
 
   static async getUserInfo(userId: string): Promise<User> {
-    return await authFetch(`${RMoodsClient.URL}/user?id=${userId}`).then(
-      (res) => {
-        if (!res.ok) {
-          throw new Error('Failed to fetch user data');
-        }
-        return res.json();
+    return await authFetch(`/user?id=${userId}`).then((res) => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch user data');
       }
-    );
+      return res.json();
+    });
   }
 
   /**

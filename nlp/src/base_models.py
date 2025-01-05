@@ -46,3 +46,29 @@ class TextResponse(BaseModel):
             "metadata": self.metadata,
             "results": self.results
         }
+
+
+class ModelSupportedLanguages(BaseModel):
+    """Response model for used language"""
+    sentiment: List[str]
+    language: List[str]
+    sarcasm: List[str]
+    keywords: List[str]
+    spam: List[str]
+    political: List[str]
+    hateSpeech: List[str]
+    clickbait: List[str]
+    llm: List[str]
+
+    def json(self):
+        return {
+            "sentiment": self.sentiment,
+            "language": self.language,
+            "sarcasm": self.sarcasm,
+            "keywords": self.keywords,
+            "spam": self.spam,
+            "political": self.political,
+            "hateSpeech": self.hateSpeech,
+            "clickbait": self.clickbait,
+            "llm": self.llm
+        }

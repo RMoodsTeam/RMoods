@@ -1,31 +1,36 @@
 use crate::db::db_error::DbError;
 use crate::db::db_stored::DbStoredDependentlyInner;
 use crate::db::from_db::FromDb;
-use crate::db::model::{DbNlpAnalysis, DbNlpMetadata};
+use crate::db::model::DbNlpAnalysis;
 use crate::nlp::analysis::NlpAnalysisKind;
-use crate::nlp::nlp_response::{NlpAnalysis, NlpMetadata};
+use crate::nlp::nlp_response::NlpAnalysis;
 use axum::async_trait;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 #[async_trait]
 impl DbStoredDependentlyInner for NlpAnalysis {
-    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<Uuid, DbError> {
-        let metadata_uuid = self.metadata.inner_save(tx).await?;
-        let id = sqlx::query!(
+    async fn inner_save(
+        &self,
+        parent_id: &str,
+        tx: &mut Transaction<Postgres>,
+    ) -> Result<Uuid, DbError> {
+        let analysis_id = sqlx::query!(
             r#"
-            INSERT INTO nlp_analyses (nlp_metadata_id, kind, analysis)
-            VALUES ($1, $2, $3)
+            INSERT INTO nlp_analyses (report_id, kind, generated_in, analysis)
+            VALUES ($1, $2, $3, $4)
             RETURNING id as "id: Uuid";
             "#,
-            metadata_uuid,
+            parent_id,
             &self.kind.to_snake_case(),
+            self.generated_in,
             serde_json::to_value(&self.results).unwrap() // TODO HANDLE ERROR
         )
         .fetch_one(&mut **tx)
         .await?
         .id;
-        Ok(id)
+
+        Ok(analysis_id)
     }
 }
 
@@ -33,19 +38,10 @@ impl DbStoredDependentlyInner for NlpAnalysis {
 impl FromDb for NlpAnalysis {
     type DbModel = DbNlpAnalysis;
     async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, DbError> {
-        let nlp_metadata = sqlx::query_as!(
-            DbNlpMetadata,
-            r#"SELECT * FROM nlp_metadata WHERE id = $1"#,
-            model.nlp_metadata_id
-        )
-        .fetch_one(pool)
-        .await?;
         Ok(NlpAnalysis {
             kind: NlpAnalysisKind::from_snake_case(&model.kind).unwrap(),
             results: serde_json::from_value(model.analysis.clone()).unwrap(),
-            metadata: NlpMetadata {
-                generated_in: nlp_metadata.generated_in,
-            },
+            generated_in: model.generated_in,
         })
     }
 }

@@ -73,11 +73,14 @@ pub(super) trait DbStoredInner: Sized {
 
 /// Internal trait for database-stored objects that depend on other objects.
 ///
-/// This is used for objects that are referenced by other objects, such as with [Report](crate::report::report::Report) and its [ReportMetadata](crate::report::report::ReportMetadata).
-/// The latter is saved first (using this trait) - and its UUID is then used to save the former (using the [DbStored](crate::db::db_stored::DbStored) trait).
+/// This is used for objects that are referenced by other objects.
 #[async_trait]
 pub(super) trait DbStoredDependentlyInner: Sized {
-    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<Uuid, DbError>;
+    async fn inner_save(
+        &self,
+        parent_id: &str,
+        tx: &mut Transaction<Postgres>,
+    ) -> Result<Uuid, DbError>;
 }
 
 /// Handles the result of a database operation, committing the transaction if successful and

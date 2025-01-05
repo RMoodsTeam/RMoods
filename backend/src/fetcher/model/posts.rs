@@ -1,5 +1,5 @@
 use crate::cast;
-use crate::fetcher::feed_request::{DataSource, FetcherDataRequest};
+use crate::fetcher::data_request::{DataSource, FetcherDataRequest};
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::model::reddit_data::RedditFeedData;
 use crate::fetcher::reddit::model::{RawContainer, RawPost};

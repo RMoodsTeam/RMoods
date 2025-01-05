@@ -3,16 +3,37 @@ use crate::validation::validated::Validated;
 use crate::validation::validation_error::ValidationError;
 use axum::extract::FromRequest;
 use log_derive::logfn;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 /// What kind of feed do we fetch and make a report on?
-#[derive(Debug, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum RedditFeedKind {
     UserPosts,
     PostComments,
     SubredditPosts,
+}
+
+impl RedditFeedKind {
+    pub fn to_snake_case(&self) -> String {
+        match self {
+            RedditFeedKind::UserPosts => "user_posts".to_string(),
+            RedditFeedKind::PostComments => "post_comments".to_string(),
+            RedditFeedKind::SubredditPosts => "subreddit_posts".to_string(),
+        }
+    }
+
+    pub fn from_snake_case(s: &str) -> Result<Self, ValidationError> {
+        match s {
+            "user_posts" => Ok(RedditFeedKind::UserPosts),
+            "post_comments" => Ok(RedditFeedKind::PostComments),
+            "subreddit_posts" => Ok(RedditFeedKind::SubredditPosts),
+            _ => Err(ValidationError::Invalid(
+                "Invalid RedditFeedKind when converting from snake_case".to_string(),
+            )),
+        }
+    }
 }
 
 /// Represents a data source for the Reddit API.
@@ -22,7 +43,7 @@ pub enum RedditFeedKind {
 /// * The `share` field is used to calculate the share of the report that this data source represents.
 ///   * It should be a number between 0 and 1.
 ///   * The sum of all shares should be 1.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DataSource {
     pub name: String,
@@ -31,11 +52,11 @@ pub struct DataSource {
 }
 
 /// Represents a request to fetch a feed from Reddit.
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct FetcherDataRequest {
     /// Determines what kind of feed do we fetch and make a report on.
-    pub resource_kind: RedditFeedKind,
+    pub feed_kind: RedditFeedKind,
     /// Determines the data sources for the feed.
     pub data_sources: Vec<DataSource>,
     /// Determines how many posts do we want to use to fulfill that report request.
@@ -108,7 +129,7 @@ impl Validated for FetcherDataRequest {
         }
 
         // Check if data sources are declared correctly
-        if self.resource_kind == RedditFeedKind::PostComments {
+        if self.feed_kind == RedditFeedKind::PostComments {
             if self.data_sources.iter().any(|ds| ds.post_id.is_none()) {
                 return Err(ValidationError::Invalid(
                     "All data sources for PostComments should have a post_id".to_string(),
@@ -133,7 +154,7 @@ mod tests {
 
     const JSON: &str = r#"
         {
-            "resourceKind": "userPosts",
+            "feedKind": "userPosts",
             "analyses": ["language", "sentiment"],
             "dataSources": [
                 {
@@ -155,7 +176,7 @@ mod tests {
     #[test]
     fn test_deserialize_feed_request() {
         let feed_request: super::FetcherDataRequest = serde_json::from_str(JSON).unwrap();
-        assert_eq!(feed_request.resource_kind, super::RedditFeedKind::UserPosts);
+        assert_eq!(feed_request.feed_kind, super::RedditFeedKind::UserPosts);
         assert_eq!(feed_request.data_sources.len(), 2);
         assert_eq!(feed_request.size, 10);
         assert_eq!(
@@ -256,7 +277,7 @@ mod tests {
     #[test]
     fn test_validate_feed_request_incorrectly_declared_data_sources() {
         let mut feed_request = testing_request();
-        feed_request.resource_kind = super::RedditFeedKind::PostComments;
+        feed_request.feed_kind = super::RedditFeedKind::PostComments;
         feed_request.data_sources = vec![
             super::DataSource {
                 name: "username".to_string(),

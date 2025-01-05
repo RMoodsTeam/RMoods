@@ -1,4 +1,4 @@
-use crate::fetcher::feed_request::{DataSource, FetcherDataRequest};
+use crate::fetcher::data_request::{DataSource, FetcherDataRequest};
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::model::RawContainer;
 use crate::fetcher::reddit::request::RedditRequest;

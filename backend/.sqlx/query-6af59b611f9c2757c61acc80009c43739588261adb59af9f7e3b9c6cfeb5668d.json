@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT *\n            FROM nlp_analyses\n            WHERE nlp_metadata_id IN (\n                $1, $2, $3, $4, $5, $6, $7, $8\n            )\n            ",
+  "query": "\n            SELECT *\n            FROM data_sources\n            WHERE data_request_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -10,39 +10,37 @@
       },
       {
         "ordinal": 1,
-        "name": "nlp_metadata_id",
+        "name": "data_request_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 2,
-        "name": "kind",
+        "name": "name",
         "type_info": "Text"
       },
       {
         "ordinal": 3,
-        "name": "analysis",
-        "type_info": "Jsonb"
+        "name": "post_id",
+        "type_info": "Text"
       },
       {
         "ordinal": 4,
+        "name": "share",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Uuid",
-        "Uuid",
-        "Uuid",
-        "Uuid",
-        "Uuid",
-        "Uuid",
         "Uuid"
       ]
     },
@@ -50,10 +48,11 @@
       false,
       false,
       false,
+      true,
       false,
       false,
       false
     ]
   },
-  "hash": "6fc3355282a1a5d509d3b9d17867a89561e60004c099b80752ecc9a4bfd99c2d"
+  "hash": "6af59b611f9c2757c61acc80009c43739588261adb59af9f7e3b9c6cfeb5668d"
 }
