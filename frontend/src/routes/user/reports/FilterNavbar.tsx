@@ -14,6 +14,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { NlpAnalysisKind } from '../../../rmoods/types.ts';
 import '@mantine/dates/styles.css';
 import { IconFilterCancel } from '@tabler/icons-react';
+import { camelCaseToTitleCase } from '../../../utility/util.ts';
 
 interface FilterNavbarProps {
   filters: {
@@ -83,7 +84,10 @@ const FilterNavbar: React.FC<FilterNavbarProps> = ({
               <Grid.Col span={4}>
                 <MultiSelect
                   wrapperProps={{ style: { width: '100%' } }}
-                  data={Object.values(NlpAnalysisKind)}
+                  data={Object.values(NlpAnalysisKind).map((kind) => ({
+                    value: kind,
+                    label: camelCaseToTitleCase(kind),
+                  }))}
                   label="NLP Analyses"
                   value={filters.nlpKinds}
                   onChange={(value) =>
@@ -101,12 +105,13 @@ const FilterNavbar: React.FC<FilterNavbarProps> = ({
         </ActionIcon>
         <Select
           label="Per page"
-          placeholder="Reports per page"
           onChange={(value) =>
             onFilterChange('reportsPerPage', Number.parseInt(value!, 10))
           }
           w={'5em'}
-          data={[10, 20, 50, 100].map((value) => value.toString())}
+          defaultValue={filters.reportsPerPage.toString()}
+          allowDeselect={false}
+          data={[20, 30, 50, 100].map((value) => value.toString())}
         />
       </Group>
     </Box>

@@ -47,10 +47,15 @@ export enum NlpAnalysisKind {
   Spam = 'spam',
 }
 
-export enum ReportStatus {
+export enum ReportStatusKind {
   Success = 'Success',
   InProgress = 'InProgress',
   Error = 'Error',
+}
+
+export interface ReportStatus {
+  kind: ReportStatusKind;
+  message?: string;
 }
 
 export interface NlpAnalysis {
@@ -73,7 +78,7 @@ interface DataSources {
 enum RedditFeedKind {
   UserPost = 'UserPost',
   PostComments = 'PostComments',
-  SubredditPosts = 'SubredditPosts'
+  SubredditPosts = 'SubredditPosts',
 }
 
 enum FeedSorting {

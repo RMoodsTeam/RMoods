@@ -1,8 +1,6 @@
 import authFetch from './authFetch.ts';
 import { ReportFormAdaptedValues } from '../../routes/report/schema.ts';
 import { User } from '../types.ts';
-import { userInfoAtom } from '../../atoms.ts';
-import { useAtomValue } from 'jotai';
 
 export type ReportRequest = ReportFormAdaptedValues;
 
@@ -21,7 +19,7 @@ export class RMoodsClient {
    * We expect a `ReportAck` to come back from this request.
    * @param request
    */
-  static async requestReport(request: ReportRequest): Promise<Response> {
+  static async requestReport(request: ReportRequest): Promise<Report[]> {
     return await authFetch(`/report`, {
       method: 'POST',
       headers: {
@@ -50,12 +48,12 @@ export class RMoodsClient {
   /**
    * Fetch information about a subreddit using the `/about/subreddit` endpoint
    */
-  static async fetchAboutSubreddit() { }
+  static async fetchAboutSubreddit() {}
 
   /**
    * Fetch information about a user using the `/about/user` endpoint
    */
-  static async fetchAboutUser() { }
+  static async fetchAboutUser() {}
 
   static async fetchUserReports(url: string) {
     return await authFetch(`/report?${url.toString()}`).then((res) => {

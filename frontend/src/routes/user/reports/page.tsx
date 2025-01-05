@@ -1,20 +1,41 @@
-import { Box, Button, Group, Loader, Stack, Title } from '@mantine/core';
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Center,
+  Flex,
+  Group,
+  Loader,
+  Popover,
+  Table,
+  Title,
+} from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback';
 import { RMoodsClient } from '../../../rmoods/client/RMoodsClient';
 import { useEffect, useState } from 'react';
-import ReportCard from './ReportCard';
-import { NlpAnalysisKind, Report } from '../../../rmoods/types.ts';
+import {
+  NlpAnalysisKind,
+  Report,
+  ReportStatus,
+  ReportStatusKind,
+} from '../../../rmoods/types.ts';
 import { useNavigate } from 'react-router-dom';
 import FilterNavbar from './FilterNavbar.tsx';
 import { useAtomValue } from 'jotai';
 import { userInfoAtom } from '../../../atoms.ts';
-import TableHeader from './TableHeader.tsx';
+import {
+  IconArrowNarrowDown,
+  IconArrowNarrowUp,
+  IconCheck,
+  IconX,
+} from '@tabler/icons-react';
+import dayjs from 'dayjs';
 
 const UserReportsPage = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortField, setSortField] = useState<string>('created_at');
+  const [sortField, setSortField] = useState<keyof Report>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState<number>(1);
   const [prevPage, setPrevPage] = useState<number>(1);
@@ -29,7 +50,7 @@ const UserReportsPage = () => {
     startDate: null,
     endDate: null,
     nlpKinds: [],
-    reportsPerPage: 10,
+    reportsPerPage: 30,
   });
 
   const navigate = useNavigate();
@@ -55,6 +76,7 @@ const UserReportsPage = () => {
           navigate({ search: params.toString() });
 
           const data = await RMoodsClient.fetchUserReports(params.toString());
+          console.log(data);
           if (data.length === 0 && page > 1) {
             setPage(prevPage);
           } else {
@@ -97,7 +119,7 @@ const UserReportsPage = () => {
     navigate({ search: '' });
   };
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: keyof Report) => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -123,6 +145,47 @@ const UserReportsPage = () => {
     return <Loader />;
   }
 
+  const renderSortIcon = (field: keyof Report) => {
+    if (sortField === field) {
+      return sortOrder === 'asc' ? (
+        <IconArrowNarrowUp size={20} />
+      ) : (
+        <IconArrowNarrowDown size={20} />
+      );
+    }
+    return <div style={{ width: 20 }}></div>;
+  };
+
+  const renderStatus = (status: ReportStatus) => {
+    switch (status.kind) {
+      case ReportStatusKind.Success:
+        return (
+          <ActionIcon radius={20} color="green" variant="filled">
+            <IconCheck />
+          </ActionIcon>
+        );
+      case ReportStatusKind.InProgress:
+        return (
+          <ActionIcon radius={20} color="yellow" variant="filled">
+            <Loader />
+          </ActionIcon>
+        );
+      case ReportStatusKind.Error:
+        return (
+          <Popover position={'top'}>
+            <Popover.Target>
+              <ActionIcon radius={20} color="red" variant="filled">
+                <IconX />
+              </ActionIcon>
+            </Popover.Target>
+            <Popover.Dropdown>{status.message}</Popover.Dropdown>
+          </Popover>
+        );
+      default:
+        throw new Error('Invalid status');
+    }
+  };
+
   return (
     <Box style={{ width: '100%' }}>
       <Group justify="center" style={{ marginBottom: '30px' }}>
@@ -135,17 +198,56 @@ const UserReportsPage = () => {
         onClearFilters={clearFilters}
       />
 
-      <TableHeader
-        onSort={handleSort}
-        sortField={sortField}
-        sortOrder={sortOrder}
-      />
-
-      <Stack style={{ marginTop: '20px' }}>
-        {sortedReports.map((report) => (
-          <ReportCard key={report.id} report={report} />
-        ))}
-      </Stack>
+      <Table stickyHeader withColumnBorders>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>
+              <Flex
+                onClick={() => handleSort('title')}
+                justify={'space-between'}
+              >
+                Title
+                {renderSortIcon('title')}
+              </Flex>
+            </Table.Th>
+            <Table.Th>
+              <Flex
+                onClick={() => handleSort('description')}
+                justify={'space-between'}
+              >
+                Description
+                {renderSortIcon('description')}
+              </Flex>
+            </Table.Th>
+            <Table.Th>
+              <Flex
+                onClick={() => handleSort('created_at')}
+                justify={'space-between'}
+              >
+                Created at
+                {renderSortIcon('created_at')}
+              </Flex>
+            </Table.Th>
+            <Table.Th>Status</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {sortedReports.map((report) => (
+            <Table.Tr key={report.id}>
+              <Table.Td>{report.title}</Table.Td>
+              <Table.Td>{report.description}</Table.Td>
+              <Table.Td>
+                {dayjs(new Date(report.created_at)).format(
+                  'YYYY-MM-DD HH:mm:ss'
+                )}
+              </Table.Td>
+              <Table.Td>
+                <Center>{renderStatus(report.status)}</Center>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
 
       <Group justify="center" style={{ marginTop: '20px' }}>
         <Button
