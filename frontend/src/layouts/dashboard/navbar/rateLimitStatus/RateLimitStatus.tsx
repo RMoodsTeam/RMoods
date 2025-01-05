@@ -101,7 +101,7 @@ const RateLimitStatus = () => {
   const query = useQuery({
     queryKey: ['remainingRequests'],
     queryFn: fetchRemainingRequests,
-    refetchInterval: 1000,
+    refetchInterval: 10000,
   });
 
   if (query.isLoading) {

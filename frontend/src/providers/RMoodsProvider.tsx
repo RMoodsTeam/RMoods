@@ -7,6 +7,8 @@ import Cookies from 'js-cookie';
 import { useSetAtom } from 'jotai';
 import { userInfoAtom } from '../atoms.ts';
 import { Loader } from '@mantine/core';
+import { ErrorBoundary } from 'react-error-boundary';
+import { MainFallback } from '../routes/MainFallback.tsx';
 
 /**
  * Sets values for values needed in many places in the app
@@ -46,4 +48,10 @@ const RMoodsProvider = ({ children }) => {
   return children;
 };
 
-export default RMoodsProvider;
+export default function ({ children }) {
+  return (
+    <ErrorBoundary FallbackComponent={MainFallback}>
+      <RMoodsProvider>{children}</RMoodsProvider>
+    </ErrorBoundary>
+  );
+}
