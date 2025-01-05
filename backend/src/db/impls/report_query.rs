@@ -108,6 +108,7 @@ where
 /// Created by converting a [ReportQuery] to this struct.
 /// Values in this struct are meant as bind parameters for the SQL query.
 /// Depending on the query, some values might be empty or have a default value, which will still maintain the query's correctness.
+#[derive(Debug)]
 struct ReportQueryBindArgs {
     /// The user's name pattern.
     ///
@@ -194,9 +195,7 @@ impl ReportRepository for Report {
         db: &DbClient,
     ) -> Result<Vec<Self>, DbError> {
         let (limit, offset) = query.pagination.clone().into_limit_and_offset();
-
         let bind_args = query.into_bind_args();
-
         let db_reports = sqlx::query_as!(
             DbReport,
             r#"

@@ -1,16 +1,15 @@
-import { Box, Title, Stack, Group, Button, Loader } from '@mantine/core';
+import { Box, Button, Group, Loader, Stack, Title } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback';
 import { RMoodsClient } from '../../../rmoods/client/RMoodsClient';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ReportCard from './ReportCard';
-import { Report, NlpAnalysisKind } from '../../../rmoods/types.ts';
+import { NlpAnalysisKind, Report } from '../../../rmoods/types.ts';
 import { useNavigate } from 'react-router-dom';
 import FilterNavbar from './FilterNavbar.tsx';
 import { useAtomValue } from 'jotai';
 import { userInfoAtom } from '../../../atoms.ts';
 import TableHeader from './TableHeader.tsx';
-
 
 const UserReportsPage = () => {
   const [reports, setReports] = useState<Report[]>([]);
@@ -42,13 +41,17 @@ const UserReportsPage = () => {
         if (userInfo?.name) {
           const params = new URLSearchParams(location.search);
           params.set('username', userInfo.name);
-          if (filters.reportsPerPage) params.set('per_page', filters.reportsPerPage.toString());
+          params.set('mine', 'true');
+          if (filters.reportsPerPage)
+            params.set('per_page', filters.reportsPerPage.toString());
           if (filters.title) params.set('title', filters.title);
-          if (filters.startDate) params.set('start_date', filters.startDate.toISOString());
-          if (filters.endDate) params.set('end_date', filters.endDate.toISOString());
+          if (filters.startDate)
+            params.set('start_date', filters.startDate.toISOString());
+          if (filters.endDate)
+            params.set('end_date', filters.endDate.toISOString());
           params.set('page', page.toString());
 
-          filters.nlpKinds.forEach(kind => params.append('analyses', kind));
+          filters.nlpKinds.forEach((kind) => params.append('analyses', kind));
           navigate({ search: params.toString() });
 
           const data = await RMoodsClient.fetchUserReports(params.toString());
@@ -74,7 +77,10 @@ const UserReportsPage = () => {
   }, [filters, page, navigate, location.search, userInfo]);
 
   const handleFilterChange = (field: string, value: any) => {
-    setFilters((prev) => ({ ...prev, [field]: field === 'reportsPerPage' && !value ? 10 : value }));
+    setFilters((prev) => ({
+      ...prev,
+      [field]: field === 'reportsPerPage' && !value ? 10 : value,
+    }));
     if (field !== 'page') {
       setPage(1);
     }
@@ -89,7 +95,7 @@ const UserReportsPage = () => {
       reportsPerPage: 10,
     });
     navigate({ search: '' });
-  }
+  };
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -137,19 +143,18 @@ const UserReportsPage = () => {
 
       <Stack style={{ marginTop: '20px' }}>
         {sortedReports.map((report) => (
-          <ReportCard
-            key={report.id}
-            report={report} />
+          <ReportCard key={report.id} report={report} />
         ))}
       </Stack>
 
       <Group justify="center" style={{ marginTop: '20px' }}>
-        <Button onClick={() => setPage((prev) => Math.max(prev - 1, 1))} disabled={page === 1}>
+        <Button
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          disabled={page === 1}
+        >
           Previous
         </Button>
-        <Button onClick={() => setPage((prev) => prev + 1)}>
-          Next
-        </Button>
+        <Button onClick={() => setPage((prev) => prev + 1)}>Next</Button>
       </Group>
     </Box>
   );
