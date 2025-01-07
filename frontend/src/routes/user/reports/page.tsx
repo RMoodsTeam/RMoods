@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 import {
   NlpAnalysisKind,
   Report,
+  ReportQuery,
   ReportStatus,
   ReportStatusKind,
 } from '../../../rmoods/types.ts';
@@ -32,25 +33,29 @@ import {
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 
+export type MyReportsPageReportQuery = Omit<
+  ReportQuery,
+  'userNamePattern' | 'includeMyReports'
+>;
+
 const UserReportsPage = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Server side sorting params
   const [sortField, setSortField] = useState<keyof Report>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
   const [page, setPage] = useState<number>(1);
   const [prevPage, setPrevPage] = useState<number>(1);
-  const [filters, setFilters] = useState<{
-    title: string;
-    startDate: Date | null;
-    endDate: Date | null;
-    nlpKinds: NlpAnalysisKind[];
-    reportsPerPage: number;
-  }>({
-    title: '',
-    startDate: null,
-    endDate: null,
-    nlpKinds: [],
-    reportsPerPage: 30,
+
+  const [filters, setFilters] = useState<MyReportsPageReportQuery>({
+    titlePattern: '',
+    startDate: undefined,
+    endDate: undefined,
+    containedAnalysisKinds: [],
+    perPage: 30,
+    page: 1,
   });
 
   const navigate = useNavigate();
@@ -63,16 +68,17 @@ const UserReportsPage = () => {
           const urlParams = new URLSearchParams(location.search);
           urlParams.set('username', userInfo.name);
           urlParams.set('mine', 'true');
-          if (filters.reportsPerPage)
-            urlParams.set('per_page', filters.reportsPerPage.toString());
-          if (filters.title) urlParams.set('title', filters.title);
+          if (filters.perPage)
+            urlParams.set('per_page', filters.perPage.toString());
+          if (filters.titlePattern)
+            urlParams.set('title', filters.titlePattern);
           if (filters.startDate)
             urlParams.set('start_date', filters.startDate.toISOString());
           if (filters.endDate)
             urlParams.set('end_date', filters.endDate.toISOString());
           urlParams.set('page', page.toString());
 
-          filters.nlpKinds.forEach((kind) =>
+          filters.containedAnalysisKinds.forEach((kind: NlpAnalysisKind) =>
             urlParams.append('analyses', kind)
           );
           navigate({ search: urlParams.toString() });
@@ -112,11 +118,11 @@ const UserReportsPage = () => {
 
   const clearFilters = () => {
     setFilters({
-      title: '',
-      startDate: null,
-      endDate: null,
-      nlpKinds: [],
-      reportsPerPage: 10,
+      ...filters,
+      titlePattern: '',
+      startDate: undefined,
+      endDate: undefined,
+      containedAnalysisKinds: [],
     });
     navigate({ search: '' });
   };
@@ -239,9 +245,7 @@ const UserReportsPage = () => {
               <Table.Td>{report.title}</Table.Td>
               <Table.Td>{report.description}</Table.Td>
               <Table.Td>
-                {dayjs(new Date(report.created_at)).format(
-                  'YYYY-MM-DD HH:mm:ss'
-                )}
+                {dayjs(report.created_at).format('YYYY-MM-DD HH:mm')}
               </Table.Td>
               <Table.Td>
                 <Center>{renderStatus(report.status)}</Center>

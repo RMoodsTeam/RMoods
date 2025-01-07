@@ -15,16 +15,11 @@ import { NlpAnalysisKind } from '../../../rmoods/types.ts';
 import '@mantine/dates/styles.css';
 import { IconFilterCancel } from '@tabler/icons-react';
 import { camelCaseToTitleCase } from '../../../utility/util.ts';
+import { MyReportsPageReportQuery } from './page.tsx';
 
 interface FilterNavbarProps {
-  filters: {
-    title: string;
-    startDate: Date | null;
-    endDate: Date | null;
-    nlpKinds: NlpAnalysisKind[];
-    reportsPerPage: number;
-  };
-  onFilterChange: (field: string, value: any) => void;
+  filters: MyReportsPageReportQuery;
+  onFilterChange: (field: keyof MyReportsPageReportQuery, value: any) => void;
   onClearFilters: () => void;
 }
 
@@ -35,10 +30,10 @@ const FilterNavbar: React.FC<FilterNavbarProps> = ({
 }) => {
   const handleNlpKindChange = (kind: NlpAnalysisKind, checked: boolean) => {
     onFilterChange(
-      'nlpKinds',
+      'containedAnalysisKinds',
       checked
-        ? [...filters.nlpKinds, kind]
-        : filters.nlpKinds.filter((k) => k !== kind)
+        ? [...filters.containedAnalysisKinds, kind]
+        : filters.containedAnalysisKinds.filter((k) => k !== kind)
     );
   };
 
@@ -52,9 +47,9 @@ const FilterNavbar: React.FC<FilterNavbarProps> = ({
                 <TextInput
                   placeholder="eg. My report"
                   label="Title pattern"
-                  value={filters.title}
+                  value={filters.titlePattern}
                   onChange={(event) =>
-                    onFilterChange('title', event.currentTarget.value)
+                    onFilterChange('titlePattern', event.currentTarget.value)
                   }
                 />
               </Grid.Col>
@@ -89,9 +84,12 @@ const FilterNavbar: React.FC<FilterNavbarProps> = ({
                     label: camelCaseToTitleCase(kind),
                   }))}
                   label="NLP Analyses"
-                  value={filters.nlpKinds}
+                  value={filters.containedAnalysisKinds}
                   onChange={(value) =>
-                    onFilterChange('nlpKinds', value as NlpAnalysisKind[])
+                    onFilterChange(
+                      'containedAnalysisKinds',
+                      value as NlpAnalysisKind[]
+                    )
                   }
                 />
               </Grid.Col>
@@ -106,10 +104,10 @@ const FilterNavbar: React.FC<FilterNavbarProps> = ({
         <Select
           label="Per page"
           onChange={(value) =>
-            onFilterChange('reportsPerPage', Number.parseInt(value!, 10))
+            onFilterChange('perPage', Number.parseInt(value!, 10))
           }
           w={'5em'}
-          defaultValue={filters.reportsPerPage.toString()}
+          defaultValue={filters.perPage.toString()}
           allowDeselect={false}
           data={[20, 30, 50, 100].map((value) => value.toString())}
         />

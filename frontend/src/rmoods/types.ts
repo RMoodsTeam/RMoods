@@ -15,21 +15,21 @@ export interface Report {
   description: string;
   is_public: boolean;
   status: ReportStatus;
-  analyses: ReportAnalysesMap;
+  analyses: Map<NlpAnalysisKind, NlpAnalysis>;
   data_request: ReportDataRequest;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
-export interface ReportQuery {
+// Adapted to fit the Mantine inputs, so for example the date is a string
+export type ReportQuery = {
   userNamePattern?: string;
   containedAnalysisKinds: NlpAnalysisKind[];
-  startDate?: string;
-  endDate?: string;
+  startDate?: Date;
+  endDate?: Date;
   titlePattern?: string;
   includeMyReports: boolean;
-  pagination: DbPagination;
-}
+} & DbPagination;
 
 export interface DbPagination {
   page: number;
@@ -70,11 +70,6 @@ export interface NlpAnalysis {
   kind: NlpAnalysisKind;
   generatedIn: string;
   result: any;
-}
-
-export interface ReportAnalysesMap {
-  nlpAnalysisKind: NlpAnalysisKind;
-  nlpAnalysis: NlpAnalysis;
 }
 
 interface DataSources {
