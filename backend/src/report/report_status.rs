@@ -2,7 +2,7 @@ use crate::validation::validation_error::ValidationError;
 use serde::Serialize;
 
 #[derive(Serialize, Debug, PartialEq, Clone)]
-#[serde(tag = "kind", content = "message")]
+#[serde(tag = "status", content = "message")]
 pub enum ReportStatus {
     Success,
     InProgress,

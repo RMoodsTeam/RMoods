@@ -1,6 +1,6 @@
 import authFetch from './authFetch.ts';
 import { ReportFormAdaptedValues } from '../../routes/report/schema.ts';
-import { User } from '../types.ts';
+import { ReportQueryResponse, User } from '../types.ts';
 
 export type ReportRequest = ReportFormAdaptedValues;
 
@@ -55,8 +55,11 @@ export class RMoodsClient {
    */
   static async fetchAboutUser() {}
 
-  static async fetchUserReports(url: string) {
-    return await authFetch(`/report?${url.toString()}`).then((res) => {
+  static async fetchUserReports(
+    urlParams: URLSearchParams
+  ): Promise<ReportQueryResponse> {
+    const url = `/report?${urlParams.toString()}`;
+    return await authFetch(url).then((res) => {
       if (!res.ok) {
         throw new Error('Failed to fetch user reports');
       }

@@ -111,7 +111,7 @@ impl DbStoredInner for Report {
         let db_report = sqlx::query_as!(
             DbReport,
             r#"
-            SELECT *
+            SELECT *, 0 as total_reports
             FROM reports
             WHERE id = $1
             "#,

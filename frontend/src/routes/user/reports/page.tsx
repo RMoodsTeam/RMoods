@@ -60,30 +60,32 @@ const UserReportsPage = () => {
     const fetchReports = async () => {
       try {
         if (userInfo?.name) {
-          const params = new URLSearchParams(location.search);
-          params.set('username', userInfo.name);
-          params.set('mine', 'true');
+          const urlParams = new URLSearchParams(location.search);
+          urlParams.set('username', userInfo.name);
+          urlParams.set('mine', 'true');
           if (filters.reportsPerPage)
-            params.set('per_page', filters.reportsPerPage.toString());
-          if (filters.title) params.set('title', filters.title);
+            urlParams.set('per_page', filters.reportsPerPage.toString());
+          if (filters.title) urlParams.set('title', filters.title);
           if (filters.startDate)
-            params.set('start_date', filters.startDate.toISOString());
+            urlParams.set('start_date', filters.startDate.toISOString());
           if (filters.endDate)
-            params.set('end_date', filters.endDate.toISOString());
-          params.set('page', page.toString());
+            urlParams.set('end_date', filters.endDate.toISOString());
+          urlParams.set('page', page.toString());
 
-          filters.nlpKinds.forEach((kind) => params.append('analyses', kind));
-          navigate({ search: params.toString() });
+          filters.nlpKinds.forEach((kind) =>
+            urlParams.append('analyses', kind)
+          );
+          navigate({ search: urlParams.toString() });
 
-          const data = await RMoodsClient.fetchUserReports(params.toString());
-          console.log(data);
-          if (data.length === 0 && page > 1) {
+          const queryResponse = await RMoodsClient.fetchUserReports(urlParams);
+          console.log(queryResponse);
+          if (queryResponse.reports.length === 0 && page > 1) {
             setPage(prevPage);
           } else {
             setPrevPage(page);
-            setReports(data);
+            setReports(queryResponse.reports);
           }
-          setReports(data);
+          setReports(queryResponse.reports);
         } else {
           throw new Error('User name is undefined');
         }
@@ -98,7 +100,7 @@ const UserReportsPage = () => {
     return () => clearTimeout(timeoutId);
   }, [filters, page, navigate, location.search, userInfo]);
 
-  const handleFilterChange = (field: string, value: any) => {
+  const handleFilterChange = (field: string, value: string) => {
     setFilters((prev) => ({
       ...prev,
       [field]: field === 'reportsPerPage' && !value ? 10 : value,
@@ -156,8 +158,8 @@ const UserReportsPage = () => {
     return <div style={{ width: 20 }}></div>;
   };
 
-  const renderStatus = (status: ReportStatus) => {
-    switch (status.kind) {
+  const renderStatus = (reportStatus: ReportStatus) => {
+    switch (reportStatus.status) {
       case ReportStatusKind.Success:
         return (
           <ActionIcon radius={20} color="green" variant="filled">
@@ -178,7 +180,7 @@ const UserReportsPage = () => {
                 <IconX />
               </ActionIcon>
             </Popover.Target>
-            <Popover.Dropdown>{status.message}</Popover.Dropdown>
+            <Popover.Dropdown>{reportStatus.message}</Popover.Dropdown>
           </Popover>
         );
       default:

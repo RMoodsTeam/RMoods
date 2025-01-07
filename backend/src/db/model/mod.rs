@@ -23,6 +23,7 @@ pub(super) struct DbUser {
 
 /// Represents a [Report](crate::report::report::Report)
 #[derive(sqlx::FromRow, Debug)]
+#[sqlx(type_name = "report_record")]
 pub(super) struct DbReport {
     pub(super) id: ReportId,
     //
@@ -38,6 +39,17 @@ pub(super) struct DbReport {
     //
     pub(super) created_at: DateTime<Utc>,
     pub(super) updated_at: DateTime<Utc>,
+
+    /// # WARNING
+    /// This is a side effect of a crappy, leaky abstraction.
+    /// This field is not part of the original [Report](crate::report::report::Report) struct.
+    /// It's here to make it easier to calculate the number of pages that will be available for a given [ReportQuery](crate::report::report_query::ReportQuery).
+    ///
+    /// This field is not to be used in any other context.
+    /// It's only ever used in the [Report::get_by_query](crate::report::report::Report::get_by_query) method.
+    /// Optional so that the report can be fetched without this field present in DB rows.
+    #[sqlx(skip)]
+    pub(crate) total_reports: Option<i32>,
 }
 
 #[derive(sqlx::FromRow, Debug)]

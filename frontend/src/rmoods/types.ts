@@ -36,6 +36,14 @@ export interface DbPagination {
   perPage: number;
 }
 
+/**
+ * Response from /report endpoint for fetching reports by query
+ */
+export interface ReportQueryResponse {
+  reports: Report[];
+  totalPages: number;
+}
+
 export enum NlpAnalysisKind {
   Clickbait = 'clickbait',
   HateSpeech = 'hateSpeech',
@@ -54,7 +62,7 @@ export enum ReportStatusKind {
 }
 
 export interface ReportStatus {
-  kind: ReportStatusKind;
+  status: ReportStatusKind;
   message?: string;
 }
 
