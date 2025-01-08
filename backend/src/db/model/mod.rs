@@ -48,7 +48,6 @@ pub(super) struct DbReport {
     /// This field is not to be used in any other context.
     /// It's only ever used in the [Report::get_by_query](crate::report::report::Report::get_by_query) method.
     /// Optional so that the report can be fetched without this field present in DB rows.
-    #[sqlx(skip)]
     pub(crate) total_reports: Option<i32>,
 }
 

@@ -1,12 +1,14 @@
 import {
   ActionIcon,
+  Anchor,
   Box,
-  Button,
   Center,
   Flex,
   Group,
   Loader,
+  Pagination,
   Popover,
+  Stack,
   Table,
   Title,
 } from '@mantine/core';
@@ -21,7 +23,7 @@ import {
   ReportStatus,
   ReportStatusKind,
 } from '../../../rmoods/types.ts';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import FilterNavbar from './FilterNavbar.tsx';
 import { useAtomValue } from 'jotai';
 import { userInfoAtom } from '../../../atoms.ts';
@@ -41,6 +43,7 @@ export type MyReportsPageReportQuery = Omit<
 
 const UserReportsPage = () => {
   const [reports, setReports] = useState<Report[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
   // Server side sorting params
@@ -68,8 +71,6 @@ const UserReportsPage = () => {
         console.log(filters);
         if (userInfo?.name) {
           const urlParams = new URLSearchParams(location.search);
-          urlParams.set('username', userInfo.name);
-          urlParams.set('mine', 'true');
           if (filters.perPage)
             urlParams.set('per_page', filters.perPage.toString());
           if (filters.titlePattern)
@@ -91,15 +92,17 @@ const UserReportsPage = () => {
           );
           navigate({ search: urlParams.toString() });
 
+          // hidden from the user: append username and mine to the query
+          urlParams.set('username', userInfo.name);
+          urlParams.set('mine', 'true');
           const queryResponse = await RMoodsClient.fetchUserReports(urlParams);
+          // Remove the username and mine params from the query
+          urlParams.delete('username');
+          urlParams.delete('mine');
+
           console.log(queryResponse);
-          if (queryResponse.reports.length === 0 && page > 1) {
-            setPage(prevPage);
-          } else {
-            setPrevPage(page);
-            setReports(queryResponse.reports);
-          }
           setReports(queryResponse.reports);
+          setTotalPages(queryResponse.totalPages);
         } else {
           throw new Error('User name is undefined');
         }
@@ -114,10 +117,13 @@ const UserReportsPage = () => {
     return () => clearTimeout(timeoutId);
   }, [filters, page, navigate, location.search, userInfo]);
 
-  const handleFilterChange = (field: string, value: string) => {
+  const handleFilterChange = (
+    field: keyof MyReportsPageReportQuery,
+    value: string
+  ) => {
     setFilters((prev) => ({
       ...prev,
-      [field]: field === 'reportsPerPage' && !value ? 10 : value,
+      [field]: field === 'perPage' && !value ? 10 : value,
     }));
     if (field !== 'page') {
       setPage(1);
@@ -204,74 +210,74 @@ const UserReportsPage = () => {
 
   return (
     <Box style={{ width: '100%' }}>
-      <Group justify="center" style={{ marginBottom: '30px' }}>
-        <Title order={1}>My Reports</Title>
-      </Group>
+      <Stack>
+        <Group justify="center" style={{ marginBottom: '30px' }}>
+          <Title order={1}>My Reports</Title>
+        </Group>
 
-      <FilterNavbar
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onClearFilters={clearFilters}
-      />
+        <FilterNavbar
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onClearFilters={clearFilters}
+        />
 
-      <Table stickyHeader withColumnBorders>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>
-              <Flex
-                onClick={() => handleSort('title')}
-                justify={'space-between'}
-              >
-                Title
-                {renderSortIcon('title')}
-              </Flex>
-            </Table.Th>
-            <Table.Th>
-              <Flex
-                onClick={() => handleSort('description')}
-                justify={'space-between'}
-              >
-                Description
-                {renderSortIcon('description')}
-              </Flex>
-            </Table.Th>
-            <Table.Th>
-              <Flex
-                onClick={() => handleSort('created_at')}
-                justify={'space-between'}
-              >
-                Created at
-                {renderSortIcon('created_at')}
-              </Flex>
-            </Table.Th>
-            <Table.Th>Status</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {sortedReports.map((report) => (
-            <Table.Tr key={report.id}>
-              <Table.Td>{report.title}</Table.Td>
-              <Table.Td>{report.description}</Table.Td>
-              <Table.Td>
-                {dayjs(report.created_at).format('YYYY-MM-DD HH:mm')}
-              </Table.Td>
-              <Table.Td>
-                <Center>{renderStatus(report.status)}</Center>
-              </Table.Td>
+        <Table stickyHeader withColumnBorders>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>
+                <Flex
+                  onClick={() => handleSort('title')}
+                  justify={'space-between'}
+                >
+                  Title
+                  {renderSortIcon('title')}
+                </Flex>
+              </Table.Th>
+              <Table.Th>
+                <Flex
+                  onClick={() => handleSort('description')}
+                  justify={'space-between'}
+                >
+                  Description
+                  {renderSortIcon('description')}
+                </Flex>
+              </Table.Th>
+              <Table.Th>
+                <Flex
+                  onClick={() => handleSort('created_at')}
+                  justify={'space-between'}
+                >
+                  Created at
+                  {renderSortIcon('created_at')}
+                </Flex>
+              </Table.Th>
+              <Table.Th>Status</Table.Th>
             </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+          </Table.Thead>
+          <Table.Tbody>
+            {sortedReports.map((report) => (
+              <Table.Tr key={report.id}>
+                <Table.Td>
+                  <Anchor component={Link} to={`/report/${report.id}`}>
+                    {report.title}
+                  </Anchor>
+                </Table.Td>
+                <Table.Td>{report.description}</Table.Td>
+                <Table.Td>
+                  {dayjs(report.created_at).format('YYYY-MM-DD HH:mm')}
+                </Table.Td>
+                <Table.Td>
+                  <Center>{renderStatus(report.status)}</Center>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
 
-      <Group justify="center" style={{ marginTop: '20px' }}>
-        <Button
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          disabled={page === 1}
-        >
-          Previous
-        </Button>
-        <Button onClick={() => setPage((prev) => prev + 1)}>Next</Button>
-      </Group>
+        <Center>
+          <Pagination total={totalPages} value={page} onChange={setPage} />
+        </Center>
+      </Stack>
     </Box>
   );
 };

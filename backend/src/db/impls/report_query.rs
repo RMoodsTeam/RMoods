@@ -277,7 +277,7 @@ impl ReportRepository for Report {
             ORDER BY CASE WHEN $17 = 'title' THEN r.title ELSE r.created_at::text END
             )
             SELECT *,
-            (SELECT COUNT(*) FROM all_queried) AS "total_reports: i32"
+            (SELECT COUNT(*)::int FROM all_queried) AS total_reports
             FROM all_queried
             LIMIT $18 OFFSET $19
             "#,
@@ -317,8 +317,9 @@ impl ReportRepository for Report {
             limit,
             offset
         )
-            .fetch_all(db.raw_db())
-            .await?;
+        .fetch_all(db.raw_db())
+        .await?;
+        dbg!(&db_reports.iter().clone());
 
         let total_reports = db_reports
             .first()
@@ -326,9 +327,14 @@ impl ReportRepository for Report {
                 r.total_reports
                     .expect("Total reports column present in the query")
             })
-            .unwrap_or(0);
+            .unwrap_or_else(|| {
+                log::debug!("No reports found for this query, 0 reports possible for the query");
+                0
+            });
+        log::debug!("Total reports possible for this query: {}", total_reports);
 
         let total_pages = (total_reports as f64 / limit as f64).ceil() as i64;
+        log::debug!("Total pages possible for this query: {}", total_pages);
 
         let reports_fut = db_reports
             .into_iter()
