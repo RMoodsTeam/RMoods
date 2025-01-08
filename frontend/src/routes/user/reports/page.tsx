@@ -32,6 +32,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
+import { getLocalUnixTimestamp } from '../../../utility/util.ts';
 
 export type MyReportsPageReportQuery = Omit<
   ReportQuery,
@@ -64,6 +65,7 @@ const UserReportsPage = () => {
   useEffect(() => {
     const fetchReports = async () => {
       try {
+        console.log(filters);
         if (userInfo?.name) {
           const urlParams = new URLSearchParams(location.search);
           urlParams.set('username', userInfo.name);
@@ -73,9 +75,15 @@ const UserReportsPage = () => {
           if (filters.titlePattern)
             urlParams.set('title', filters.titlePattern);
           if (filters.startDate)
-            urlParams.set('start_date', filters.startDate.toISOString());
+            urlParams.set(
+              'start_date',
+              getLocalUnixTimestamp(filters.startDate).toString()
+            );
           if (filters.endDate)
-            urlParams.set('end_date', filters.endDate.toISOString());
+            urlParams.set(
+              'end_date',
+              getLocalUnixTimestamp(filters.endDate).toString()
+            );
           urlParams.set('page', page.toString());
 
           filters.containedAnalysisKinds.forEach((kind: NlpAnalysisKind) =>

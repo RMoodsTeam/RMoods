@@ -9,7 +9,7 @@ use crate::nlp::analysis::NlpAnalysisKind;
 use crate::report::report::Report;
 use crate::util::get_utc_timestamp;
 use axum::async_trait;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
@@ -19,8 +19,8 @@ use std::collections::HashSet;
 /// This should be validated on the frontend anyway.
 #[derive(Debug, Clone, Deserialize)]
 pub struct DateRange {
-    pub start_date: DateTime<Utc>,
-    pub end_date: DateTime<Utc>,
+    pub start_date: NaiveDate,
+    pub end_date: NaiveDate,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -133,11 +133,11 @@ struct ReportQueryBindArgs {
     /// The start date of the date range.
     ///
     /// If not provided in the query, it's the UNIX epoch.
-    start_date: DateTime<Utc>,
+    start_date: NaiveDate,
     /// The end date of the date range.
     ///
     /// If not provided in the query, it's the current date and time.
-    end_date: DateTime<Utc>,
+    end_date: NaiveDate,
     /// The title pattern.
     ///
     /// If not provided in the query, it's an empty string. It's used as `LIKE %<pattern>%`.
@@ -162,10 +162,12 @@ impl ReportQuery {
         let contained_analysis_kinds = self.contained_analysis_kinds.into_iter().collect();
         let start_date = self
             .start_date
-            .unwrap_or(NaiveDateTime::UNIX_EPOCH.and_utc());
+            .map(|d| d.date_naive())
+            .unwrap_or(NaiveDateTime::UNIX_EPOCH.date());
         let end_date = self
             .end_date
-            .unwrap_or(get_utc_timestamp() + chrono::Duration::days(1));
+            .map(|d| d.date_naive())
+            .unwrap_or(Utc::now().naive_utc().date() + chrono::Duration::days(1));
         let title_pattern = self.title_pattern.unwrap_or("".to_string());
         let include_my_reports = self.include_my_reports.unwrap_or(false);
         let feed_kind_pattern = self
@@ -228,7 +230,7 @@ impl ReportRepository for Report {
             JOIN data_requests dr ON r.id = dr.report_id
             WHERE
             position ($1 in u.name) > 0
-            AND (r.created_at BETWEEN SYMMETRIC $2 AND $3)
+            AND (r.created_at BETWEEN $2::date AND ($3::date + INTERVAL '1 day')::date)
             AND (r.is_public OR r.user_id = $4)
             AND CASE WHEN $5 IS FALSE AND r.user_id = $4 THEN FALSE ELSE TRUE END
             AND position ($6 in r.title) > 0
@@ -381,6 +383,7 @@ mod tests {
     #[test]
     fn test_into_where_clauses_date_range() {
         let now = get_utc_timestamp();
+        let now_naive = get_utc_timestamp().date_naive();
         let query = ReportQuery {
             start_date: Some(now - chrono::Duration::days(1)),
             end_date: Some(now),
@@ -388,8 +391,8 @@ mod tests {
         };
         let args = query.into_bind_args();
 
-        assert_eq!(args.start_date, now - chrono::Duration::days(1));
-        assert_eq!(args.end_date, now);
+        assert_eq!(args.start_date, now_naive - chrono::Duration::days(1));
+        assert_eq!(args.end_date, now_naive);
     }
 
     #[test]
@@ -398,10 +401,10 @@ mod tests {
         let query = ReportQuery::default();
         let args = query.into_bind_args();
 
-        assert_eq!(args.start_date, NaiveDateTime::UNIX_EPOCH.and_utc());
+        assert_eq!(args.start_date, NaiveDate::from_ymd(1970, 1, 1));
         // We need to check the time as well, as the Utc::now() call in the test and the one in the function might be a few milliseconds apart
         // This is why we check if the difference is less than a second
-        assert!(args.end_date > now);
+        assert!(args.end_date > now.date_naive());
     }
 
     #[test]
@@ -748,6 +751,31 @@ mod tests {
             .reports
             .iter()
             .all(|r| r.created_at <= query.end_date.unwrap()));
+    }
+    #[sqlx::test]
+    async fn test_get_by_query_date_range_same_day(pool: PgPool) {
+        let db = DbClient::new(pool);
+        let _ = setup(&db).await;
+
+        let query = ReportQuery {
+            start_date: Some(get_utc_timestamp() - chrono::Duration::days(7)),
+            end_date: Some(get_utc_timestamp() - chrono::Duration::days(7)),
+            ..ReportQuery::default()
+        };
+
+        let result = Report::get_by_query(query.clone(), GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(result.reports.len(), 1);
+        assert!(result
+            .reports
+            .iter()
+            .all(|r| r.created_at.date_naive() == query.start_date.unwrap().date_naive()));
+        assert!(result
+            .reports
+            .iter()
+            .all(|r| r.created_at.date_naive() == query.end_date.unwrap().date_naive()));
     }
 
     #[sqlx::test]
