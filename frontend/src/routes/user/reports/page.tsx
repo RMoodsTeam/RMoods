@@ -132,7 +132,6 @@ const UserReportsPage = () => {
         urlParams.delete('username');
         urlParams.delete('mine');
 
-        console.log(queryResponse);
         setReports(queryResponse.reports);
         setTotalPages(queryResponse.totalPages);
       } catch (err) {
