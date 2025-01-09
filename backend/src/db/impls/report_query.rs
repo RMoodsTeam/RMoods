@@ -9,8 +9,8 @@ use crate::nlp::analysis::NlpAnalysisKind;
 use crate::report::report::Report;
 use crate::util::get_utc_timestamp;
 use axum::async_trait;
-use chrono::{DateTime, NaiveDateTime, Utc};
-use serde::Deserialize;
+use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 /// Represents a date range for querying reports.
@@ -19,8 +19,16 @@ use std::collections::HashSet;
 /// This should be validated on the frontend anyway.
 #[derive(Debug, Clone, Deserialize)]
 pub struct DateRange {
-    pub start_date: DateTime<Utc>,
-    pub end_date: DateTime<Utc>,
+    pub start_date: NaiveDate,
+    pub end_date: NaiveDate,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SortByKind {
+    #[serde(rename = "title")]
+    Title,
+    #[serde(rename(serialize = "created_at", deserialize = "createdAt"))]
+    CreatedAt,
 }
 
 /// Parameters for querying [Report]s
@@ -67,6 +75,9 @@ pub struct ReportQuery {
     /// Filter by the resource names used in the report's data sources.
     pub resource: Option<String>,
 
+    #[serde(rename = "sortBy")]
+    pub sort_by: Option<SortByKind>,
+
     /// Pagination parameters for the query.
     ///
     /// If not provided, the default values are used: page 1, 30 items per page.
@@ -85,6 +96,7 @@ impl Default for ReportQuery {
             include_my_reports: None,
             feed_kind: None,
             resource: None,
+            sort_by: None,
             pagination: DbPagination::default(),
         }
     }
@@ -108,6 +120,7 @@ where
 /// Created by converting a [ReportQuery] to this struct.
 /// Values in this struct are meant as bind parameters for the SQL query.
 /// Depending on the query, some values might be empty or have a default value, which will still maintain the query's correctness.
+#[derive(Debug)]
 struct ReportQueryBindArgs {
     /// The user's name pattern.
     ///
@@ -133,6 +146,7 @@ struct ReportQueryBindArgs {
     include_my_reports: bool,
     feed_kind_pattern: String,
     resource_pattern: String,
+    sort_by: Option<String>,
 }
 
 impl ReportQuery {
@@ -159,6 +173,7 @@ impl ReportQuery {
             .map(|f| f.to_snake_case())
             .unwrap_or("".to_string());
         let resource_pattern = self.resource.unwrap_or("".to_string());
+        let sort_by = self.sort_by.map(|s| serde_json::to_string(&s).unwrap());
 
         ReportQueryBindArgs {
             user_name_pattern,
@@ -169,8 +184,16 @@ impl ReportQuery {
             include_my_reports,
             feed_kind_pattern,
             resource_pattern,
+            sort_by,
         }
     }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReportQueryResult {
+    pub reports: Vec<Report>,
+    pub total_pages: i64,
 }
 
 /// Repository trait for reports.
@@ -182,7 +205,7 @@ pub trait ReportRepository: Sized {
         query: ReportQuery,
         requesting_user_id: GoogleId,
         db: &DbClient,
-    ) -> Result<Vec<Self>, DbError>;
+    ) -> Result<ReportQueryResult, DbError>;
 }
 
 #[async_trait]
@@ -192,21 +215,20 @@ impl ReportRepository for Report {
         query: ReportQuery,
         requesting_user_id: GoogleId,
         db: &DbClient,
-    ) -> Result<Vec<Self>, DbError> {
+    ) -> Result<ReportQueryResult, DbError> {
         let (limit, offset) = query.pagination.clone().into_limit_and_offset();
-
         let bind_args = query.into_bind_args();
-
         let db_reports = sqlx::query_as!(
             DbReport,
             r#"
+            WITH all_queried AS (
             SELECT r.id, user_id, title, description, is_public, is_in_progress, is_successful, is_error, error_message, r.created_at, r.updated_at
             FROM reports r
             JOIN users u ON r.user_id = u.google_id
             JOIN data_requests dr ON r.id = dr.report_id
             WHERE
             position ($1 in u.name) > 0
-            AND (r.created_at BETWEEN SYMMETRIC $2 AND $3)
+            AND r.created_at >= $2 AND r.created_at < $3
             AND (r.is_public OR r.user_id = $4)
             AND CASE WHEN $5 IS FALSE AND r.user_id = $4 THEN FALSE ELSE TRUE END
             AND position ($6 in r.title) > 0
@@ -250,7 +272,12 @@ impl ReportRepository for Report {
                     ELSE TRUE END
                 )
             )
-            LIMIT $17 OFFSET $18
+            ORDER BY CASE WHEN $17 = 'title' THEN r.title ELSE r.created_at::text END
+            )
+            SELECT *,
+            (SELECT COUNT(*)::int FROM all_queried) AS total_reports
+            FROM all_queried
+            LIMIT $18 OFFSET $19
             "#,
             bind_args.user_name_pattern,
             bind_args.start_date,
@@ -284,11 +311,28 @@ impl ReportRepository for Report {
             bind_args
                 .contained_analysis_kinds
                 .contains(&NlpAnalysisKind::Spam),
+            bind_args.sort_by,
             limit,
             offset
         )
-            .fetch_all(db.raw_db())
-            .await?;
+        .fetch_all(db.raw_db())
+        .await?;
+        dbg!(&db_reports.iter().clone());
+
+        let total_reports = db_reports
+            .first()
+            .map(|r| {
+                r.total_reports
+                    .expect("Total reports column present in the query")
+            })
+            .unwrap_or_else(|| {
+                log::debug!("No reports found for this query, 0 reports possible for the query");
+                0
+            });
+        log::debug!("Total reports possible for this query: {}", total_reports);
+
+        let total_pages = (total_reports as f64 / limit as f64).ceil() as i64;
+        log::debug!("Total pages possible for this query: {}", total_pages);
 
         let reports_fut = db_reports
             .into_iter()
@@ -299,7 +343,10 @@ impl ReportRepository for Report {
             .into_iter()
             .collect::<Result<_, _>>()?;
 
-        Ok(reports)
+        Ok(ReportQueryResult {
+            reports,
+            total_pages,
+        })
     }
 }
 
@@ -585,12 +632,13 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert!(!reports.is_empty());
-        assert!(reports.iter().all(|r| r.user_id.contains(&u1.name)));
+        // Requesting all reports of user 1, but as another user, so we're not getting User1's private report
+        assert_eq!(result.reports.len(), 1);
+        assert!(result.reports.iter().all(|r| r.user_id.contains(&u1.name)));
     }
 
     #[sqlx::test]
@@ -603,14 +651,16 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert!(reports
+        assert_eq!(result.reports.len(), 2);
+        assert!(result
+            .reports
             .iter()
             .all(|r| r.analyses.contains_key(&NlpAnalysisKind::Sentiment)));
-        assert!(!reports.iter().any(|r| r.id == r1.id));
+        assert!(!result.reports.iter().any(|r| r.id == r1.id));
     }
 
     #[sqlx::test]
@@ -623,15 +673,16 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert!(reports
+        assert_eq!(result.reports.len(), 1);
+        assert!(result
+            .reports
             .iter()
             .all(|r| r.analyses.contains_key(&NlpAnalysisKind::Clickbait)));
-        assert_eq!(reports.len(), 1);
-        assert_eq!(reports[0].id, r2.id);
+        assert_eq!(result.reports[0].id, r2.id);
     }
 
     #[sqlx::test]
@@ -645,11 +696,11 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 0);
+        assert_eq!(result.reports.len(), 0);
     }
 
     #[sqlx::test]
@@ -663,16 +714,18 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query.clone(), GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query.clone(), GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 1);
-        assert_eq!(reports[0].id, r3.id);
-        assert!(reports
+        assert_eq!(result.reports.len(), 1);
+        assert_eq!(result.reports[0].id, r3.id);
+        assert!(result
+            .reports
             .iter()
             .all(|r| r.created_at >= query.start_date.unwrap()));
-        assert!(reports
+        assert!(result
+            .reports
             .iter()
             .all(|r| r.created_at <= query.end_date.unwrap()));
     }
@@ -688,15 +741,17 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query.clone(), GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query.clone(), GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 2);
-        assert!(reports
+        assert_eq!(result.reports.len(), 2);
+        assert!(result
+            .reports
             .iter()
             .all(|r| r.created_at >= query.start_date.unwrap()));
-        assert!(reports
+        assert!(result
+            .reports
             .iter()
             .all(|r| r.created_at <= query.end_date.unwrap()));
     }
@@ -711,11 +766,12 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert!(reports.iter().all(|r| r.title.contains("Title")));
+        assert_eq!(result.reports.len(), 3);
+        assert!(result.reports.iter().all(|r| r.title.contains("Title")));
     }
 
     #[sqlx::test]
@@ -728,11 +784,12 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert!(reports.iter().all(|r| r.title.contains("Title 1")));
+        assert_eq!(result.reports.len(), 1);
+        assert!(result.reports.iter().all(|r| r.title.contains("Title 1")));
     }
 
     #[sqlx::test]
@@ -746,12 +803,12 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, u2.clone().id, &db)
+        let result = Report::get_by_query(query, u2.clone().id, &db)
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 2); // 2 because the 4th one is private, and 2nd is ours
-        assert!(!reports.contains(&r2));
+        assert_eq!(result.reports.len(), 2); // 2 because the 4th one is private, and 2nd is ours
+        assert!(!result.reports.contains(&r2));
     }
 
     #[sqlx::test]
@@ -761,13 +818,13 @@ mod tests {
 
         let query = ReportQuery::default();
 
-        let reports = Report::get_by_query(query, GoogleId::from("Random User 123"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("Random User 123"), &db)
             .await
             .unwrap();
 
-        assert_eq!(reports.len(), 3);
-        assert!(reports.iter().all(|r| r.is_public));
-        assert!(!reports.contains(&r4));
+        assert_eq!(result.reports.len(), 3);
+        assert!(result.reports.iter().all(|r| r.is_public));
+        assert!(!result.reports.contains(&r4));
     }
 
     #[sqlx::test]
@@ -781,10 +838,10 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, u1.id, &db).await.unwrap();
+        let result = Report::get_by_query(query, u1.id, &db).await.unwrap();
 
-        assert!(reports.contains(&r4));
-        assert_eq!(reports.len(), 4);
+        assert!(result.reports.contains(&r4));
+        assert_eq!(result.reports.len(), 4);
     }
 
     #[sqlx::test]
@@ -797,14 +854,15 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert!(reports
+        assert_eq!(result.reports.len(), 2);
+        assert!(result
+            .reports
             .iter()
             .all(|r| r.data_request.feed_kind == RedditFeedKind::SubredditPosts));
-        assert_eq!(reports.len(), 2);
     }
 
     #[sqlx::test]
@@ -817,14 +875,15 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert!(reports
+        assert_eq!(result.reports.len(), 1);
+        assert!(result
+            .reports
             .iter()
             .all(|r| r.data_request.feed_kind == RedditFeedKind::UserPosts));
-        assert_eq!(reports.len(), 1);
     }
 
     #[sqlx::test]
@@ -837,15 +896,15 @@ mod tests {
             ..ReportQuery::default()
         };
 
-        let reports = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
             .await
             .unwrap();
 
-        assert!(reports.iter().all(|r| r
+        assert_eq!(result.reports.len(), 2);
+        assert!(result.reports.iter().all(|r| r
             .data_request
             .data_sources
             .iter()
             .any(|ds| ds.name == "Polska")));
-        assert_eq!(reports.len(), 2);
     }
 }

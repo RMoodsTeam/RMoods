@@ -2,6 +2,7 @@ use crate::validation::validation_error::ValidationError;
 use serde::Serialize;
 
 #[derive(Serialize, Debug, PartialEq, Clone)]
+#[serde(tag = "status", content = "message")]
 pub enum ReportStatus {
     Success,
     InProgress,
@@ -42,5 +43,46 @@ impl ReportStatus {
             Self::Error(msg) => Some(msg),
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_report_status_from_booleans() {
+        use super::*;
+        assert_eq!(
+            ReportStatus::from_booleans(true, false, false, None).unwrap(),
+            ReportStatus::Success
+        );
+        assert_eq!(
+            ReportStatus::from_booleans(false, true, false, None).unwrap(),
+            ReportStatus::InProgress
+        );
+        assert_eq!(
+            ReportStatus::from_booleans(false, false, true, Some("error".to_string())).unwrap(),
+            ReportStatus::Error("error".to_string())
+        );
+        assert!(matches!(
+            ReportStatus::from_booleans(false, false, false, None),
+            Err(_)
+        ));
+    }
+
+    #[test]
+    fn test_report_status_into_json() {
+        use super::*;
+        assert_eq!(
+            serde_json::to_string(&ReportStatus::Success).unwrap(),
+            r#"{"status":"Success"}"#
+        );
+        assert_eq!(
+            serde_json::to_string(&ReportStatus::InProgress).unwrap(),
+            r#"{"status":"InProgress"}"#
+        );
+        assert_eq!(
+            serde_json::to_string(&ReportStatus::Error("error".to_string())).unwrap(),
+            r#"{"status":"Error","message":"error"}"#
+        );
     }
 }

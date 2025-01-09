@@ -17,17 +17,13 @@ import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import authFetch from '../../rmoods/client/authFetch';
 import { IconAlertCircle } from '@tabler/icons-react';
-import BACKEND_URL from '../../constants/backendUrl.ts';
 
 const fetchNlpResponse = async (text, analysis) => {
-  const response = await authFetch(
-    `${BACKEND_URL}/api/sandbox?analysis=${analysis}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    }
-  );
+  const response = await authFetch(`/sandbox?analysis=${analysis}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
 
   if (!response.ok) {
     throw new Error(`${response.statusText}`);

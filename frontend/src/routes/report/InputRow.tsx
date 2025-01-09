@@ -98,7 +98,7 @@ const InputRow = ({ setRows, form, manualShares }: InputRowProps) => {
           />
         </Center>
       </Table.Th>
-      {form.values.resourceKind == 'postComments' && (
+      {form.values.feedKind == 'postComments' && (
         <Table.Th>
           <Center>
             <TextInput

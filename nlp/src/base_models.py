@@ -17,33 +17,23 @@ class AnalysisResult(BaseModel):
         self.labels = labels
         self.confidences = confidences
 
-
-class Metadata(BaseModel):
-    """Metadata model for text"""
-    generated_in: float = 0.0
-
-    def __init__(self, generated_in: float):
-        super().__init__()
-        self.generated_in = generated_in
-
-
 class TextResponse(BaseModel):
     """Response model for text"""
     kind: str = ""
-    metadata: Metadata = Metadata(generated_in=-1.0)
+    generatedIn: float = -1.0
     results: List[AnalysisResult] = []
 
-    def __init__(self, kind: str, metadata: Metadata, results: List[AnalysisResult]):
+    def __init__(self, kind: str, generatedIn: float, results: List[AnalysisResult]):
         super().__init__()
         self.kind = kind
-        self.metadata = metadata
+        self.generatedIn = generatedIn
         self.results = results
 
     def json(self):
         """Convert object to json"""
         return {
             "kind": self.kind,
-            "metadata": self.metadata,
+            "generatedIn": self.generatedIn,
             "results": self.results
         }
 

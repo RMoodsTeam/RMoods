@@ -35,7 +35,7 @@ interface TableProps {
  * @returns {string} - The column name ('Post', 'Comment', or 'Name').
  */
 const getResourceKindColumnName = (form: MantineReportForm): string => {
-  if (form.values.resourceKind === 'userPosts') {
+  if (form.values.feedKind === 'userPosts') {
     return 'Username';
   } else {
     return 'Subreddit';
@@ -106,7 +106,7 @@ export const DataSourceTable = ({
                 value: 'postComments',
               },
             ]}
-            {...form.getInputProps('resourceKind')}
+            {...form.getInputProps('feedKind')}
             onClick={() => {
               setRows([]);
             }}
@@ -121,7 +121,7 @@ export const DataSourceTable = ({
               <Table.Th>
                 <Center>{getResourceKindColumnName(form)}</Center>
               </Table.Th>
-              {form.values.resourceKind == 'postComments' && (
+              {form.values.feedKind == 'postComments' && (
                 <Table.Th>
                   <Center>Post ID</Center>
                 </Table.Th>
@@ -154,7 +154,7 @@ export const DataSourceTable = ({
                     />
                   </Center>
                 </Table.Td>
-                {form.values.resourceKind == 'postComments' && (
+                {form.values.feedKind == 'postComments' && (
                   <Table.Td>
                     <Center>
                       <TextInput
