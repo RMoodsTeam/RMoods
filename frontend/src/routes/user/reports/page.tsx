@@ -34,12 +34,51 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
-import { getLocalUnixTimestamp } from '../../../utility/util.ts';
+import { addDays } from 'date-fns';
+import { shiftToUTC } from '../../../utility/util.ts';
 
 export type MyReportsPageReportQuery = Omit<
   ReportQuery,
   'userNamePattern' | 'includeMyReports'
 >;
+
+/*
+ * Converts a date to a Unix timestamp in seconds, adjusted for local timezone.
+ *
+ * Because this is the start date, it should cover the entire day of the start date.
+ * So we set the hours, minutes, seconds, and milliseconds to 0.
+ *
+ * It's then converted to a UTC timestamp in seconds.
+ * So, if we're in GMT+1, and the date is 2025-01-04 00:02:00, the timestamp will be one for 2025-01-04 00:01:00.
+ *
+ * All of this is because the backend only accepts UTC timestamps, without any consideration for the user's timezone.
+ *
+ * Example:
+ *
+ * 1. User selects 2025-01-04 00:02:00 while being in GMT+1.
+ * 2. We need to send two timestamps, that when interpreted as UTC, will cover the entire day of 2025-01-04 in GMT+1.
+ * 3. So, we need to send 2025-01-03 23:00:00 and 2025-01-04 23:00:00, because when GMT+1 offset is applied to those timestamps, they will cover the entire day of 2025-01-04.
+ * 4. We set the hours, minutes, seconds, and milliseconds to 0, because we want to cover the entire day.
+ * 5. We convert the timestamps to UTC.
+ */
+function processStartDate(startDate: Date): number {
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+  return shiftToUTC(start);
+}
+
+/*
+ See `processStartDate` for a detailed explanation.
+ */
+function processEndDate(endDate: Date): number {
+  // Example: User selects 2025-01-04 00:00:00
+  // We add 1 day, so it becomes 2025-01-05 00:00:00
+  // We set the hours, minutes, seconds, and milliseconds to 0, so it becomes 2025-01-05 00:00:00
+  // Thus, the entire day of 2025-01-04 is covered.
+  const end = addDays(new Date(endDate), 1);
+  end.setHours(0, 0, 0, 0);
+  return shiftToUTC(end);
+}
 
 const UserReportsPage = () => {
   const [reports, setReports] = useState<Report[]>([]);
@@ -51,7 +90,6 @@ const UserReportsPage = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [page, setPage] = useState<number>(1);
-  const [prevPage, setPrevPage] = useState<number>(1);
 
   const [filters, setFilters] = useState<MyReportsPageReportQuery>({
     titlePattern: '',
@@ -68,44 +106,35 @@ const UserReportsPage = () => {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        console.log(filters);
-        if (userInfo?.name) {
-          const urlParams = new URLSearchParams(location.search);
-          if (filters.perPage)
-            urlParams.set('per_page', filters.perPage.toString());
-          if (filters.titlePattern)
-            urlParams.set('title', filters.titlePattern);
-          if (filters.startDate)
-            urlParams.set(
-              'start_date',
-              getLocalUnixTimestamp(filters.startDate).toString()
-            );
-          if (filters.endDate)
-            urlParams.set(
-              'end_date',
-              getLocalUnixTimestamp(filters.endDate).toString()
-            );
-          urlParams.set('page', page.toString());
-
-          filters.containedAnalysisKinds.forEach((kind: NlpAnalysisKind) =>
-            urlParams.append('analyses', kind)
-          );
-          navigate({ search: urlParams.toString() });
-
-          // hidden from the user: append username and mine to the query
-          urlParams.set('username', userInfo.name);
-          urlParams.set('mine', 'true');
-          const queryResponse = await RMoodsClient.fetchUserReports(urlParams);
-          // Remove the username and mine params from the query
-          urlParams.delete('username');
-          urlParams.delete('mine');
-
-          console.log(queryResponse);
-          setReports(queryResponse.reports);
-          setTotalPages(queryResponse.totalPages);
-        } else {
-          throw new Error('User name is undefined');
+        const urlParams = new URLSearchParams(location.search);
+        if (filters.perPage)
+          urlParams.set('per_page', filters.perPage.toString());
+        if (filters.titlePattern) urlParams.set('title', filters.titlePattern);
+        if (filters.startDate) {
+          const startDate = processStartDate(filters.startDate);
+          urlParams.set('start_date', startDate.toString());
         }
+        if (filters.endDate) {
+          const endDate = processEndDate(filters.endDate);
+          urlParams.set('end_date', endDate.toString());
+        }
+        filters.containedAnalysisKinds.forEach((kind: NlpAnalysisKind) =>
+          urlParams.append('analyses', kind)
+        );
+        urlParams.set('page', page.toString());
+        navigate({ search: urlParams.toString() });
+
+        // hidden from the user: append username and mine to the query
+        urlParams.set('username', userInfo!.name);
+        urlParams.set('mine', 'true');
+        const queryResponse = await RMoodsClient.fetchUserReports(urlParams);
+        // Remove the username and mine params from the query
+        urlParams.delete('username');
+        urlParams.delete('mine');
+
+        console.log(queryResponse);
+        setReports(queryResponse.reports);
+        setTotalPages(queryResponse.totalPages);
       } catch (err) {
         console.error('Failed to fetch reports:', err);
       } finally {
@@ -182,21 +211,17 @@ const UserReportsPage = () => {
     switch (reportStatus.status) {
       case ReportStatusKind.Success:
         return (
-          <ActionIcon radius={20} color="green" variant="filled">
+          <ActionIcon size={24} radius={20} color="green" variant="filled">
             <IconCheck />
           </ActionIcon>
         );
       case ReportStatusKind.InProgress:
-        return (
-          <ActionIcon radius={20} color="yellow" variant="filled">
-            <Loader />
-          </ActionIcon>
-        );
+        return <Loader size={24} color={'yellow'} />;
       case ReportStatusKind.Error:
         return (
           <Popover position={'top'}>
             <Popover.Target>
-              <ActionIcon radius={20} color="red" variant="filled">
+              <ActionIcon size={24} radius={20} color="red" variant="filled">
                 <IconX />
               </ActionIcon>
             </Popover.Target>
