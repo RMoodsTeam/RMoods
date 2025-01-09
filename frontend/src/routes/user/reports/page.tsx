@@ -35,12 +35,19 @@ import {
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { addDays } from 'date-fns';
-import { shiftToUTC } from '../../../utility/util.ts';
 
 export type MyReportsPageReportQuery = Omit<
   ReportQuery,
   'userNamePattern' | 'includeMyReports'
 >;
+
+/**
+ * Converts a date to a Unix timestamp in seconds, adjusted for local timezone.
+ */
+export function shiftToUTC(date: Date): number {
+  const newDate = new Date(date.getTime() + date.getTimezoneOffset());
+  return Math.ceil(newDate.getTime() / 1000);
+}
 
 /*
  * Converts a date to a Unix timestamp in seconds, adjusted for local timezone.
@@ -125,8 +132,8 @@ const UserReportsPage = () => {
         navigate({ search: urlParams.toString() });
 
         // hidden from the user: append username and mine to the query
-        urlParams.set('username', userInfo!.name);
-        urlParams.set('mine', 'true');
+        // urlParams.set('username', userInfo!.name);
+        // urlParams.set('mine', 'true');
         const queryResponse = await RMoodsClient.fetchUserReports(urlParams);
         // Remove the username and mine params from the query
         urlParams.delete('username');
