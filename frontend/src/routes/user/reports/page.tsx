@@ -132,8 +132,8 @@ const UserReportsPage = () => {
         navigate({ search: urlParams.toString() });
 
         // hidden from the user: append username and mine to the query
-        // urlParams.set('username', userInfo!.name);
-        // urlParams.set('mine', 'true');
+        urlParams.set('username', userInfo!.name);
+        urlParams.set('mine', 'true');
         const queryResponse = await RMoodsClient.fetchUserReports(urlParams);
         // Remove the username and mine params from the query
         urlParams.delete('username');
