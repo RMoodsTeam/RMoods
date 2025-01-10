@@ -5,7 +5,6 @@ use crate::AppState;
 use axum::extract::State;
 use axum::Json;
 
-#[utoipa::path(get, path = "/api/about/user", responses(), params())]
 pub async fn user_about(
     State(mut state): State<AppState>,
     Json(request): Json<UserAboutRequest>,

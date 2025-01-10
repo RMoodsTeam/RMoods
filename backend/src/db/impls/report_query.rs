@@ -8,7 +8,6 @@ use crate::fetcher::data_request::RedditFeedKind;
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::report::report::Report;
 use crate::util::get_utc_timestamp;
-use axum::async_trait;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -208,7 +207,6 @@ pub struct ReportQueryResult {
 /// Repository trait for reports.
 ///
 /// Specifies methods for fetching reports from the database.
-#[async_trait]
 pub trait ReportRepository: Sized {
     async fn get_by_query(
         query: ReportQuery,
@@ -217,7 +215,6 @@ pub trait ReportRepository: Sized {
     ) -> Result<ReportQueryResult, DbError>;
 }
 
-#[async_trait]
 impl ReportRepository for Report {
     /// Fetches reports from the database based on the query and pagination.
     async fn get_by_query(

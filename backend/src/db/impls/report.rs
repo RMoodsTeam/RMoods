@@ -7,13 +7,11 @@ use crate::fetcher::data_request::FetcherDataRequest;
 use crate::nlp::nlp_response::NlpAnalysis;
 use crate::report::report::Report;
 use crate::report::report_status::ReportStatus;
-use axum::async_trait;
 use sqlx::{PgPool, Postgres, Transaction};
 use std::collections::HashMap;
 
-#[async_trait]
 impl DbStoredInner for Report {
-    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
+    async fn inner_save(&self, tx: &mut Transaction<'_, Postgres>) -> Result<(), DbError> {
         let user_id = sqlx::query!(
             r#"
             SELECT google_id as "id: String" FROM users WHERE google_id = $1
@@ -68,7 +66,7 @@ impl DbStoredInner for Report {
     ///
     /// This method updates the report's title, description, public status, and status.
     /// The metadata and analyses map are not updated, as they are not expected to change.
-    async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
+    async fn inner_update(&self, tx: &mut Transaction<'_, Postgres>) -> Result<(), DbError> {
         for (_, analysis) in &self.analyses {
             analysis.inner_save(self.id.as_str(), tx).await?;
         }
@@ -95,7 +93,7 @@ impl DbStoredInner for Report {
         .await?;
         Ok(())
     }
-    async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
+    async fn inner_delete(&self, tx: &mut Transaction<'_, Postgres>) -> Result<(), DbError> {
         sqlx::query!(
             r#"
             DELETE FROM reports WHERE id = $1
@@ -142,12 +140,14 @@ impl DbStoredInner for Report {
         Ok(())
     }
 
-    async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, DbError> {
+    async fn inner_get_all(
+        _pagination: DbPagination,
+        _pool: &PgPool,
+    ) -> Result<Vec<Self>, DbError> {
         unimplemented!()
     }
 }
 
-#[async_trait]
 impl FromDb for Report {
     type DbModel = DbReport;
     async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, DbError> {

@@ -4,16 +4,14 @@ use crate::db::from_db::FromDb;
 use crate::db::model::DbDataSource;
 use crate::fetcher::data_request::DataSource;
 use crate::validation::validation_error::ValidationError;
-use axum::async_trait;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
-#[async_trait]
 impl DbStoredDependentlyInner for DataSource {
     async fn inner_save(
         &self,
         parent_id: &str,
-        tx: &mut Transaction<Postgres>,
+        tx: &mut Transaction<'_, Postgres>,
     ) -> Result<Uuid, DbError> {
         let parent_id = Uuid::parse_str(parent_id).map_err(|_| {
             DbError::from(ValidationError::Invalid(
@@ -40,7 +38,6 @@ impl DbStoredDependentlyInner for DataSource {
     }
 }
 
-#[async_trait]
 impl FromDb for DataSource {
     type DbModel = DbDataSource;
     async fn from_db_model(model: Self::DbModel, _pool: &PgPool) -> Result<Self, DbError> {
