@@ -3,7 +3,7 @@ describe('Theme Switch', () => {
     cy.visit('http://localhost:8000/#/');
   });
 
-  it('should change theme when selecting different options', () => {
+  it('Should change theme when selecting different options', () => {
     cy.get('#theme-switch').find('button').click();
 
     cy.contains('button', 'Light').click();
