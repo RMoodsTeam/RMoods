@@ -7,6 +7,7 @@ use crate::fetcher::reddit::{
     error::RedditError,
     model::{MoreComments, RawComment},
 };
+use crate::validation::validated::Validated;
 use log::{debug, info};
 use log_derive::logfn;
 
@@ -40,6 +41,10 @@ impl RMoodsFetcher {
         request: FetcherDataRequest,
     ) -> Result<(T, u16), FetcherError> {
         info!("Fetching feed: {:?}", request);
+
+        if let Err(e) = request.validate() {
+            return Err(e.into());
+        }
 
         let requests_to_make = request.size.clone().into();
         // TODO: allow for multiple data sources
