@@ -23,6 +23,7 @@ export const AnalysisTypeSchema = z
     hateSpeech: z.boolean(),
     clickbait: z.boolean(),
     trolling: z.boolean(),
+    llm: z.boolean(),
   })
   .refine(
     (value) => {

@@ -11,10 +11,9 @@ import {
   TextInput,
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { NlpAnalysisKind } from '../../../rmoods/types.ts';
+import { NlpAnalysisKind, NlpAnalysisKindUtil } from '../../../rmoods/types.ts';
 import '@mantine/dates/styles.css';
 import { IconFilterCancel } from '@tabler/icons-react';
-import { camelCaseToTitleCase } from '../../../utility/util.ts';
 import { MyReportsPageReportQuery } from './page.tsx';
 
 interface FilterNavbarProps {
@@ -81,7 +80,7 @@ const FilterNavbar: React.FC<FilterNavbarProps> = ({
                   wrapperProps={{ style: { width: '100%' } }}
                   data={Object.values(NlpAnalysisKind).map((kind) => ({
                     value: kind,
-                    label: camelCaseToTitleCase(kind),
+                    label: NlpAnalysisKindUtil.getDisplayLabel(kind),
                   }))}
                   label="NLP Analyses"
                   value={filters.containedAnalysisKinds}

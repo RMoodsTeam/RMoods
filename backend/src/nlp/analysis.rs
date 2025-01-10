@@ -16,6 +16,7 @@ pub enum NlpAnalysisKind {
     Sarcasm,
     Sentiment,
     Spam,
+    Llm,
 }
 
 impl NlpAnalysisKind {
@@ -29,6 +30,7 @@ impl NlpAnalysisKind {
             NlpAnalysisKind::Sarcasm => "sarcasm",
             NlpAnalysisKind::Sentiment => "sentiment",
             NlpAnalysisKind::Spam => "spam",
+            NlpAnalysisKind::Llm => "llm",
         }
         .to_string()
     }
@@ -42,6 +44,7 @@ impl NlpAnalysisKind {
             "sarcasm" => Some(NlpAnalysisKind::Sarcasm),
             "sentiment" => Some(NlpAnalysisKind::Sentiment),
             "spam" => Some(NlpAnalysisKind::Spam),
+            "llm" => Some(NlpAnalysisKind::Llm),
             _ => None,
         }
     }
@@ -62,6 +65,7 @@ mod tests {
         assert_eq!(f(A::Sarcasm), "sarcasm");
         assert_eq!(f(A::Sentiment), "sentiment");
         assert_eq!(f(A::Spam), "spam");
+        assert_eq!(f(A::Llm), "llm");
     }
 
     #[test]
@@ -75,6 +79,7 @@ mod tests {
         assert_eq!(f("sarcasm"), Some(A::Sarcasm));
         assert_eq!(f("sentiment"), Some(A::Sentiment));
         assert_eq!(f("spam"), Some(A::Spam));
+        assert_eq!(f("llm"), Some(A::Llm));
         assert_eq!(f("invalid"), None);
     }
 

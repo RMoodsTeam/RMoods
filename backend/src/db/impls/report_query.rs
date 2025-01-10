@@ -27,8 +27,17 @@ pub struct DateRange {
 pub enum SortByKind {
     #[serde(rename = "title")]
     Title,
-    #[serde(rename(serialize = "created_at", deserialize = "createdAt"))]
+    #[serde(rename = "createdAt")]
     CreatedAt,
+}
+
+impl SortByKind {
+    pub fn into_snake_case(self) -> String {
+        match self {
+            SortByKind::Title => "title".to_string(),
+            SortByKind::CreatedAt => "created_at".to_string(),
+        }
+    }
 }
 
 /// Parameters for querying [Report]s
@@ -173,7 +182,7 @@ impl ReportQuery {
             .map(|f| f.to_snake_case())
             .unwrap_or("".to_string());
         let resource_pattern = self.resource.unwrap_or("".to_string());
-        let sort_by = self.sort_by.map(|s| serde_json::to_string(&s).unwrap());
+        let sort_by = self.sort_by.map(|s| s.into_snake_case());
 
         ReportQueryBindArgs {
             user_name_pattern,
@@ -271,13 +280,17 @@ impl ReportRepository for Report {
                     SELECT CASE WHEN $16 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'spam'))
                     ELSE TRUE END
                 )
+                AND (
+                    SELECT CASE WHEN $17 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'llm'))
+                    ELSE TRUE END
+                )
             )
-            ORDER BY CASE WHEN $17 = 'title' THEN r.title ELSE r.created_at::text END
+            ORDER BY CASE WHEN $18 = 'title' THEN r.title ELSE r.created_at::text END
             )
             SELECT *,
             (SELECT COUNT(*)::int FROM all_queried) AS total_reports
             FROM all_queried
-            LIMIT $18 OFFSET $19
+            LIMIT $19 OFFSET $20
             "#,
             bind_args.user_name_pattern,
             bind_args.start_date,
@@ -311,13 +324,13 @@ impl ReportRepository for Report {
             bind_args
                 .contained_analysis_kinds
                 .contains(&NlpAnalysisKind::Spam),
+            bind_args.contained_analysis_kinds.contains(&NlpAnalysisKind::Llm),
             bind_args.sort_by,
             limit,
             offset
         )
         .fetch_all(db.raw_db())
         .await?;
-        dbg!(&db_reports.iter().clone());
 
         let total_reports = db_reports
             .first()
@@ -906,5 +919,45 @@ mod tests {
             .data_sources
             .iter()
             .any(|ds| ds.name == "Polska")));
+    }
+
+    #[sqlx::test]
+    async fn test_get_by_query_sort_by_title(pool: PgPool) {
+        let db = DbClient::new(pool);
+        let _ = setup(&db).await;
+
+        let query = ReportQuery {
+            sort_by: Some(SortByKind::Title),
+            ..ReportQuery::default()
+        };
+
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(result.reports.len(), 3);
+        assert_eq!(result.reports[0].title, "Title 1");
+        assert_eq!(result.reports[1].title, "Title 2");
+        assert_eq!(result.reports[2].title, "Title 3");
+    }
+
+    #[sqlx::test]
+    async fn test_get_by_query_sort_by_created_at(pool: PgPool) {
+        let db = DbClient::new(pool);
+        let _ = setup(&db).await;
+
+        let query = ReportQuery {
+            sort_by: Some(SortByKind::CreatedAt),
+            ..ReportQuery::default()
+        };
+
+        let result = Report::get_by_query(query, GoogleId::from("test_user"), &db)
+            .await
+            .unwrap();
+
+        assert_eq!(result.reports.len(), 3);
+        for i in 0..2 {
+            assert!(result.reports[i].created_at < result.reports[i + 1].created_at);
+        }
     }
 }

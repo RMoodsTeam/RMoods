@@ -52,6 +52,7 @@ const Report = () => {
         hateSpeech: false,
         clickbait: false,
         trolling: false,
+        llm: false,
       },
     },
     validate: zodResolver(ReportFormValuesSchema),
@@ -86,13 +87,13 @@ const Report = () => {
         rows.map((row, i) =>
           i === index
             ? {
-              ...row,
-              dataSource: {
-                ...row.dataSource,
-                [property]:
-                  property === 'share' ? event : event.target?.value,
-              },
-            }
+                ...row,
+                dataSource: {
+                  ...row.dataSource,
+                  [property]:
+                    property === 'share' ? event : event.target?.value,
+                },
+              }
             : row
         )
       );
@@ -254,7 +255,7 @@ const Report = () => {
                 {
                   // Only show time selection if sorting by top or controversial
                   form.getInputProps('sortBy').value !== 'top' &&
-                    form.getInputProps('sortBy').value !==
+                  form.getInputProps('sortBy').value !==
                     'controversial' ? null : (
                     <Select
                       name="time"
@@ -373,6 +374,13 @@ const Report = () => {
                   value={form.values.analyses.trolling}
                   label="Trolling"
                   {...form.getInputProps('analyses.trolling', {
+                    type: 'checkbox',
+                  })}
+                />
+                <Checkbox
+                  value={form.values.analyses.llm}
+                  label="LLM Detection"
+                  {...form.getInputProps('analyses.llm', {
                     type: 'checkbox',
                   })}
                 />
