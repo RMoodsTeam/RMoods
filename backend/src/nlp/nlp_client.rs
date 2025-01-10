@@ -4,7 +4,6 @@ use crate::nlp::error::NlpError;
 use crate::nlp::nlp_request::NlpRequest;
 use crate::nlp::nlp_response::NlpAnalysis;
 use log_derive::logfn;
-use serde_json::Value;
 use serde_with::serde_derive::Serialize;
 use std::collections::HashMap;
 
@@ -57,6 +56,7 @@ impl NlpClient {
             A::HateSpeech => "/hate-speech",
             A::Clickbait => "/clickbait",
             A::Keywords => "/keywords",
+            A::Llm => "/llm",
         };
         format!("{}{}", nlp_url, endpoint)
     }
@@ -121,6 +121,7 @@ mod tests {
 
     fn setup() {
         let _ = env_logger::builder().is_test(true).try_init();
+        dotenvy::dotenv().ok();
         std::env::set_var(NLP_URL, "http://localhost:8002");
     }
 
@@ -237,6 +238,19 @@ mod tests {
             .analyze(NlpAnalysisKind::Politics, &input)
             .await
             .unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_get_llm() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec![
+            "Hello, world!".to_string(),
+            "Bonjour, le monde!".to_string(),
+        ];
+        let res = client.analyze(NlpAnalysisKind::Llm, &input).await.unwrap();
         dbg!(res);
     }
 }

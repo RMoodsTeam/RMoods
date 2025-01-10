@@ -3,6 +3,8 @@
 // Allowing dead code because these functions are only used in tests.
 
 use crate::auth::user::{GoogleId, User};
+use crate::db::db_client::DbClient;
+use crate::db::db_stored::DbStored;
 use crate::fetcher::data_request::{DataSource, FetcherDataRequest, RedditFeedKind};
 use crate::fetcher::reddit::request::feed_sorting::FeedSorting;
 use crate::nlp::analysis::NlpAnalysisKind;
@@ -10,8 +12,11 @@ use crate::nlp::nlp_response::{NlpAnalysis, NlpResponse};
 use crate::report::report::Report;
 use crate::report::report_status::ReportStatus;
 use crate::util::get_utc_timestamp;
+use chrono::NaiveTime;
 use nanoid::nanoid;
+use sqlx::PgPool;
 use std::collections::HashMap;
+use std::ops::Sub;
 
 pub(super) fn get_test_user(id: String) -> User {
     User {
@@ -122,7 +127,7 @@ fn get_random_data_request() -> FetcherDataRequest {
 }
 
 fn get_random_nlp_analysis_kind() -> NlpAnalysisKind {
-    match rand::random::<u8>() % 8 {
+    match rand::random::<u8>() % 9 {
         0 => NlpAnalysisKind::Sentiment,
         1 => NlpAnalysisKind::Clickbait,
         2 => NlpAnalysisKind::Politics,
@@ -131,6 +136,7 @@ fn get_random_nlp_analysis_kind() -> NlpAnalysisKind {
         5 => NlpAnalysisKind::Sarcasm,
         6 => NlpAnalysisKind::Spam,
         7 => NlpAnalysisKind::Language,
+        8 => NlpAnalysisKind::Llm,
         _ => panic!("Impossible value"),
     }
 }
@@ -146,51 +152,50 @@ fn get_random_nlp_analyses() -> HashMap<NlpAnalysisKind, NlpAnalysis> {
     analyses
 }
 
+pub(super) async fn insert_test_reports() {
+    dotenvy::dotenv().ok();
+    let pool = PgPool::connect(&std::env::var("DATABASE_URL").unwrap())
+        .await
+        .unwrap();
+    let db = DbClient::new(pool);
+
+    let mut time = get_utc_timestamp()
+        .sub(chrono::Duration::hours(24))
+        .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
+        .unwrap();
+    let end_time = time + chrono::Duration::days(1);
+
+    while time < end_time {
+        let user_id = nanoid!();
+        let user = get_test_user(user_id.clone());
+        let report = Report {
+            id: nanoid::nanoid!(),
+            user_id,
+            title: get_random_string(10),
+            description: get_random_string(20),
+            is_public: get_random_bool(),
+            status: get_random_report_status(),
+            created_at: time,
+            updated_at: time,
+            analyses: get_random_nlp_analyses(),
+            data_request: get_random_data_request(),
+        };
+
+        user.save(&db).await.unwrap();
+        report.save(&db).await.unwrap();
+
+        time = time + chrono::Duration::minutes(5);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::db::db_client::DbClient;
-    use crate::db::db_stored::DbStored;
-    use chrono::NaiveTime;
-    use nanoid::nanoid;
-    use sqlx::PgPool;
-    use std::ops::Sub;
 
     #[tokio::test]
     #[ignore]
-    async fn insert_test_reports() {
-        dotenvy::dotenv().ok();
-        let pool = PgPool::connect(&std::env::var("DATABASE_URL").unwrap())
-            .await
-            .unwrap();
-        let db = DbClient::new(pool);
-
-        let mut time = get_utc_timestamp()
-            .sub(chrono::Duration::hours(24))
-            .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
-            .unwrap();
-        let end_time = time + chrono::Duration::days(1);
-
-        while time < end_time {
-            let user_id = nanoid!();
-            let user = get_test_user(user_id.clone());
-            let report = Report {
-                id: nanoid::nanoid!(),
-                user_id,
-                title: get_random_string(10),
-                description: get_random_string(20),
-                is_public: get_random_bool(),
-                status: get_random_report_status(),
-                created_at: time,
-                updated_at: time,
-                analyses: get_random_nlp_analyses(),
-                data_request: get_random_data_request(),
-            };
-
-            user.save(&db).await.unwrap();
-            report.save(&db).await.unwrap();
-
-            time = time + chrono::Duration::minutes(5);
-        }
+    // Allows for manual triggering of the inserting
+    async fn manual_test_insert_test_reports() {
+        insert_test_reports().await;
     }
 }
