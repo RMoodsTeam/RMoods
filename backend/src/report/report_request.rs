@@ -2,7 +2,6 @@ use crate::fetcher::data_request::FetcherDataRequest;
 use crate::nlp::nlp_request::NlpRequest;
 use crate::validation::validated::Validated;
 use crate::validation::validation_error::ValidationError;
-use axum::async_trait;
 use axum::body::Bytes;
 use axum::extract::{FromRequest, Request};
 use http::StatusCode;
@@ -18,7 +17,6 @@ pub struct ReportRequest {
     pub nlp_request: NlpRequest,
 }
 
-#[async_trait]
 impl<S> FromRequest<S> for ReportRequest
 where
     S: Send + Sync,

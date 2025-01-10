@@ -1,7 +1,6 @@
 use crate::db::db_client::DbClient;
 use crate::db::db_error::DbError;
 use crate::db::pagination::DbPagination;
-use axum::async_trait;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
@@ -55,7 +54,6 @@ impl<T> DbStored for T where T: DbStoredInner {}
 ///
 /// As opposed to the [DbStored](crate::db::db_stored::DbStored) trait, this one has concrete implementations
 /// for top-level types - [Report](crate::report::report::Report) and [User](crate::auth::user::User).
-#[async_trait]
 pub(super) trait DbStoredInner: Sized {
     /// Saves the object to the database using the provided transaction.
     async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError>;
@@ -74,7 +72,6 @@ pub(super) trait DbStoredInner: Sized {
 /// Internal trait for database-stored objects that depend on other objects.
 ///
 /// This is used for objects that are referenced by other objects.
-#[async_trait]
 pub(super) trait DbStoredDependentlyInner: Sized {
     async fn inner_save(
         &self,

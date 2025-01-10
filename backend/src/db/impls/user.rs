@@ -2,12 +2,10 @@ use crate::auth::user::User;
 use crate::db::db_error::DbError;
 use crate::db::db_stored::DbStoredInner;
 use crate::db::pagination::DbPagination;
-use axum::async_trait;
 use sqlx::{PgPool, Postgres, Transaction};
 
-#[async_trait]
 impl DbStoredInner for User {
-    async fn inner_save(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
+    async fn inner_save(&self, tx: &mut Transaction<'_, Postgres>) -> Result<(), DbError> {
         sqlx::query!(
             r#"
             INSERT INTO users (
@@ -29,10 +27,10 @@ impl DbStoredInner for User {
         .await?;
         Ok(())
     }
-    async fn inner_update(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
+    async fn inner_update(&self, _tx: &mut Transaction<'_, Postgres>) -> Result<(), DbError> {
         unimplemented!()
     }
-    async fn inner_delete(&self, tx: &mut Transaction<Postgres>) -> Result<(), DbError> {
+    async fn inner_delete(&self, tx: &mut Transaction<'_, Postgres>) -> Result<(), DbError> {
         // Delete all reports of that user
         sqlx::query!(
             r#"
@@ -82,7 +80,10 @@ impl DbStoredInner for User {
         Ok(())
     }
 
-    async fn inner_get_all(pagination: DbPagination, pool: &PgPool) -> Result<Vec<Self>, DbError> {
+    async fn inner_get_all(
+        _pagination: DbPagination,
+        _pool: &PgPool,
+    ) -> Result<Vec<Self>, DbError> {
         unimplemented!()
     }
 }

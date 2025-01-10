@@ -5,7 +5,6 @@ use crate::AppState;
 use axum::extract::State;
 use axum::Json;
 
-#[utoipa::path(get, path = "/api/about/subreddit", responses(), params())]
 pub async fn subreddit_about(
     State(mut state): State<AppState>,
     Json(request): Json<SubredditAboutRequest>,

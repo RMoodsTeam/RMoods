@@ -5,7 +5,6 @@ use crate::db::model::{DbDataRequest, DbDataSource};
 use crate::fetcher::data_request::{DataSource, FetcherDataRequest, RedditFeedKind};
 use crate::fetcher::reddit::request::feed_sorting::{FeedSorting, FeedSortingTime};
 use crate::validation::validation_error::ValidationError;
-use axum::async_trait;
 use futures_util::future::join_all;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
@@ -57,12 +56,11 @@ fn feed_sorting_from_snake_case(kind: &str, time: Option<&str>) -> Result<FeedSo
     }
 }
 
-#[async_trait]
 impl DbStoredDependentlyInner for FetcherDataRequest {
     async fn inner_save(
         &self,
         parent_id: &str,
-        tx: &mut Transaction<Postgres>,
+        tx: &mut Transaction<'_, Postgres>,
     ) -> Result<Uuid, DbError> {
         let data_request_uuid = sqlx::query!(
             r#"
@@ -90,7 +88,6 @@ impl DbStoredDependentlyInner for FetcherDataRequest {
     }
 }
 
-#[async_trait]
 impl FromDb for FetcherDataRequest {
     type DbModel = DbDataRequest;
     async fn from_db_model(model: Self::DbModel, pool: &PgPool) -> Result<Self, DbError> {
