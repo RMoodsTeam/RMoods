@@ -1,3 +1,5 @@
+// @ts-ignore
+
 /**
  * User interface representing the user data.
  */
@@ -53,6 +55,32 @@ export enum NlpAnalysisKind {
   Sarcasm = 'sarcasm',
   Sentiment = 'sentiment',
   Spam = 'spam',
+  LLM = 'llm',
+}
+
+export class NlpAnalysisKindUtil {
+  static getDisplayLabel(kind: NlpAnalysisKind): string {
+    switch (kind) {
+      case NlpAnalysisKind.Clickbait:
+        return 'Clickbait';
+      case NlpAnalysisKind.HateSpeech:
+        return 'Hate Speech';
+      case NlpAnalysisKind.Keywords:
+        return 'Keywords';
+      case NlpAnalysisKind.Language:
+        return 'Language';
+      case NlpAnalysisKind.Politics:
+        return 'Politics';
+      case NlpAnalysisKind.Sarcasm:
+        return 'Sarcasm';
+      case NlpAnalysisKind.Sentiment:
+        return 'Sentiment';
+      case NlpAnalysisKind.Spam:
+        return 'Spam';
+      case NlpAnalysisKind.LLM:
+        return 'LLM Detection';
+    }
+  }
 }
 
 export enum ReportStatusKind {

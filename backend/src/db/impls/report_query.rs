@@ -281,13 +281,17 @@ impl ReportRepository for Report {
                     SELECT CASE WHEN $16 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'spam'))
                     ELSE TRUE END
                 )
+                AND (
+                    SELECT CASE WHEN $17 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'llm'))
+                    ELSE TRUE END
+                )
             )
-            ORDER BY CASE WHEN $17 = 'title' THEN r.title ELSE r.created_at::text END
+            ORDER BY CASE WHEN $18 = 'title' THEN r.title ELSE r.created_at::text END
             )
             SELECT *,
             (SELECT COUNT(*)::int FROM all_queried) AS total_reports
             FROM all_queried
-            LIMIT $18 OFFSET $19
+            LIMIT $19 OFFSET $20
             "#,
             bind_args.user_name_pattern,
             bind_args.start_date,
@@ -321,6 +325,7 @@ impl ReportRepository for Report {
             bind_args
                 .contained_analysis_kinds
                 .contains(&NlpAnalysisKind::Spam),
+            bind_args.contained_analysis_kinds.contains(&NlpAnalysisKind::Llm),
             bind_args.sort_by,
             limit,
             offset
