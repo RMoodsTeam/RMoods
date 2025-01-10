@@ -227,7 +227,6 @@ impl ReportRepository for Report {
     ) -> Result<ReportQueryResult, DbError> {
         let (limit, offset) = query.pagination.clone().into_limit_and_offset();
         let bind_args = query.into_bind_args();
-        dbg!(&bind_args);
         let db_reports = sqlx::query_as!(
             DbReport,
             r#"
@@ -332,7 +331,6 @@ impl ReportRepository for Report {
         )
         .fetch_all(db.raw_db())
         .await?;
-        dbg!(&db_reports.iter().clone());
 
         let total_reports = db_reports
             .first()
