@@ -7,7 +7,7 @@ use crate::db::db_client::DbClient;
 use crate::db::db_stored::DbStored;
 use crate::fetcher::data_request::{DataSource, FetcherDataRequest, RedditFeedKind};
 use crate::fetcher::reddit::request::feed_sorting::FeedSorting;
-use crate::nlp::analysis::NlpAnalysisKind;
+use crate::nlp::analysis_kind::NlpAnalysisKind;
 use crate::nlp::nlp_response::{NlpAnalysis, NlpResponse};
 use crate::report::report::Report;
 use crate::report::report_status::ReportStatus;

@@ -1,4 +1,4 @@
-use crate::nlp::analysis::NlpAnalysisKind;
+use crate::nlp::analysis_kind::NlpAnalysisKind;
 use crate::validation::validated::Validated;
 use crate::validation::validation_error::ValidationError;
 use serde::Deserialize;

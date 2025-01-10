@@ -1,4 +1,4 @@
-use crate::nlp::analysis::NlpAnalysisKind;
+use crate::nlp::analysis_kind::NlpAnalysisKind;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 

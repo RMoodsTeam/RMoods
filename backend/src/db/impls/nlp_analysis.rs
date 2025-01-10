@@ -2,7 +2,7 @@ use crate::db::db_error::DbError;
 use crate::db::db_stored::DbStoredDependentlyInner;
 use crate::db::from_db::FromDb;
 use crate::db::model::DbNlpAnalysis;
-use crate::nlp::analysis::NlpAnalysisKind;
+use crate::nlp::analysis_kind::NlpAnalysisKind;
 use crate::nlp::nlp_response::NlpAnalysis;
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;

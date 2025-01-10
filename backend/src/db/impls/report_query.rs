@@ -5,7 +5,7 @@ use crate::db::from_db::FromDb;
 use crate::db::model::DbReport;
 use crate::db::pagination::DbPagination;
 use crate::fetcher::data_request::RedditFeedKind;
-use crate::nlp::analysis::NlpAnalysisKind;
+use crate::nlp::analysis_kind::NlpAnalysisKind;
 use crate::report::report::Report;
 use crate::util::get_utc_timestamp;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};

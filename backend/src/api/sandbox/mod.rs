@@ -1,5 +1,5 @@
 use crate::app_error::AppError;
-use crate::nlp::analysis::NlpAnalysisKind;
+use crate::nlp::analysis_kind::NlpAnalysisKind;
 use crate::nlp::nlp_response::NlpAnalysis;
 use crate::AppState;
 use axum::extract::{Query, State};

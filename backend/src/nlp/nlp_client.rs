@@ -1,5 +1,5 @@
 use crate::env::{NLP_API_KEY, NLP_URL};
-use crate::nlp::analysis::NlpAnalysisKind;
+use crate::nlp::analysis_kind::NlpAnalysisKind;
 use crate::nlp::error::NlpError;
 use crate::nlp::nlp_request::NlpRequest;
 use crate::nlp::nlp_response::NlpAnalysis;
