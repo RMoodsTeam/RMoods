@@ -1,4 +1,5 @@
 use crate::fetcher::reddit::error::RedditError;
+use crate::validation::validation_error::ValidationError;
 use thiserror::Error;
 
 /// Describe the possible errors that can occur while fetching data from Reddit.
@@ -12,4 +13,8 @@ pub enum FetcherError {
     /// This bubbles up from the underlying Reddit API client.
     #[error(transparent)]
     RedditApiError(#[from] RedditError),
+
+    /// Invalid request
+    #[error(transparent)]
+    ValidationError(#[from] ValidationError),
 }

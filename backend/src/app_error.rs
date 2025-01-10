@@ -80,6 +80,9 @@ impl From<FetcherError> for AppError {
                 }
                 _ => AppError::internal_server_error(),
             },
+            // Even though it's a validation error, invalid data should never be passed into the Fetcher
+            // so we treat it as an internal server error.
+            FetcherError::ValidationError(e) => AppError::internal_server_error(),
             _ => AppError::internal_server_error(),
         }
     }
