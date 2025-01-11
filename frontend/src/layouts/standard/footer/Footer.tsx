@@ -40,7 +40,6 @@ export default function FooterCentered() {
 
         <Group gap="xs" justify="flex-end" wrap="nowrap">
           <Anchor
-            id="footer-github"
             component={Link}
             to="https://github.com/RMoodsTeam/RMoods"
             target="_blank"

@@ -1,6 +1,5 @@
 import {
   ActionIcon,
-  Box,
   MantineColorScheme,
   Menu,
   useMantineColorScheme,
@@ -29,7 +28,7 @@ const ThemeSwitch = () => {
   };
 
   return (
-    <Box id="theme-switch">
+    <>
       <Menu>
         <Menu.Target>
           <ActionIcon size={36}>{getIcon()}</ActionIcon>
@@ -55,7 +54,7 @@ const ThemeSwitch = () => {
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
-    </Box>
+    </>
   );
 };
 
