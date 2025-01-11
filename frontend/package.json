@@ -15,7 +15,7 @@
     "e2e:headless": "dotenv start-server-and-test dev http://localhost:8000 \"cypress run --e2e\"",
     "component": "dotenv cypress open --component",
     "component:headless": "dotenv cypress run --component",
-    "percy:run": "start-server-and-test dev http://localhost:8000 \"npx percy exec -- npx cypress run --headless --spec \"cypress/e2e/VisualRegression.cy.ts\"\""
+    "percy:run": "start-server-and-test dev http://localhost:8000 \"TEST_TYPE=visual npx percy exec -- npx cypress run --headless --spec \"cypress/visual/VisualRegression.cy.ts\"\""
   },
   "dependencies": {
     "@mantine/charts": "^7.13.4",
