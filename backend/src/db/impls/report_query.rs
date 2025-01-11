@@ -368,7 +368,7 @@ mod tests {
     use crate::db::impls::test_util::get_test_user;
     use crate::fetcher::data_request::{DataSource, FetcherDataRequest, RedditFeedKind};
     use crate::fetcher::reddit::request::feed_sorting::{FeedSorting, FeedSortingTime};
-    use crate::nlp::nlp_response::NlpAnalysis;
+    use crate::nlp::nlp_analysis::NlpAnalysis;
     use crate::report::report_status::ReportStatus;
     use nanoid::nanoid;
     use sqlx::PgPool;

@@ -1,4 +1,3 @@
-use crate::nlp::analysis_kind::NlpAnalysisKind;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
@@ -12,16 +11,4 @@ pub struct NlpResponse {
     pub labels: Vec<String>,
     /// Confidence scores for each label. Higher is more confident.
     pub confidences: Vec<f64>,
-}
-
-/// Represents a full NLP analysis response.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct NlpAnalysis {
-    /// Kind of analysis performed.
-    pub kind: NlpAnalysisKind,
-    /// Generation time for all the responses combined.
-    pub generated_in: f64,
-    /// Results of the analysis.
-    pub results: Vec<NlpResponse>,
 }

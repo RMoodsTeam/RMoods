@@ -1,6 +1,6 @@
 use crate::app_error::AppError;
 use crate::nlp::analysis_kind::NlpAnalysisKind;
-use crate::nlp::nlp_response::NlpAnalysis;
+use crate::nlp::nlp_analysis::NlpAnalysis;
 use crate::AppState;
 use axum::extract::{Query, State};
 use axum::Json;

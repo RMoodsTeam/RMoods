@@ -64,8 +64,8 @@ impl RedditFeedData for UserPosts {
     fn extract_texts(self) -> Vec<String> {
         self.posts
             .into_iter()
-            .map(|post| post.title)
-            .chain(self.comments.into_iter().map(|comment| comment.body))
+            .map(|post| post.selftext)
+            .filter(|text| !text.is_empty())
             .collect()
     }
 }

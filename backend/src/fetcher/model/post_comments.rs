@@ -78,7 +78,11 @@ impl RedditFeedData for PostComments {
     }
 
     fn extract_texts(self) -> Vec<String> {
-        self.list.into_iter().map(|comment| comment.body).collect()
+        self.list
+            .into_iter()
+            .map(|comment| comment.body) // Extract comment's text
+            .filter(|text| !text.is_empty()) // Filter out empty texts
+            .collect()
     }
 }
 

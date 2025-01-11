@@ -4,7 +4,7 @@ use crate::db::from_db::FromDb;
 use crate::db::model::{DbDataRequest, DbNlpAnalysis, DbReport};
 use crate::db::pagination::DbPagination;
 use crate::fetcher::data_request::FetcherDataRequest;
-use crate::nlp::nlp_response::NlpAnalysis;
+use crate::nlp::nlp_analysis::NlpAnalysis;
 use crate::report::report::Report;
 use crate::report::report_status::ReportStatus;
 use sqlx::{PgPool, Postgres, Transaction};

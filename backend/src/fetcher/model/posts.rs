@@ -50,6 +50,10 @@ impl RedditFeedData for Posts {
     }
 
     fn extract_texts(self) -> Vec<String> {
-        self.list.into_iter().map(|post| post.title).collect()
+        self.list
+            .into_iter()
+            .map(|post| post.selftext) // Extract post's text
+            .filter(|text| !text.is_empty()) // Filter out empty texts
+            .collect()
     }
 }
