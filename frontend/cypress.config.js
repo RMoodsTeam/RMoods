@@ -9,6 +9,10 @@ export default defineConfig({
   },
 
   e2e: {
+    specPattern:
+      process.env.TEST_TYPE === 'visual'
+        ? 'cypress/visual/**/*.cy.ts'
+        : 'cypress/e2e/**/*.cy.ts',
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
