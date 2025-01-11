@@ -1,7 +1,7 @@
 use crate::cast;
 use crate::fetcher::data_request::{DataSource, FetcherDataRequest};
 use crate::fetcher::fetcher_error::FetcherError;
-use crate::fetcher::model::reddit_data::RedditFeedData;
+use crate::fetcher::model::reddit_data::{RedditFeedData, RedditRequestable};
 use crate::fetcher::reddit::model::{RawComment, RawContainer, RawPost};
 use crate::fetcher::reddit::request::UserPostsRequest;
 use log_derive::logfn;
@@ -17,8 +17,6 @@ pub struct UserPosts {
 }
 
 impl RedditFeedData for UserPosts {
-    type RequestType = UserPostsRequest;
-
     #[logfn(err = "ERROR", fmt = "Failed to parse from RedditContainer: {0}")]
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError> {
         let mut posts: Vec<RawPost> = Vec::new();
@@ -42,6 +40,25 @@ impl RedditFeedData for UserPosts {
         Ok(Self { posts, comments })
     }
 
+    fn concat(&mut self, other: Self) -> Self {
+        Self {
+            posts: [self.posts.clone(), other.posts].concat(),
+            comments: [self.comments.clone(), other.comments].concat(),
+        }
+    }
+
+    fn extract_texts(&self) -> Vec<String> {
+        self.posts
+            .iter()
+            .map(|post| post.selftext.clone())
+            .filter(|text| !text.is_empty())
+            .collect()
+    }
+}
+
+impl RedditRequestable for UserPosts {
+    type RequestType = UserPostsRequest;
+
     fn create_reddit_request(
         request: &FetcherDataRequest,
         source: DataSource,
@@ -52,20 +69,5 @@ impl RedditFeedData for UserPosts {
             sorting: request.sort_by,
             after,
         }
-    }
-
-    fn concat(&mut self, other: Self) -> Self {
-        Self {
-            posts: [self.posts.clone(), other.posts].concat(),
-            comments: [self.comments.clone(), other.comments].concat(),
-        }
-    }
-
-    fn extract_texts(self) -> Vec<String> {
-        self.posts
-            .into_iter()
-            .map(|post| post.selftext)
-            .filter(|text| !text.is_empty())
-            .collect()
     }
 }

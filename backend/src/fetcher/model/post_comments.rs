@@ -1,7 +1,7 @@
 use crate::cast;
 use crate::fetcher::data_request::{DataSource, FetcherDataRequest};
 use crate::fetcher::fetcher_error::FetcherError;
-use crate::fetcher::model::reddit_data::RedditFeedData;
+use crate::fetcher::model::reddit_data::{RedditFeedData, RedditRequestable};
 use crate::fetcher::reddit::model::{MoreComments, RawComment, RawContainer};
 use crate::fetcher::reddit::request::PostCommentsRequest;
 use log::debug;
@@ -18,8 +18,6 @@ pub struct PostComments {
 }
 
 impl RedditFeedData for PostComments {
-    type RequestType = PostCommentsRequest;
-
     #[logfn(err = "ERROR", fmt = "Failed to parse from RedditContainer: {0}")]
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError> {
         let mut comments: Vec<RawComment> = Vec::new();
@@ -55,21 +53,6 @@ impl RedditFeedData for PostComments {
         })
     }
 
-    fn create_reddit_request(
-        request: &FetcherDataRequest,
-        source: DataSource,
-        after: Option<String>,
-    ) -> Self::RequestType {
-        Self::RequestType {
-            subreddit: source.name,
-            post_id: source
-                .post_id
-                .expect("post_id must be passed for PostCommentsRequest"),
-            sorting: request.sort_by,
-            after,
-        }
-    }
-
     fn concat(&mut self, other: Self) -> Self {
         Self {
             list: [self.list.clone(), other.list].concat(),
@@ -77,10 +60,10 @@ impl RedditFeedData for PostComments {
         }
     }
 
-    fn extract_texts(self) -> Vec<String> {
+    fn extract_texts(&self) -> Vec<String> {
         self.list
-            .into_iter()
-            .map(|comment| comment.body) // Extract comment's text
+            .iter()
+            .map(|comment| comment.body.clone()) // Extract comment's text
             .filter(|text| !text.is_empty()) // Filter out empty texts
             .collect()
     }
@@ -131,4 +114,23 @@ fn flattened_replies(
     let _ = flatten_replies_internal(comment, &mut all_replies, &mut mores, 0)?;
 
     Ok((all_replies, mores))
+}
+
+impl RedditRequestable for PostComments {
+    type RequestType = PostCommentsRequest;
+
+    fn create_reddit_request(
+        request: &FetcherDataRequest,
+        source: DataSource,
+        after: Option<String>,
+    ) -> Self::RequestType {
+        Self::RequestType {
+            subreddit: source.name,
+            post_id: source
+                .post_id
+                .expect("post_id must be passed for PostCommentsRequest"),
+            sorting: request.sort_by,
+            after,
+        }
+    }
 }

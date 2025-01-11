@@ -66,7 +66,7 @@ impl Report {
         request: ReportRequest,
         state: &mut AppState,
     ) -> Result<ReportAnalysesMap, ReportError> {
-        let text_data: Box<dyn RedditFeedData> = match request.data_request.feed_kind {
+        let data: Box<dyn RedditFeedData> = match request.data_request.feed_kind {
             RedditFeedKind::SubredditPosts => Box::new(
                 state
                     .fetcher
@@ -74,21 +74,23 @@ impl Report {
                     .await?
                     .0,
             ),
-            RedditFeedKind::UserPosts => {
+            RedditFeedKind::UserPosts => Box::new(
                 state
                     .fetcher
                     .fetch_feed::<UserPosts>(request.data_request)
                     .await?
-                    .0
-            }
-            RedditFeedKind::PostComments => {
+                    .0,
+            ),
+            RedditFeedKind::PostComments => Box::new(
                 state
                     .fetcher
                     .fetch_feed::<PostComments>(request.data_request)
                     .await?
-                    .0
-            }
+                    .0,
+            ),
         };
+
+        let text_data = data.extract_texts();
 
         let analyses = state
             .nlp_client

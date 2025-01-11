@@ -8,7 +8,7 @@ use std::fmt::Debug;
 /// 1. Subreddit Posts
 /// 2. Post Comments
 /// 3. User Posts
-pub trait RedditFeedData {
+pub trait RedditFeedData: Send {
     /// Takes raw data form the underlying Reddit API connection and converts it into the high-level representation.
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
@@ -20,11 +20,12 @@ pub trait RedditFeedData {
     where
         Self: Sized;
 
-    fn extract_texts(self) -> Vec<String>;
+    fn extract_texts(&self) -> Vec<String>;
 }
 
 /// Simpler trait for data that is fetched from the Reddit API as a single object, not as a feed.
 pub trait RedditAboutData {
+    type RequestType;
     /// Takes raw data form the underlying Reddit API connection and converts it into the high-level representation.
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
