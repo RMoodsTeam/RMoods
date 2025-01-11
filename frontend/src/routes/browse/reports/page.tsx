@@ -82,22 +82,6 @@ function processEndDate(endDate: Date): number {
   return shiftToUTC(end);
 }
 
-function useDebounce(value: string, delay: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
-
 const fetchReports = async (params: URLSearchParams) => {
   const queryResponse = await RMoodsClient.fetchUserReports(params);
   return queryResponse;
@@ -122,29 +106,32 @@ const BrowseReportsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const debouncedTitlePattern = useDebounce(filters.titlePattern || '', 500);
-
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    if (filters.perPage) queryParams.set('per_page', filters.perPage.toString());
-    if (debouncedTitlePattern) queryParams.set('title', debouncedTitlePattern)
-    else queryParams.delete('title');
-    if (filters.startDate) queryParams.set('start_date', processStartDate(filters.startDate).toString());
-    if (filters.endDate) queryParams.set('end_date', processEndDate(filters.endDate).toString());
+    const browseReports = async () => {
+      const queryParams = new URLSearchParams(location.search);
+      if (filters.perPage) queryParams.set('per_page', filters.perPage.toString());
+      if (filters.titlePattern) queryParams.set('title', filters.titlePattern)
+      else queryParams.delete('title');
+      if (filters.startDate) queryParams.set('start_date', processStartDate(filters.startDate).toString());
+      if (filters.endDate) queryParams.set('end_date', processEndDate(filters.endDate).toString());
 
-    queryParams.delete('analyses');
-    if (filters.containedAnalysisKinds.length !== 0) {
-      filters.containedAnalysisKinds.forEach((kind) => queryParams.append('analyses', kind))
-    }
+      queryParams.delete('analyses');
+      if (filters.containedAnalysisKinds.length !== 0) {
+        filters.containedAnalysisKinds.forEach((kind) => queryParams.append('analyses', kind))
+      }
 
-    if (filters.userNamePattern) queryParams.set('username', filters.userNamePattern);
-    else queryParams.delete('username');
+      if (filters.userNamePattern) queryParams.set('username', filters.userNamePattern);
+      else queryParams.delete('username');
 
-    if (filters.includeMyReports) queryParams.set('mine', filters.includeMyReports.toString());
-    queryParams.set('page', page.toString());
+      if (filters.includeMyReports) queryParams.set('mine', filters.includeMyReports.toString());
+      queryParams.set('page', page.toString());
 
-    navigate({ search: queryParams.toString() });
-  }, [filters, debouncedTitlePattern, page, navigate, location.search]);
+      navigate({ search: queryParams.toString() });
+    };
+
+    const timeoutId = setTimeout(browseReports, 500);
+    return () => clearTimeout(timeoutId);
+  }, [filters, page, navigate, location.search]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['reports', location.search],
