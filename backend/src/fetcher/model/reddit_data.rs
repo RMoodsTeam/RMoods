@@ -9,19 +9,10 @@ use std::fmt::Debug;
 /// 2. Post Comments
 /// 3. User Posts
 pub trait RedditFeedData {
-    /// The type of request that is used to fetch this data.
-    type RequestType: RedditRequest;
-
     /// Takes raw data form the underlying Reddit API connection and converts it into the high-level representation.
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
         Self: Sized;
-    /// Creates a request to fetch the next page of data.
-    fn create_reddit_request(
-        request: &FetcherDataRequest,
-        source: DataSource,
-        after: Option<String>,
-    ) -> Self::RequestType;
 
     /// Concatenates two instances of the fetched feed data.
     /// This is used to merge the data fetched from multiple requests.
@@ -34,13 +25,24 @@ pub trait RedditFeedData {
 
 /// Simpler trait for data that is fetched from the Reddit API as a single object, not as a feed.
 pub trait RedditAboutData {
-    /// The type of the request that is used to fetch this data.
-    type RequestType: RedditRequest + Debug;
-
     /// Takes raw data form the underlying Reddit API connection and converts it into the high-level representation.
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
         Self: Sized;
+}
+
+pub trait RedditRequestable: RedditFeedData {
+    /// The type of the request that is used to fetch this data.
+    type RequestType: RedditRequest + Debug;
+
+    /// Creates a request to fetch the next page of data.
+    fn create_reddit_request(
+        request: &FetcherDataRequest,
+        source: DataSource,
+        after: Option<String>,
+    ) -> Self::RequestType
+    where
+        Self: RedditRequestable;
 }
 
 /// Forcefully interpret a container variant as the chosen variant, else return an error

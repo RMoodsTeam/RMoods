@@ -2,6 +2,7 @@
 
 use feed_sorting::FeedSorting;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 
 use super::model::MoreComments;
 pub mod feed_sorting;
@@ -71,7 +72,7 @@ pub struct PostCommentsRequest {
 /// The parts of an HTTP request: URL and query parameters.
 pub type RequestParts = (String, Vec<(&'static str, String)>);
 
-pub trait RedditRequest {
+pub trait RedditRequest: Debug {
     fn to_request_parts(&self) -> RequestParts;
     fn resource_name(&self) -> String;
 }

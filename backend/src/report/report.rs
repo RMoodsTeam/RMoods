@@ -66,25 +66,28 @@ impl Report {
         request: ReportRequest,
         state: &mut AppState,
     ) -> Result<ReportAnalysesMap, ReportError> {
-        let text_data = match request.data_request.feed_kind {
-            RedditFeedKind::SubredditPosts => state
-                .fetcher
-                .fetch_feed::<Posts>(request.data_request)
-                .await?
-                .0
-                .extract_texts(),
-            RedditFeedKind::UserPosts => state
-                .fetcher
-                .fetch_feed::<UserPosts>(request.data_request)
-                .await?
-                .0
-                .extract_texts(),
-            RedditFeedKind::PostComments => state
-                .fetcher
-                .fetch_feed::<PostComments>(request.data_request)
-                .await?
-                .0
-                .extract_texts(),
+        let text_data: Box<dyn RedditFeedData> = match request.data_request.feed_kind {
+            RedditFeedKind::SubredditPosts => Box::new(
+                state
+                    .fetcher
+                    .fetch_feed::<Posts>(request.data_request)
+                    .await?
+                    .0,
+            ),
+            RedditFeedKind::UserPosts => {
+                state
+                    .fetcher
+                    .fetch_feed::<UserPosts>(request.data_request)
+                    .await?
+                    .0
+            }
+            RedditFeedKind::PostComments => {
+                state
+                    .fetcher
+                    .fetch_feed::<PostComments>(request.data_request)
+                    .await?
+                    .0
+            }
         };
 
         let analyses = state

@@ -1,7 +1,8 @@
 use crate::fetcher::data_request::FetcherDataRequest;
 use crate::fetcher::fetcher_error::FetcherError;
-use crate::fetcher::model::reddit_data::{RedditAboutData, RedditFeedData};
+use crate::fetcher::model::reddit_data::{RedditAboutData, RedditFeedData, RedditRequestable};
 use crate::fetcher::reddit::ratelimit_headers::RatelimitHeaders;
+use crate::fetcher::reddit::request::RedditRequest;
 use crate::fetcher::reddit::{
     connection::RedditConnection,
     error::RedditError,
@@ -36,7 +37,7 @@ impl RMoodsFetcher {
     /// * It returns the parsed data and the number of requests made.
     /// * The parsed data is of type `T` which should implement the `RedditFeedData` trait.
     #[logfn(err = "ERROR", fmt = "Failed to fetch feed: {0}")]
-    pub async fn fetch_feed<T: RedditFeedData>(
+    pub async fn fetch_feed<T: RedditFeedData + RedditRequestable>(
         &mut self,
         request: FetcherDataRequest,
     ) -> Result<(T, u16), FetcherError> {
@@ -113,7 +114,7 @@ impl RMoodsFetcher {
     #[logfn(err = "ERROR", fmt = "Failed to fetch about: {0}")]
     pub async fn fetch_about<T: RedditAboutData>(
         &mut self,
-        request: T::RequestType,
+        request: impl RedditRequest,
     ) -> Result<T, FetcherError> {
         log::debug!("Fetching about: {:?}", request);
         let raw = self.reddit_connection.fetch_raw(request).await?;
