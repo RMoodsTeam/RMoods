@@ -11,6 +11,7 @@ import {
   Stack,
   Table,
   Title,
+  Tooltip,
 } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback';
@@ -35,6 +36,7 @@ import {
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { addDays } from 'date-fns';
+import { truncateText, extractAnalysisKinds } from '../../../utility/util.ts';
 
 export type MyReportsPageReportQuery = Omit<
   ReportQuery,
@@ -266,6 +268,15 @@ const UserReportsPage = () => {
               </Table.Th>
               <Table.Th>
                 <Flex
+                  onClick={() => handleSort('analyses')}
+                  justify={'space-between'}
+                >
+                  Analysis kinds
+                  {renderSortIcon('analyses')}
+                </Flex>
+              </Table.Th>
+              <Table.Th>
+                <Flex
                   onClick={() => handleSort('description')}
                   justify={'space-between'}
                 >
@@ -293,7 +304,12 @@ const UserReportsPage = () => {
                     {report.title}
                   </Anchor>
                 </Table.Td>
-                <Table.Td>{report.description}</Table.Td>
+                <Table.Td>{extractAnalysisKinds(report.analyses).join(', ')}</Table.Td>
+                <Table.Td>
+                  <Tooltip label={report.description} withArrow multiline w={300}>
+                    <Box>{truncateText(report.description, 45)}</Box>
+                  </Tooltip>
+                </Table.Td>
                 <Table.Td>
                   {dayjs(report.created_at).format('YYYY-MM-DD HH:mm')}
                 </Table.Td>
