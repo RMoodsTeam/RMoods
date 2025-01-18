@@ -1,8 +1,8 @@
 use crate::cast;
 use crate::fetcher::fetcher_error::FetcherError;
-use crate::fetcher::model::reddit_data::RedditAboutData;
 use crate::fetcher::reddit::model::{RawContainer, RawSubredditAbout};
 use crate::fetcher::reddit::request::SubredditAboutRequest;
+use crate::fetcher::reddit_data::RedditAboutData;
 use serde::{Deserialize, Serialize};
 
 /// Contains information about a subreddit.

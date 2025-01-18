@@ -15,7 +15,7 @@ pub struct NlpClient {
 }
 
 #[derive(Serialize, Debug)]
-struct NlpServiceRequest {
+struct NlpModuleRequest {
     text: Vec<String>,
 }
 
@@ -71,7 +71,7 @@ impl NlpClient {
 
         log::debug!("Handling only first 10 inputs. Truncating each input to 100 characters.");
         // TODO: Add parallel processing for large inputs, input sampling
-        let nlp_request = NlpServiceRequest {
+        let nlp_request = NlpModuleRequest {
             text: truncate_inputs(input, 100),
         };
 
@@ -100,7 +100,7 @@ impl NlpClient {
             .map(|kind| self.analyze(kind, input))
             .collect::<Vec<_>>();
 
-        let analyses = futures::future::join_all(futures)
+        let analyses_results = futures::future::join_all(futures)
             .await
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
@@ -108,7 +108,7 @@ impl NlpClient {
         Ok(nlp_request
             .analyses
             .into_iter()
-            .zip(analyses.into_iter())
+            .zip(analyses_results.into_iter())
             .collect::<Vec<_>>()
             .into_iter()
             .collect())

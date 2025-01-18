@@ -1,9 +1,9 @@
 use crate::cast;
 use crate::fetcher::data_request::{DataSource, FetcherDataRequest};
 use crate::fetcher::fetcher_error::FetcherError;
-use crate::fetcher::model::reddit_data::{RedditFeedData, RedditRequestable};
 use crate::fetcher::reddit::model::{MoreComments, RawComment, RawContainer};
 use crate::fetcher::reddit::request::PostCommentsRequest;
+use crate::fetcher::reddit_data::{RedditFeedData, RedditRequestable};
 use log::debug;
 use log_derive::logfn;
 use serde::Serialize;
@@ -14,6 +14,7 @@ use serde::Serialize;
 #[derive(Debug, Serialize, Clone)]
 pub struct PostComments {
     pub list: Vec<RawComment>,
+    #[serde(skip)]
     pub more: Vec<MoreComments>,
 }
 

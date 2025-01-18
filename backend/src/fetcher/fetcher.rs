@@ -1,6 +1,5 @@
 use crate::fetcher::data_request::FetcherDataRequest;
 use crate::fetcher::fetcher_error::FetcherError;
-use crate::fetcher::model::reddit_data::{RedditAboutData, RedditFeedData, RedditRequestable};
 use crate::fetcher::reddit::ratelimit_headers::RatelimitHeaders;
 use crate::fetcher::reddit::request::RedditRequest;
 use crate::fetcher::reddit::{
@@ -8,6 +7,7 @@ use crate::fetcher::reddit::{
     error::RedditError,
     model::{MoreComments, RawComment},
 };
+use crate::fetcher::reddit_data::{RedditAboutData, RedditFeedData, RedditRequestable};
 use crate::validation::validated::Validated;
 use log::{debug, info};
 use log_derive::logfn;
