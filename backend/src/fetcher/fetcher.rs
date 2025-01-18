@@ -7,7 +7,7 @@ use crate::fetcher::reddit::{
     error::RedditError,
     model::{MoreComments, RawComment},
 };
-use crate::fetcher::reddit_data::{RedditAboutData, RedditFeedData, RedditRequestable};
+use crate::fetcher::reddit_feed_data::{FromRedditContainer, RedditAboutData, RedditRequestable};
 use crate::validation::validated::Validated;
 use log::{debug, info};
 use log_derive::logfn;
@@ -37,7 +37,7 @@ impl RMoodsFetcher {
     /// * It returns the parsed data and the number of requests made.
     /// * The parsed data is of type `T` which should implement the `RedditFeedData` trait.
     #[logfn(err = "ERROR", fmt = "Failed to fetch feed: {0}")]
-    pub async fn fetch_feed<T: RedditFeedData + RedditRequestable>(
+    pub async fn fetch_feed<T: FromRedditContainer + RedditRequestable>(
         &mut self,
         request: FetcherDataRequest,
     ) -> Result<(T, u16), FetcherError> {

@@ -3,6 +3,7 @@ use crate::fetcher::data_request::{FetcherDataRequest, RedditFeedKind};
 use crate::nlp::analysis_kind::NlpAnalysisKind;
 use crate::nlp::into_text_data::ToTextData;
 use crate::nlp::nlp_analysis::NlpAnalysis;
+use crate::report::nlp_processed::ProcessedNlpAnalysis;
 use crate::report::reddit_data_container::RedditDataContainer;
 use crate::report::report_error::ReportError;
 use crate::report::report_request::ReportRequest;
@@ -37,6 +38,7 @@ pub struct Report {
     pub is_public: bool,
     pub status: ReportStatus,
     pub analyses: ReportAnalysesMap,
+    pub processed_analyses: Option<ProcessedNlpAnalysis>,
     pub data_request: FetcherDataRequest,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -53,6 +55,7 @@ impl Report {
             is_public: request.is_public,
             status: ReportStatus::InProgress,
             analyses: ReportAnalysesMap::new(),
+            processed_analyses: None,
             data_request: request.data_request,
             created_at: now,
             updated_at: now,

@@ -8,7 +8,7 @@ use std::fmt::Debug;
 /// 1. Subreddit Posts
 /// 2. Post Comments
 /// 3. User Posts
-pub trait RedditFeedData: Send {
+pub trait FromRedditContainer: Send + Clone + Sized {
     /// Takes raw data form the underlying Reddit API connection and converts it into the high-level representation.
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError>
     where
@@ -30,7 +30,7 @@ pub trait RedditAboutData {
         Self: Sized;
 }
 
-pub trait RedditRequestable: RedditFeedData {
+pub trait RedditRequestable: FromRedditContainer {
     /// The type of the request that is used to fetch this data.
     type RequestType: RedditRequest + Debug;
 

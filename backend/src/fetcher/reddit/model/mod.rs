@@ -45,7 +45,7 @@ use serde_with::{serde_as, NoneAsEmptyString};
 ///
 /// ### Recursive case
 /// For the [KindContainer::Listing], this works recursively, since [RedditListing] is basically a list of [KindContainer]s.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "kind", content = "data")]
 pub enum RawContainer {
     #[serde(rename = "Listing")]
@@ -74,7 +74,7 @@ pub enum RawContainer {
 }
 
 /// List of IDs of items to fetch to get the ones that didn't fit in the first response.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct MoreComments {
     pub count: u32,
     pub name: String,
@@ -87,7 +87,7 @@ pub struct MoreComments {
 /// Describes a Reddit listing
 ///
 /// It's a list of items with some metadata about the list and how to fetch more entries.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RawListing {
     pub after: Option<String>,
     pub dist: Option<u32>,
@@ -96,7 +96,7 @@ pub struct RawListing {
 }
 
 /// Represents a reply to a [Post](super::post::Post)
-#[derive(Getters, Debug, Clone, Deserialize, Serialize)]
+#[derive(Getters, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct RawComment {
     /// ID of the subreddit, eg. t5_2qh3s
     pub subreddit_id: String,

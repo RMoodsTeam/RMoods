@@ -3,7 +3,7 @@ use crate::fetcher::data_request::{DataSource, FetcherDataRequest};
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::model::{MoreComments, RawComment, RawContainer};
 use crate::fetcher::reddit::request::PostCommentsRequest;
-use crate::fetcher::reddit_data::{RedditFeedData, RedditRequestable};
+use crate::fetcher::reddit_feed_data::{FromRedditContainer, RedditRequestable};
 use crate::nlp::into_text_data::ToTextData;
 use log::debug;
 use log_derive::logfn;
@@ -12,14 +12,14 @@ use serde::Serialize;
 /// Contains the comments of a Reddit post.
 /// Comments are to be fetches by using the `Fetcher::fetch_more_comments` method.
 // TODO: Remove 'Clone' trait from PostComments, UserPosts and Posts structs.
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct PostComments {
     pub list: Vec<RawComment>,
     #[serde(skip)]
     pub more: Vec<MoreComments>,
 }
 
-impl RedditFeedData for PostComments {
+impl FromRedditContainer for PostComments {
     #[logfn(err = "ERROR", fmt = "Failed to parse from RedditContainer: {0}")]
     fn from_reddit_container(container: RawContainer) -> Result<Self, FetcherError> {
         let mut comments: Vec<RawComment> = Vec::new();
@@ -126,5 +126,14 @@ impl RedditRequestable for PostComments {
             sorting: request.sort_by,
             after,
         }
+    }
+}
+
+impl IntoIterator for PostComments {
+    type Item = RawComment;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.list.into_iter()
     }
 }
