@@ -1,11 +1,9 @@
 use crate::auth::user::GoogleId;
 use crate::fetcher::data_request::{FetcherDataRequest, RedditFeedKind};
-use crate::fetcher::model::post_comments::PostComments;
-use crate::fetcher::model::posts::Posts;
-use crate::fetcher::model::user_posts::UserPosts;
-use crate::fetcher::reddit_data::RedditFeedData;
 use crate::nlp::analysis_kind::NlpAnalysisKind;
+use crate::nlp::into_text_data::ToTextData;
 use crate::nlp::nlp_analysis::NlpAnalysis;
+use crate::report::reddit_data_container::RedditDataContainer;
 use crate::report::report_error::ReportError;
 use crate::report::report_request::ReportRequest;
 use crate::report::report_status::ReportStatus;
@@ -66,31 +64,19 @@ impl Report {
         request: ReportRequest,
         state: &mut AppState,
     ) -> Result<ReportAnalysesMap, ReportError> {
-        let data: Box<dyn RedditFeedData> = match request.data_request.feed_kind {
-            RedditFeedKind::SubredditPosts => Box::new(
-                state
-                    .fetcher
-                    .fetch_feed::<Posts>(request.data_request)
-                    .await?
-                    .0,
+        let data = match request.data_request.feed_kind {
+            RedditFeedKind::SubredditPosts => RedditDataContainer::SubredditPosts(
+                state.fetcher.fetch_feed(request.data_request).await?.0,
             ),
-            RedditFeedKind::UserPosts => Box::new(
-                state
-                    .fetcher
-                    .fetch_feed::<UserPosts>(request.data_request)
-                    .await?
-                    .0,
+            RedditFeedKind::PostComments => RedditDataContainer::PostComments(
+                state.fetcher.fetch_feed(request.data_request).await?.0,
             ),
-            RedditFeedKind::PostComments => Box::new(
-                state
-                    .fetcher
-                    .fetch_feed::<PostComments>(request.data_request)
-                    .await?
-                    .0,
+            RedditFeedKind::UserPosts => RedditDataContainer::UserPosts(
+                state.fetcher.fetch_feed(request.data_request).await?.0,
             ),
         };
 
-        let text_data = data.extract_texts();
+        let text_data = data.to_text_data();
 
         let analyses = state
             .nlp_client

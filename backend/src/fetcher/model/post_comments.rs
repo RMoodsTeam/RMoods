@@ -4,6 +4,7 @@ use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::model::{MoreComments, RawComment, RawContainer};
 use crate::fetcher::reddit::request::PostCommentsRequest;
 use crate::fetcher::reddit_data::{RedditFeedData, RedditRequestable};
+use crate::nlp::into_text_data::ToTextData;
 use log::debug;
 use log_derive::logfn;
 use serde::Serialize;
@@ -59,14 +60,6 @@ impl RedditFeedData for PostComments {
             list: [self.list.clone(), other.list].concat(),
             more: [self.more.clone(), other.more].concat(),
         }
-    }
-
-    fn extract_texts(&self) -> Vec<String> {
-        self.list
-            .iter()
-            .map(|comment| comment.body.clone()) // Extract comment's text
-            .filter(|text| !text.is_empty()) // Filter out empty texts
-            .collect()
     }
 }
 

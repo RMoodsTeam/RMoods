@@ -46,14 +46,6 @@ impl RedditFeedData for UserPosts {
             comments: [self.comments.clone(), other.comments].concat(),
         }
     }
-
-    fn extract_texts(&self) -> Vec<String> {
-        self.posts
-            .iter()
-            .map(|post| post.selftext.clone())
-            .filter(|text| !text.is_empty())
-            .collect()
-    }
 }
 
 impl RedditRequestable for UserPosts {

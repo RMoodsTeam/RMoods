@@ -19,8 +19,6 @@ pub trait RedditFeedData: Send {
     fn concat(&mut self, other: Self) -> Self
     where
         Self: Sized;
-
-    fn extract_texts(&self) -> Vec<String>;
 }
 
 /// Simpler trait for data that is fetched from the Reddit API as a single object, not as a feed.

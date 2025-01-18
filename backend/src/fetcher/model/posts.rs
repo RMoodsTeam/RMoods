@@ -36,14 +36,6 @@ impl RedditFeedData for Posts {
             list: [self.list.clone(), other.list].concat(),
         }
     }
-
-    fn extract_texts(&self) -> Vec<String> {
-        self.list
-            .iter()
-            .map(|post| post.selftext.clone()) // Extract post's text
-            .filter(|text| !text.is_empty()) // Filter out empty texts
-            .collect()
-    }
 }
 
 impl RedditRequestable for Posts {
