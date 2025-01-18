@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from typing import List
+
+from pydantic import BaseModel
 
 
 class TextRequest(BaseModel):
@@ -9,13 +10,14 @@ class TextRequest(BaseModel):
 
 class AnalysisResult(BaseModel):
     """Result model for text"""
-    labels: List[str] = []
-    confidences: List[float] = []
+    label: str = ""
+    confidence: float = -1.0
 
-    def __init__(self, labels: List[str], confidences: List[float]):
+    def __init__(self, label: str, confidence: float):
         super().__init__()
-        self.labels = labels
-        self.confidences = confidences
+        self.label = label
+        self.confidence = confidence
+
 
 class TextResponse(BaseModel):
     """Response model for text"""

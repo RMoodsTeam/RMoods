@@ -1,18 +1,14 @@
+from contextlib import asynccontextmanager
+
 import src.authorization as auth
 import src.globals as gl
-import time
-
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.params import Depends
-
-from docs.conf import language
 from src.base_models import *
 from src.logger_config import logger
 from src.models_loading import *
 from src.process_input import process_inputs
 from src.utils import *
-from src.version_checker import update_model_versions
 
 
 @asynccontextmanager
@@ -88,8 +84,8 @@ async def get_sentiment(request: TextRequest):
         if lang_name == "Polish":
             predict = gl.sentiment_model_polish(text)
             result = AnalysisResult(
-                labels=[predict[0]["label"]],
-                confidences=[confidence_output(predict[0]["score"])]
+                label=predict[0]["label"],
+                confidence=confidence_output(predict[0]["score"])
             )
         else:
             tokenized_text = gl.sentiment_tokenizer([preprocess_data(text)],
@@ -101,8 +97,8 @@ async def get_sentiment(request: TextRequest):
             confidence = max(probs)
             prediction = probs.index(confidence)
             result = AnalysisResult(
-                labels=[labels[prediction]],
-                confidences=[confidence_output(confidence)]
+                label=labels[prediction],
+                confidence=confidence_output(confidence)
             )
         return result
 
@@ -145,8 +141,8 @@ async def get_language(request: TextRequest):
                 languages.append(lang_tag)
 
         result = AnalysisResult(
-            labels=languages,
-            confidences=[confidence_output(y) for y in prediction[1]]
+            label=languages[0],
+            confidence=confidence_output(prediction[1][0])
         )
         return result
 
@@ -184,8 +180,8 @@ async def get_sarcasm(request: TextRequest):
         text = preprocess_data(text)
         predict = gl.sarcastic_pipeline(text)
         result = AnalysisResult(
-            labels=[labels[predict[0]["label"].replace("LABEL_", "")]],
-            confidences=[confidence_output(predict[0]["score"])]
+            label=labels[predict[0]["label"].replace("LABEL_", "")],
+            confidence=confidence_output(predict[0]["score"])
         )
         return result
 
@@ -259,8 +255,8 @@ async def get_spam(request: TextRequest):
         text = preprocess_data(text)
         predict = gl.spam_pipeline(text)
         result = AnalysisResult(
-            labels=[labels[predict[0]["label"].replace("LABEL_", "")]],
-            confidences=[confidence_output(predict[0]["score"])]
+            label=labels[predict[0]["label"].replace("LABEL_", "")],
+            confidence=confidence_output(predict[0]["score"])
         )
         return result
 
@@ -295,8 +291,8 @@ async def get_politics(request: TextRequest):
         text = preprocess_data(text)
         predict = gl.political_pipeline(text)
         result = AnalysisResult(
-            labels=[predict[0]["label"]],
-            confidences=[confidence_output(predict[0]["score"])]
+            label=predict[0]["label"],
+            confidence=confidence_output(predict[0]["score"])
         )
         return result
 
@@ -341,8 +337,8 @@ async def get_hate_speech(request: TextRequest):
             predict = gl.hate_speech_english_pipeline(text)
 
         result = AnalysisResult(
-            labels=[predict[0]["label"]],
-            confidences=[confidence_output(predict[0]["score"])]
+            label=predict[0]["label"],
+            confidence=confidence_output(predict[0]["score"])
         )
         return result
 
@@ -375,8 +371,8 @@ async def get_clickbait(request: TextRequest):
         text = preprocess_data(text)
         predict = gl.clickbait_pipeline(text)
         result = AnalysisResult(
-            labels=[predict[0]["label"]],
-            confidences=[confidence_output(predict[0]["score"])]
+            label=predict[0]["label"],
+            confidence=confidence_output(predict[0]["score"])
         )
         return result
 
@@ -417,8 +413,8 @@ async def get_llm(request: TextRequest):
             confidence = confidence_output(1 - confidence)
 
         result = AnalysisResult(
-            labels=[label],
-            confidences=[confidence]
+            label=label,
+            confidence=confidence
         )
         return result
 

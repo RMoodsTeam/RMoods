@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 pub enum NlpAnalysisKind {
     Clickbait,
     HateSpeech,
-    Keywords,
+    // Keywords,
     Language,
     Politics,
     Sarcasm,
@@ -24,7 +24,7 @@ impl NlpAnalysisKind {
         match self {
             NlpAnalysisKind::Clickbait => "clickbait",
             NlpAnalysisKind::HateSpeech => "hate_speech",
-            NlpAnalysisKind::Keywords => "keywords",
+            // NlpAnalysisKind::Keywords => "keywords",
             NlpAnalysisKind::Language => "language",
             NlpAnalysisKind::Politics => "politics",
             NlpAnalysisKind::Sarcasm => "sarcasm",
@@ -38,7 +38,7 @@ impl NlpAnalysisKind {
         match s {
             "clickbait" => Some(NlpAnalysisKind::Clickbait),
             "hate_speech" => Some(NlpAnalysisKind::HateSpeech),
-            "keywords" => Some(NlpAnalysisKind::Keywords),
+            // "keywords" => Some(NlpAnalysisKind::Keywords),
             "language" => Some(NlpAnalysisKind::Language),
             "politics" => Some(NlpAnalysisKind::Politics),
             "sarcasm" => Some(NlpAnalysisKind::Sarcasm),
@@ -59,7 +59,7 @@ mod tests {
         let f = |a: A| a.to_snake_case();
         assert_eq!(f(A::Clickbait), "clickbait");
         assert_eq!(f(A::HateSpeech), "hate_speech");
-        assert_eq!(f(A::Keywords), "keywords");
+        // assert_eq!(f(A::Keywords), "keywords");
         assert_eq!(f(A::Language), "language");
         assert_eq!(f(A::Politics), "politics");
         assert_eq!(f(A::Sarcasm), "sarcasm");
@@ -73,7 +73,7 @@ mod tests {
         let f = A::from_snake_case;
         assert_eq!(f("clickbait"), Some(A::Clickbait));
         assert_eq!(f("hate_speech"), Some(A::HateSpeech));
-        assert_eq!(f("keywords"), Some(A::Keywords));
+        // assert_eq!(f("keywords"), Some(A::Keywords));
         assert_eq!(f("language"), Some(A::Language));
         assert_eq!(f("politics"), Some(A::Politics));
         assert_eq!(f("sarcasm"), Some(A::Sarcasm));

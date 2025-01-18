@@ -8,7 +8,7 @@ use std::fmt::Debug;
 #[serde(rename_all = "camelCase")]
 pub struct NlpResponse {
     /// Classification labels. Indicates the result of the analysis.
-    pub labels: Vec<String>,
+    pub label: String,
     /// Confidence scores for each label. Higher is more confident.
-    pub confidences: Vec<f64>,
+    pub confidence: f64,
 }

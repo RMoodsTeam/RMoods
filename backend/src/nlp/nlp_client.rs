@@ -55,7 +55,7 @@ impl NlpClient {
             A::Politics => "/politics",
             A::HateSpeech => "/hate-speech",
             A::Clickbait => "/clickbait",
-            A::Keywords => "/keywords",
+            // A::Keywords => "/keywords",
             A::Llm => "/llm",
         };
         format!("{}{}", nlp_url, endpoint)
@@ -209,21 +209,21 @@ mod tests {
         dbg!(res);
     }
 
-    #[ignore]
-    #[tokio::test]
-    async fn test_get_keywords() {
-        setup();
-        let client = NlpClient::new();
-        let input = vec![
-            "Hello, world!".to_string(),
-            "Bonjour, le monde!".to_string(),
-        ];
-        let res = client
-            .analyze(NlpAnalysisKind::Keywords, &input)
-            .await
-            .unwrap();
-        dbg!(res);
-    }
+    // #[ignore]
+    // #[tokio::test]
+    // async fn test_get_keywords() {
+    //     setup();
+    //     let client = NlpClient::new();
+    //     let input = vec![
+    //         "Hello, world!".to_string(),
+    //         "Bonjour, le monde!".to_string(),
+    //     ];
+    //     let res = client
+    //         .analyze(NlpAnalysisKind::Keywords, &input)
+    //         .await
+    //         .unwrap();
+    //     dbg!(res);
+    // }
 
     #[ignore]
     #[tokio::test]
