@@ -213,7 +213,7 @@ impl FromDb for Report {
             is_public: model.is_public,
             status,
             analyses,
-            processed_analyses: (),
+            processed_analyses: None,
             data_request,
             created_at: model.created_at,
             updated_at: model.updated_at,

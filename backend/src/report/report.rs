@@ -86,6 +86,12 @@ impl Report {
             .analyze_parallel(request.nlp_request, &text_data)
             .await?;
 
+        for (_, analysis) in &analyses {
+            let items = data.values().unwrap();
+            let processed = ProcessedNlpAnalysis::generate_from_analyses_map(analysis, items);
+            dbg!(processed);
+        }
+
         Ok(analyses)
     }
 

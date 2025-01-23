@@ -44,6 +44,7 @@ pub(super) fn get_test_report(title: String, user_id: GoogleId) -> Report {
         updated_at: now,
         analyses: get_test_report_analyses(),
         data_request: get_test_data_request(),
+        processed_analyses: None,
     }
 }
 
@@ -64,8 +65,8 @@ pub(super) fn get_test_nlp_analysis(kind: NlpAnalysisKind) -> NlpAnalysis {
     NlpAnalysis {
         kind,
         results: vec![NlpResponse {
-            labels: vec!["LABEL_1".to_string(), "LABEL_2".to_string()],
-            confidences: vec![0.9, 0.6],
+            label: "LABEL_1".to_string(),
+            confidence: 0.9,
         }],
         generated_in: 0.5,
     }
@@ -128,16 +129,15 @@ fn get_random_data_request() -> FetcherDataRequest {
 }
 
 fn get_random_nlp_analysis_kind() -> NlpAnalysisKind {
-    match rand::random::<u8>() % 9 {
+    match rand::random::<u8>() % 8 {
         0 => NlpAnalysisKind::Sentiment,
         1 => NlpAnalysisKind::Clickbait,
         2 => NlpAnalysisKind::Politics,
-        3 => NlpAnalysisKind::Keywords,
-        4 => NlpAnalysisKind::HateSpeech,
-        5 => NlpAnalysisKind::Sarcasm,
-        6 => NlpAnalysisKind::Spam,
-        7 => NlpAnalysisKind::Language,
-        8 => NlpAnalysisKind::Llm,
+        3 => NlpAnalysisKind::HateSpeech,
+        4 => NlpAnalysisKind::Sarcasm,
+        5 => NlpAnalysisKind::Spam,
+        6 => NlpAnalysisKind::Language,
+        7 => NlpAnalysisKind::Llm,
         _ => panic!("Impossible value"),
     }
 }
@@ -180,6 +180,7 @@ pub(super) async fn insert_test_reports() {
             updated_at: time,
             analyses: get_random_nlp_analyses(),
             data_request: get_random_data_request(),
+            processed_analyses: None,
         };
 
         user.save(&db).await.unwrap();

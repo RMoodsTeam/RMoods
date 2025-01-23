@@ -64,6 +64,7 @@ impl RedditRequestable for UserPosts {
     }
 }
 
+#[derive(Debug, PartialEq, Clone, Serialize)]
 pub enum PostOrComment {
     Post(RawPost),
     Comment(RawComment),

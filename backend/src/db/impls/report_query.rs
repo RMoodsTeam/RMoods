@@ -254,40 +254,36 @@ impl ReportRepository for Report {
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $11 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'keywords'))
+                    SELECT CASE WHEN $11 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'language'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $12 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'language'))
+                    SELECT CASE WHEN $12 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'politics'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $13 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'politics'))
+                    SELECT CASE WHEN $13 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sarcasm'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $14 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sarcasm'))
+                    SELECT CASE WHEN $14 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sentiment'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $15 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'sentiment'))
+                    SELECT CASE WHEN $15 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'spam'))
                     ELSE TRUE END
                 )
                 AND (
-                    SELECT CASE WHEN $16 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'spam'))
-                    ELSE TRUE END
-                )
-                AND (
-                    SELECT CASE WHEN $17 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'llm'))
+                    SELECT CASE WHEN $16 IS TRUE THEN (SELECT EXISTS (SELECT 1 FROM nlp_analyses WHERE report_id = r.id AND kind = 'llm'))
                     ELSE TRUE END
                 )
             )
-            ORDER BY CASE WHEN $18 = 'title' THEN r.title ELSE r.created_at::text END
+            ORDER BY CASE WHEN $17 = 'title' THEN r.title ELSE r.created_at::text END
             )
             SELECT *,
             (SELECT COUNT(*)::int FROM all_queried) AS total_reports
             FROM all_queried
-            LIMIT $19 OFFSET $20
+            LIMIT $18 OFFSET $19
             "#,
             bind_args.user_name_pattern,
             bind_args.start_date,
@@ -303,9 +299,6 @@ impl ReportRepository for Report {
             bind_args
                 .contained_analysis_kinds
                 .contains(&NlpAnalysisKind::HateSpeech),
-            bind_args
-                .contained_analysis_kinds
-                .contains(&NlpAnalysisKind::Keywords),
             bind_args
                 .contained_analysis_kinds
                 .contains(&NlpAnalysisKind::Language),
@@ -476,6 +469,7 @@ mod tests {
                 size: 10,
                 sort_by: FeedSorting::Hot,
             },
+            processed_analyses: None,
             created_at: get_utc_timestamp(),
             updated_at: get_utc_timestamp(),
         };
@@ -522,6 +516,7 @@ mod tests {
                 size: 100,
                 sort_by: FeedSorting::Controversial(FeedSortingTime::Month),
             },
+            processed_analyses: None,
             created_at: get_utc_timestamp(),
             updated_at: get_utc_timestamp(),
         };
@@ -578,6 +573,7 @@ mod tests {
                 size: 200,
                 sort_by: FeedSorting::Top(FeedSortingTime::All),
             },
+            processed_analyses: None,
             created_at: get_utc_timestamp() - chrono::Duration::days(7),
             updated_at: get_utc_timestamp() - chrono::Duration::days(7),
         };
@@ -607,6 +603,7 @@ mod tests {
                 size: 200,
                 sort_by: FeedSorting::Top(FeedSortingTime::All),
             },
+            processed_analyses: None,
             created_at: get_utc_timestamp(),
             updated_at: get_utc_timestamp(),
         };
