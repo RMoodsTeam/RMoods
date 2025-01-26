@@ -66,7 +66,7 @@ const DesktopSidebar = () => {
       <nav className={classes.sidebar}>
         <div className={classes.header}>
           <Group justify="space-between">
-            <RMoodsLogo width={50} height={40} />
+            <RMoodsLogo />
           </Group>
         </div>
 

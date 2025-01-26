@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="180mm"
+   viewBox="0 0 210 180"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
+   sodipodi:docname="rmoods-logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.89887065"
+     inkscape:cx="397.16504"
+     inkscape:cy="561.25984"
+     inkscape:window-width="1248"
+     inkscape:window-height="1186"
+     inkscape:window-x="2240"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <filter
+       id="shadow"
+       x="0"
+       y="0"
+       width="1"
+       height="1">
+      <feDropShadow
+         dx="0"
+         dy="0"
+         stdDeviation="3"
+         floodColor="rgba(0, 0, 0, 0.3)" />
+    </filter>
+  </defs>
+  <g
+     inkscape:label="Warstwa 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <ellipse
+       cx="170.35381"
+       cy="49.710407"
+       fill="#246b61"
+       id="circle2"
+       style="stroke-width:1.19238"
+       rx="28.874863"
+       ry="30.774385" />
+    <g
+       id="g10"
+       transform="matrix(1.1549946,0,0,1.2309755,-8.6703544,-11.838389)">
+      <circle
+         cx="45"
+         cy="50"
+         r="25"
+         fill="#ff6b2b"
+         id="circle1" />
+      <ellipse
+         cx="40"
+         cy="35"
+         rx="10"
+         ry="6"
+         fill="#ff9c6b"
+         transform="rotate(-20,40,35)"
+         id="ellipse2" />
+    </g>
+    <ellipse
+       cx="100"
+       cy="80"
+       rx="70"
+       ry="55"
+       fill="#ffffff"
+       filter="url(#shadow)"
+       id="ellipse3"
+       style="fill:#000000;fill-opacity:1"
+       transform="matrix(1.1549946,0,0,1.2309755,-8.6703544,-11.838389)" />
+    <ellipse
+       style="fill:#ffffff;fill-opacity:1;stroke-width:1.14512"
+       id="path11"
+       cx="105.10291"
+       cy="86.338615"
+       rx="82.073677"
+       ry="68.406113" />
+    <path
+       d="m 88.625387,19.270497 c 58.955673,-8.986083 98.450643,27.461556 98.739453,65.529386 0.25541,33.664507 -23.64938,67.219357 -66.41216,68.539917 30.87599,-4.34129 50.95503,-47.63468 41.93982,-81.250738 C 150.69473,26.605827 110.50015,22.028496 77.326523,21.946529"
+       fill="#8ccdc3"
+       id="path3"
+       style="stroke-width:1.19679"
+       sodipodi:nodetypes="cscsc" />
+    <g
+       id="g11"
+       transform="matrix(1.1549946,0,0,1.2309755,-8.6703544,-11.838389)">
+      <circle
+         cx="70"
+         cy="70"
+         r="9"
+         fill="#000000"
+         id="circle5" />
+      <circle
+         cx="130"
+         cy="70"
+         r="9"
+         fill="#000000"
+         id="circle6" />
+    </g>
+    <path
+       style="fill:#000000;fill-opacity:1;stroke-width:1.3992"
+       d="m 66.969236,104.90359 c 9.539586,22.50883 67.151874,25.95615 80.347444,0.0814"
+       id="path15"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>
