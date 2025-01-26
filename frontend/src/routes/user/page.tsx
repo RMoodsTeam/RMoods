@@ -1,18 +1,18 @@
-import { Box, Text } from '@mantine/core';
-import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
-import { useEffect, useState } from 'react';
-import UserCard from './UserCard';
-import StatisticItem from './StatisticItem';
-import { JwtClaims } from '../../rmoods/jwt.ts';
-import authFetch from '../../rmoods/client/authFetch.ts';
+import { Box, Flex } from '@mantine/core';
+import UserCard from './ui/userCard/UserCard.tsx';
+import StatisticItem from './ui/statisticItem/StatisticItem.tsx';
+import { ErrorBoundary } from 'react-error-boundary';
+import { PageFallback } from '../PageFallback.tsx';
+import classes from './page.module.scss';
+import { useAtomValue } from 'jotai';
+import { userInfoAtom } from '../../atoms.ts';
 
 /**
  * User interface representing the user data.
  */
 export interface User {
   name: string;
-  givenName: string;
+  given_name: string;
   email: string;
   picture: string;
 }
@@ -36,82 +36,60 @@ const statistics = {
  * @returns {JSX.Element} The UserPage component.
  */
 const UserPage = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const userInfo = useAtomValue(userInfoAtom);
 
-  useEffect(() => {
-    const token = Cookies.get('RMOODS_JWT');
-    if (!token) {
-      console.error('No JWT token found');
-      throw new Error('No JWT token found');
-    }
-
-    try {
-      const data = jwtDecode<JwtClaims>(token);
-      const id = data.userInfo.id;
-
-      authFetch('http://localhost:8001/api/user?id=' + id).then((response) => {
-        response.json().then((data) => {
-          setUser(data);
-        });
-      });
-    } catch (error) {
-      console.error('JWT token could not be decoded.', error);
-      throw new Error('JWT token could not be decoded.');
-    }
-  }, []);
-
-  if (!user) {
-    return <Text>Loading...</Text>;
+  if (!userInfo) {
+    throw new Error('No user info found');
   }
 
   return (
-    <Box
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start'
-      }}
-    >
-      <Box style={{ flex: '0 0 350px', marginRight: '20px' }}>
-        <UserCard user={user} />
+    <Flex className={classes.flexOuter}>
+      <Box className={classes.userDataBox}>
+        <UserCard user={userInfo} />
       </Box>
-      <Box style={{ flex: '1', display: 'flex', flexWrap: 'wrap' }}>
-        <Box style={{ flex: '1 1 50%', padding: '10px' }}>
+      <Flex className={classes.flexInner}>
+        <Box className={classes.column}>
           <StatisticItem
-            label='Liked reports'
+            label="Liked reports"
             value={statistics.likedReports.join(', ')}
           />
           <StatisticItem
-            label='Latest report'
+            label="Latest report"
             value={statistics.latestReportDate}
           />
           <StatisticItem
-            label='Number of created reports'
+            label="Number of created reports"
             value={statistics.totalReports}
           />
           <StatisticItem
-            label='Top 3 subreddits'
+            label="Top 3 subreddits"
             value={statistics.topSubreddits.join(', ')}
           />
         </Box>
-        <Box style={{ flex: '1 1 50%', padding: '10px' }}>
-          <StatisticItem label='Karma' value={statistics.karma} />
+        <Box className={classes.column}>
+          <StatisticItem label="Karma" value={statistics.karma} />
           <StatisticItem
-            label='Total cost of reports'
+            label="Total cost of reports"
             value={statistics.generatedCost}
           />
           <StatisticItem
-            label='Total used requests'
+            label="Total used requests"
             value={statistics.totalRequests}
           />
           <StatisticItem
-            label='Longest Report Time'
+            label="Longest Report Time"
             value={statistics.longestReportTime}
           />
         </Box>
-      </Box>
-    </Box>
+      </Flex>
+    </Flex>
   );
 };
 
-export default UserPage;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={PageFallback}>
+      <UserPage />
+    </ErrorBoundary>
+  );
+}

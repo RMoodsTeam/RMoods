@@ -1,5 +1,7 @@
 import Demo from '../components/Demo';
 import { Center, Container, Title } from '@mantine/core';
+import { ErrorBoundary } from 'react-error-boundary';
+import { PageFallback } from './PageFallback.tsx';
 
 const Root = () => {
   return (
@@ -12,4 +14,10 @@ const Root = () => {
   );
 };
 
-export default Root;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={PageFallback}>
+      <Root />
+    </ErrorBoundary>
+  );
+}

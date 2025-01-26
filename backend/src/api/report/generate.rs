@@ -1,114 +1,104 @@
 use crate::api::report::report_ack::ReportAck;
 use crate::app_error::AppError;
-use crate::auth::google::{GoogleId, JwtUserInfo};
+use crate::auth::google::JwtUserInfo;
+use crate::auth::user::GoogleId;
 use crate::db::db_stored::DbStored;
-use crate::fetcher::feed_request::{FetcherFeedRequest, RedditFeedKind};
-use crate::fetcher::fetcher::RMoodsFetcher;
-use crate::fetcher::model::post_comments::PostComments;
-use crate::fetcher::model::posts::Posts;
-use crate::fetcher::model::reddit_data::RedditFeedData;
-use crate::fetcher::model::user_posts::UserPosts;
-use crate::nlp::analysis::NlpAnalysisKind;
-use crate::nlp::nlp_client::NlpClient;
-use crate::nlp::report::{new_report_id, Report, ReportAnalysesMap, ReportMetadata};
+use crate::report::report::{Report, ReportId};
+use crate::report::report_request::ReportRequest;
+use crate::report::report_status::ReportStatus;
+use crate::validation::validated::Validated;
 use crate::websocket::SystemMessage;
-use crate::websocket::SystemMessage::ReportError;
 use crate::AppState;
 use axum::extract::State;
-use chrono::Utc;
-use std::collections::HashMap;
 
-/// Create a report from the given data.
+/// Creates a new report and generates analyses for it.
 ///
-/// The report is created by applying the NLP analysis to the texts extracted from the data.
-pub async fn nlp_analysis<T: RedditFeedData>(
-    nlp_client: &NlpClient,
-    data: T,
+/// First, a new report is created with the provided request and user ID.
+/// It gets written to the database as "in progress".
+/// Then, the report generates analyses based on the request and updates itself in the database.
+async fn generate_report(
+    report_request: ReportRequest,
     user_id: GoogleId,
-) -> Result<Report, AppError> {
-    let texts = data.extract_texts();
-    let language_analysis = nlp_client
-        .analyze(NlpAnalysisKind::Language, &texts)
-        .await?;
-    let report = Report {
-        id: new_report_id(),
-        user_id,
-        title: "RMoods Report".to_string(),
-        description: "An RMoods report generated from Reddit data.".to_string(),
-        is_public: true,
-        metadata: ReportMetadata {
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
-        },
-        analyses_map: ReportAnalysesMap {
-            analyses: HashMap::from([(NlpAnalysisKind::Language, language_analysis)]),
-        },
-    };
-    Ok(report)
-}
+    state: &mut AppState,
+) -> Result<Report, (Report, AppError)> {
+    let mut report = Report::empty_in_progress(report_request.clone(), user_id.clone());
+    report
+        .save(&state.db)
+        .await
+        .map_err(|e| (report.clone(), AppError::from(e)))?;
 
-/// Performs all steps needed to create a report.
-///
-/// 1. Fetches the data from the Reddit API.
-/// 2. Creates an NLP report from the data.
-async fn generate_report<T: RedditFeedData>(
-    fetcher: &mut RMoodsFetcher,
-    feed_request: FetcherFeedRequest,
-    nlp: &NlpClient,
-    user_info: &GoogleId,
-) -> Result<Report, AppError> {
-    let (data, _) = fetcher.fetch_feed::<T>(feed_request).await?;
-    let report = nlp_analysis(nlp, data, user_info.clone()).await?;
+    let analyses = report
+        .generate_analyses(report_request.clone(), state)
+        .await
+        .map_err(|e| (report.clone(), AppError::from(e)))?;
+
+    report.fill(analyses);
+
+    match report.update(&state.db).await {
+        Ok(_) => log::debug!("Report updated with analyses and saved as successful"),
+        Err(e) => {
+            log::error!("Failed to update report with analyses: {:?}", e);
+            report
+                .delete(&state.db)
+                .await
+                .map_err(|e| (report.clone(), AppError::from(e)))?;
+        }
+    }
+
     Ok(report)
 }
 
 pub async fn generate_report_handler(
     State(mut state): State<AppState>,
     user_info: JwtUserInfo,
-    feed_request: FetcherFeedRequest,
+    report_request: ReportRequest,
 ) -> Result<ReportAck, AppError> {
-    log::debug!("Validating feed request: {:?}", feed_request);
-    feed_request.validate()?;
+    log::debug!("Validating feed request: {:?}", report_request);
+    report_request.validate()?;
     log::debug!("Feed request is valid");
     log::debug!("Generating report for user: {}", user_info.id);
 
     tokio::spawn(async move {
-        let nlp = &state.nlp_client;
-        let report_res = match feed_request.resource_kind {
-            RedditFeedKind::UserPosts => {
-                generate_report::<UserPosts>(&mut state.fetcher, feed_request, nlp, &user_info.id)
-                    .await
-            }
-            RedditFeedKind::PostComments => {
-                generate_report::<PostComments>(
-                    &mut state.fetcher,
-                    feed_request,
-                    nlp,
-                    &user_info.id,
-                )
-                .await
-            }
-            RedditFeedKind::SubredditPosts => {
-                generate_report::<Posts>(&mut state.fetcher, feed_request, nlp, &user_info.id).await
-            }
-        };
-
-        match report_res {
+        // Generate the report in a separate task
+        match generate_report(report_request.clone(), user_info.id.clone(), &mut state).await {
             Ok(report) => {
-                log::warn!("Saving the report");
-                report.save(&state.db).await.unwrap();
+                // If the report was generated successfully, send a message to the system, it's already updated in the database
+                log::debug!("Report generated successfully");
                 state
                     .system_tx
                     .send(SystemMessage::ReportDone((report.id, user_info.id)))
                     .await
-                    .unwrap();
+                    .expect("Failed to send message");
             }
-            Err(e) => {
+            Err((mut report, error)) => {
+                // If an error occurred, update the report with the error status and send a message to the system
+                report.status = ReportStatus::Error(error.message().to_string());
+                match report.update(&state.db).await {
+                    Ok(_) => log::debug!("Report updated with error status: {:?}", report.status),
+                    Err(e) => {
+                        // If an error occurred while updating the report, send a message to the system and delete the report.
+                        // Ignore the result of the deletion, as the report is already in an error state
+                        log::error!("Failed to update report with error status: {:?}", e);
+                        state
+                            .system_tx
+                            .send(SystemMessage::ReportError((
+                                AppError::from(e),
+                                user_info.id.clone(),
+                            )))
+                            .await
+                            .expect("Failed to send message");
+                        report
+                            .delete(&state.db)
+                            .await
+                            .expect("Failed to delete report");
+                    }
+                }
                 state
                     .system_tx
-                    .send(ReportError((AppError::from(e), user_info.id)))
+                    .send(SystemMessage::ReportDone((report.id, user_info.id)))
                     .await
-                    .unwrap();
+                    .expect("Failed to send message");
+                log::error!("Failed to generate report: {:?}", error);
             }
         }
     });

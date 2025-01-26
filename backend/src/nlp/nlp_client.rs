@@ -1,19 +1,21 @@
 use crate::env::{NLP_API_KEY, NLP_URL};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::error::NlpError;
+use crate::nlp::nlp_request::NlpRequest;
 use crate::nlp::nlp_response::NlpAnalysis;
 use log_derive::logfn;
-use serde_json::Value;
 use serde_with::serde_derive::Serialize;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct NlpClient {
     nlp_url: String,
+    api_key: String,
     pub http: reqwest::Client,
 }
 
 #[derive(Serialize, Debug)]
-struct NlpRequest {
+struct NlpServiceRequest {
     text: Vec<String>,
 }
 
@@ -38,13 +40,14 @@ impl NlpClient {
     pub fn new() -> Self {
         NlpClient {
             nlp_url: std::env::var(NLP_URL).expect("NLP_URL must be set"),
+            api_key: std::env::var(NLP_API_KEY).expect("NLP_API_KEY must be set"),
             http: reqwest::Client::new(),
         }
     }
 
-    fn url_for_analysis(analysis: NlpAnalysisKind) -> &'static str {
+    fn make_url(nlp_url: &str, analysis: NlpAnalysisKind) -> String {
         type A = NlpAnalysisKind;
-        match analysis {
+        let endpoint = match analysis {
             A::Language => "/language",
             A::Sentiment => "/sentiment",
             A::Sarcasm => "/sarcasm",
@@ -53,7 +56,9 @@ impl NlpClient {
             A::HateSpeech => "/hate-speech",
             A::Clickbait => "/clickbait",
             A::Keywords => "/keywords",
-        }
+            A::Llm => "/llm",
+        };
+        format!("{}{}", nlp_url, endpoint)
     }
 
     #[logfn(err = "ERROR", fmt = "Failed to analyze language: {0:?}")]
@@ -62,26 +67,51 @@ impl NlpClient {
         kind: NlpAnalysisKind,
         input: &Vec<String>,
     ) -> Result<NlpAnalysis, NlpError> {
-        let url = format!("{}{}", self.nlp_url, Self::url_for_analysis(kind));
+        let url = Self::make_url(&self.nlp_url, kind);
 
         log::debug!("Handling only first 10 inputs. Truncating each input to 100 characters.");
         // TODO: Add parallel processing for large inputs, input sampling
-        let request = NlpRequest {
+        let nlp_request = NlpServiceRequest {
             text: truncate_inputs(input, 100),
         };
 
-        log::debug!("Sending request to NLP service: {:?}", request);
-
-        let api_key = std::env::var(NLP_API_KEY).expect("NLP_API_KEY must be set");
+        log::debug!("Sending request to NLP service: {:?}", nlp_request);
 
         let res = self
             .http
-            .post(&url)
-            .json(&request)
-            .header("access_token", api_key)
+            .post(url)
+            .json(&nlp_request)
+            .header("access_token", &self.api_key)
             .send()
             .await?;
+
         Ok(res.json().await?)
+    }
+
+    pub async fn analyze_parallel(
+        &self,
+        nlp_request: NlpRequest,
+        input: &Vec<String>,
+    ) -> Result<HashMap<NlpAnalysisKind, NlpAnalysis>, NlpError> {
+        let futures = nlp_request
+            .analyses
+            .clone()
+            .into_iter()
+            .map(|kind| self.analyze(kind, input))
+            .collect::<Vec<_>>();
+
+        let analyses = futures::future::join_all(futures)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(nlp_request
+            .analyses
+            .into_iter()
+            .zip(analyses.into_iter())
+            .collect::<Vec<_>>()
+            .into_iter()
+            .collect())
     }
 }
 
@@ -91,6 +121,7 @@ mod tests {
 
     fn setup() {
         let _ = env_logger::builder().is_test(true).try_init();
+        dotenvy::dotenv().ok();
         std::env::set_var(NLP_URL, "http://localhost:8002");
     }
 
@@ -207,6 +238,19 @@ mod tests {
             .analyze(NlpAnalysisKind::Politics, &input)
             .await
             .unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_get_llm() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec![
+            "Hello, world!".to_string(),
+            "Bonjour, le monde!".to_string(),
+        ];
+        let res = client.analyze(NlpAnalysisKind::Llm, &input).await.unwrap();
         dbg!(res);
     }
 }

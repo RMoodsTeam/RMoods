@@ -1,11 +1,13 @@
 import { useGoogleLogin } from '@react-oauth/google';
-import GoogleSignInButton from './GoogleSignInButton';
-import { useAtom, useSetAtom } from 'jotai';
+import GoogleSignInButton from './ui/googleSignInButton/GoogleSignInButton.tsx';
+import { useSetAtom } from 'jotai';
 import Cookies from 'js-cookie';
 import { userInfoAtom } from '../../atoms';
 import { useNavigate } from 'react-router-dom';
-import { Center, Paper, Stack, Title, Box } from '@mantine/core';
+import { Box, Card, Center, Stack, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { ErrorBoundary } from 'react-error-boundary';
+import { PageFallback } from '../PageFallback.tsx';
 
 /**
  * Login card with Google sign in button
@@ -57,18 +59,16 @@ const LoginCard = () => {
   });
 
   return (
-    <Center p="xl" h="70vh">
-      <Paper radius="md" w="540" p="xl" withBorder shadow="md">
-        <Stack gap="md" align="center">
-          <Box>
-            <Title order={1} ta="center">
-              Welcome to RMoods!
-            </Title>
-          </Box>
-          <GoogleSignInButton onClick={googleLogin} />
-        </Stack>
-      </Paper>
-    </Center>
+    <Card radius="md" p="xl" withBorder shadow="md">
+      <Stack gap="md" align="center">
+        <Box>
+          <Title order={1} ta="center">
+            Welcome to RMoods!
+          </Title>
+        </Box>
+        <GoogleSignInButton onClick={googleLogin} />
+      </Stack>
+    </Card>
   );
 };
 
@@ -78,10 +78,16 @@ const LoginCard = () => {
  */
 const Login = () => {
   return (
-    <Center>
+    <Center flex={1}>
       <LoginCard />
     </Center>
   );
 };
 
-export default Login;
+export default function () {
+  return (
+    <ErrorBoundary FallbackComponent={PageFallback}>
+      <Login />
+    </ErrorBoundary>
+  );
+}

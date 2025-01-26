@@ -1,7 +1,7 @@
-use crate::auth::google::GoogleId;
+use crate::auth::user::GoogleId;
 use crate::websocket;
 use crate::websocket::{ClientMessage, SystemMessage};
-use axum::extract::ws::{Message, WebSocket};
+use axum::extract::ws::{Message, Utf8Bytes, WebSocket};
 use futures_util::StreamExt;
 use serde_json::json;
 use std::net::SocketAddr;
@@ -78,7 +78,7 @@ pub async fn handle_socket(
             service_msg_res = service_to_client_rx.recv() => {
                 if let Some(msg) = service_msg_res {
                     log::debug!("Received message from the main service: {:?}", msg);
-                    let _ = socket.send(Message::Text(json!(msg).to_string())).await;
+                    let _ = socket.send(Message::Text(Utf8Bytes::from(json!(msg).to_string()))).await;
                 } else {
                     log::error!("WS Service task has exited or closed the mpsc channel");
                     return;

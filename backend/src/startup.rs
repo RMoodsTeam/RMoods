@@ -14,6 +14,7 @@ pub fn verify_environment() -> bool {
         GOOGLE_CLIENT_ID,
         GOOGLE_CLIENT_SECRET,
         NLP_URL,
+        NLP_API_KEY,
     ];
     let defined: Vec<String> = std::env::vars().map(|(k, _)| k).collect();
 
@@ -26,6 +27,31 @@ pub fn verify_environment() -> bool {
             is_ok = false
         });
     is_ok
+}
+
+/// Sets up the environment for the application.
+/// If we're in debug mode, we load the .env file.
+/// Otherwise, we expect all environment variables to be defined.
+pub fn setup_environment() {
+    #[cfg(debug_assertions)]
+    {
+        log::warn!("Running in debug mode.");
+        if dotenvy::dotenv().is_err() {
+            log::warn!(
+                "Failed to load .env file. Environment variables will have to be defined outside"
+            );
+        }
+    }
+
+    #[cfg(not(debug_assertions))]
+    {
+        log::warn!("Running in production mode.");
+        if dotenvy::from_filename_override(".env.prod").is_err() {
+            log::warn!(
+            "Failed to load .env.prod file. Environment variables will have to be defined outside"
+        );
+        }
+    }
 }
 
 pub async fn shutdown_signal(cancellation_token: CancellationToken) {

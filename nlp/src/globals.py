@@ -1,9 +1,12 @@
 language_model = None
-sentiment_tokenizer = None
-sentiment_model = None
+sentiment_tokenizer_english = None
+sentiment_model_english = None
+sentiment_model_polish = None
 sarcastic_pipeline = None
 spam_pipeline = None
 political_pipeline = None
-hate_speech_pipeline = None
+hate_speech_english_pipeline = None
+hate_speech_polish_pipeline = None
 clickbait_pipeline = None
 keyword_model = None
+llm_pipeline_english = None

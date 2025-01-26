@@ -1,6 +1,8 @@
 use crate::auth::error::AuthError;
-use crate::auth::google::{JwtUserInfo, User};
-use chrono::{Duration, Utc};
+use crate::auth::google::JwtUserInfo;
+use crate::auth::user::User;
+use crate::util::get_utc_timestamp;
+use chrono::Duration;
 use jsonwebtoken::{decode, DecodingKey, Header, TokenData, Validation};
 use log_derive::logfn;
 use serde::{Deserialize, Serialize};
@@ -20,7 +22,7 @@ pub fn create_jwt(user_info: User) -> String {
     let secret = dotenvy::var("JWT_SECRET").expect("JWT_SECRET should be set");
 
     let claim = {
-        let now = Utc::now();
+        let now = get_utc_timestamp();
         let duration = Duration::days(30);
         let iat = now.timestamp() as usize;
         let exp = (now + duration).timestamp() as usize;

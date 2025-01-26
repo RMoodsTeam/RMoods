@@ -1,5 +1,5 @@
 use crate::cast;
-use crate::fetcher::feed_request::{DataSource, FetcherFeedRequest};
+use crate::fetcher::data_request::{DataSource, FetcherDataRequest};
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::model::reddit_data::RedditFeedData;
 use crate::fetcher::reddit::model::{MoreComments, RawComment, RawContainer};
@@ -56,7 +56,7 @@ impl RedditFeedData for PostComments {
     }
 
     fn create_reddit_request(
-        request: &FetcherFeedRequest,
+        request: &FetcherDataRequest,
         source: DataSource,
         after: Option<String>,
     ) -> Self::RequestType {
@@ -65,7 +65,7 @@ impl RedditFeedData for PostComments {
             post_id: source
                 .post_id
                 .expect("post_id must be passed for PostCommentsRequest"),
-            sorting: request.sorting,
+            sorting: request.sort_by,
             after,
         }
     }

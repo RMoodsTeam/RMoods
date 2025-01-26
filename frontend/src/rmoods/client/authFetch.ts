@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie';
+import BACKEND_URL from '../../constants/backendUrl.ts';
 
 export default async function authFetch(
   url: string | URL,
@@ -14,7 +15,7 @@ export default async function authFetch(
       Authorization: `Bearer ${token}`,
     },
   };
-  return fetch(url, fullOptions);
+  return fetch(BACKEND_URL + '/api' + url, fullOptions);
 }
 
 // TODO: Add unit tests for the options merging logic

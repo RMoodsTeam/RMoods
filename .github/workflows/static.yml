@@ -4,7 +4,7 @@ on:
   push:
     branches: ["dev"]
 
-# Allows you to run this workflow manually from the Actions tab
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -34,27 +34,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.5.1
-          
-### BEGIN BACKEND ###
+      - name: Create temp deploy folder
+        run: mkdir deploy
+      - name: Copy docs to deploy folder
+        run: cp -r docs/ deploy/
+
+      ## BEGIN BACKEND ###
       - name: Build Backend API Docs
         working-directory: backend
         run: cargo doc --document-private-items --no-deps
-        
+
       - name: Fix permissions
         working-directory: backend
         run: |
           chmod -c -R +rX "target/doc/" | while read line; do
           echo "::warning title=Invalid file permissions automatically fixed::$line"
-          done            
+          done
 
       - name: Copy Backend API Docs into the docs dir
         working-directory: backend
         run: |
           mv target/doc target/backend
-          cp -r target/backend ../docs
-### END BACKEND ###
+          cp -r target/backend ../deploy/docs
+      ### END BACKEND ###
 
-### BEGIN NLP ###
+      ### BEGIN NLP ###
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -75,24 +79,28 @@ jobs:
 
       - name: Copy NLP documentation to docs directory
         working-directory: nlp
-        run: cp -r docs/_build/html ../docs/nlp
-### END NLP ###
+        run: cp -r docs/_build/html ../deploy/docs/nlp
+      ## END NLP ###
 
-### BEGIN FRONTEND ###
+      ### BEGIN FRONTEND ###
       - name: Build Frontend API Docs
         working-directory: frontend
-        run: npm ci --force && npm run build-docs
+        run: npm ci  && npm run build-docs && npm run build
 
       - name: Copy Frontend API Docs into the docs dir
         working-directory: frontend
-        run: cp -r ./docs/ ../docs/frontend
-### END FRONTEND ###
+        run: cp -r ./docs/ ../deploy/docs/frontend
 
-      - name: Upload artifact
+      - name: Copy Frontend to root directory
+        working-directory: frontend
+        run: cp -r ./dist/* ../deploy
+      ### END FRONTEND ###
+
+      - name: Upload frontend
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
-          path: './docs'
+          path: './deploy'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

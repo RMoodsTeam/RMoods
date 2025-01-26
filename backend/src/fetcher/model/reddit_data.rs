@@ -1,4 +1,4 @@
-use crate::fetcher::feed_request::{DataSource, FetcherFeedRequest};
+use crate::fetcher::data_request::{DataSource, FetcherDataRequest};
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::model::RawContainer;
 use crate::fetcher::reddit::request::RedditRequest;
@@ -18,7 +18,7 @@ pub trait RedditFeedData {
         Self: Sized;
     /// Creates a request to fetch the next page of data.
     fn create_reddit_request(
-        request: &FetcherFeedRequest,
+        request: &FetcherDataRequest,
         source: DataSource,
         after: Option<String>,
     ) -> Self::RequestType;
