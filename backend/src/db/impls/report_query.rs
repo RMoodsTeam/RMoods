@@ -989,4 +989,44 @@ mod tests {
             assert!(result.reports[i].created_at < result.reports[i + 1].created_at);
         }
     }
+
+    #[sqlx::test]
+    async fn test_delete_report_by_id(pool: PgPool) {
+        let db = DbClient::new(pool);
+        let ((r1, _, _, _), _) = setup(&db).await;
+
+        let deleted = Report::delete_by_id(&r1.id, &db).await.unwrap();
+
+        assert_eq!(deleted, 1);
+    }
+
+    #[sqlx::test]
+    async fn test_delete_report_by_id_not_found(pool: PgPool) {
+        let db = DbClient::new(pool);
+        let (_, (u1, _, _)) = setup(&db).await;
+
+        let deleted = Report::delete_by_id(&ReportId::new(), &db).await.unwrap();
+
+        assert_eq!(deleted, 0);
+    }
+
+    #[sqlx::test]
+    async fn test_owner_id_by_id(pool: PgPool) {
+        let db = DbClient::new(pool);
+        let ((r1, _, _, _), (u1, _, _)) = setup(&db).await;
+
+        let owner_id = Report::owner_id_by_id(&r1.id, &db).await.unwrap();
+
+        assert_eq!(owner_id, Some(u1.id));
+    }
+
+    #[sqlx::test]
+    async fn test_owner_id_by_id_not_found(pool: PgPool) {
+        let db = DbClient::new(pool);
+        let (_, (u1, _, _)) = setup(&db).await;
+
+        let owner_id = Report::owner_id_by_id(&ReportId::new(), &db).await.unwrap();
+
+        assert_eq!(owner_id, None);
+    }
 }
