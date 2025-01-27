@@ -6,7 +6,7 @@ use crate::db::model::DbReport;
 use crate::db::pagination::DbPagination;
 use crate::fetcher::data_request::RedditFeedKind;
 use crate::nlp::analysis::NlpAnalysisKind;
-use crate::report::report::Report;
+use crate::report::report::{Report, ReportId};
 use crate::util::get_utc_timestamp;
 use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -213,6 +213,8 @@ pub trait ReportRepository: Sized {
         requesting_user_id: GoogleId,
         db: &DbClient,
     ) -> Result<ReportQueryResult, DbError>;
+    async fn delete_by_id(id: &ReportId, db: &DbClient) -> Result<u64, DbError>;
+    async fn owner_id_by_id(id: &ReportId, db: &DbClient) -> Result<Option<GoogleId>, DbError>;
 }
 
 impl ReportRepository for Report {
@@ -326,8 +328,8 @@ impl ReportRepository for Report {
             limit,
             offset
         )
-        .fetch_all(db.raw_db())
-        .await?;
+            .fetch_all(db.raw_db())
+            .await?;
 
         let total_reports = db_reports
             .first()
@@ -357,6 +359,36 @@ impl ReportRepository for Report {
             reports,
             total_pages,
         })
+    }
+
+    async fn delete_by_id(id: &ReportId, db: &DbClient) -> Result<u64, DbError> {
+        let deleted = sqlx::query!(
+            r#"
+            DELETE FROM reports
+            WHERE id = $1
+            "#,
+            id
+        )
+        .execute(db.raw_db())
+        .await?;
+
+        Ok(deleted.rows_affected())
+    }
+
+    async fn owner_id_by_id(id: &ReportId, db: &DbClient) -> Result<Option<GoogleId>, DbError> {
+        let owner_id = sqlx::query!(
+            r#"
+            SELECT user_id
+            FROM reports
+            WHERE id = $1
+            "#,
+            id
+        )
+        .fetch_optional(db.raw_db())
+        .await?
+        .map(|r| r.user_id);
+
+        Ok(owner_id)
     }
 }
 
