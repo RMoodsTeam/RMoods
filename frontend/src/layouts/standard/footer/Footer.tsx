@@ -4,10 +4,10 @@ import {
   IconBrandTwitter,
   IconBrandYoutube,
 } from '@tabler/icons-react';
-import TemporaryLogo from './TemporaryLogo.tsx';
 import classes from '../../shared/FooterCentered.module.scss';
 import { Link, useNavigate } from 'react-router-dom';
 import ActionIconComponent from '../../shared/actionIconComponent/ActionIconComponent.tsx';
+import RMoodsLogo from '../../../components/RMoodsLogo.tsx';
 
 const links = [
   { link: '/about', label: 'About' },
@@ -34,7 +34,7 @@ export default function FooterCentered() {
   return (
     <footer className={classes.footer}>
       <Box className={classes.inner}>
-        <TemporaryLogo size={28} />
+        <RMoodsLogo />
 
         <Group className={classes.links}>{items}</Group>
 
@@ -47,22 +47,6 @@ export default function FooterCentered() {
             rel="noopener noreferrer"
           >
             <ActionIconComponent icon={IconBrandGithub} />
-          </Anchor>
-          <Anchor
-            component={Link}
-            to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ActionIconComponent icon={IconBrandTwitter} />
-          </Anchor>
-          <Anchor
-            component={Link}
-            to="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ActionIconComponent icon={IconBrandYoutube} />
           </Anchor>
         </Group>
       </Box>

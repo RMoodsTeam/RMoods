@@ -11,6 +11,7 @@
    sodipodi:docname="rmoods-logo.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
@@ -24,28 +25,44 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="0.89887065"
-     inkscape:cx="397.16504"
-     inkscape:cy="561.25984"
-     inkscape:window-width="1248"
-     inkscape:window-height="1186"
-     inkscape:window-x="2240"
+     inkscape:cx="471.70302"
+     inkscape:cy="560.70359"
+     inkscape:window-width="2560"
+     inkscape:window-height="1387"
+     inkscape:window-x="1470"
      inkscape:window-y="25"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1" />
   <defs
      id="defs1">
-    <filter
-       id="shadow"
-       x="0"
-       y="0"
-       width="1"
-       height="1">
-      <feDropShadow
-         dx="0"
-         dy="0"
-         stdDeviation="3"
-         floodColor="rgba(0, 0, 0, 0.3)" />
-    </filter>
+    <linearGradient
+       id="linearGradient12"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#727272;stop-opacity:0.46774194;"
+         offset="0"
+         id="stop13" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop14" />
+    </linearGradient>
+    <linearGradient
+       id="swatch7">
+      <stop
+         style="stop-color:#686868;stop-opacity:1;"
+         offset="0"
+         id="stop8" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient12"
+       id="linearGradient351"
+       x1="22.456736"
+       y1="86.338615"
+       x2="187.74908"
+       y2="86.338615"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <g
      inkscape:label="Warstwa 1"
@@ -88,17 +105,17 @@
        style="fill:#000000;fill-opacity:1"
        transform="matrix(1.1549946,0,0,1.2309755,-8.6703544,-11.838389)" />
     <ellipse
-       style="fill:#ffffff;fill-opacity:1;stroke-width:1.14512"
+       style="fill:#ffffff;fill-opacity:1;stroke-width:1.145;stroke-dasharray:none;stroke:url(#linearGradient351);stroke-opacity:1"
        id="path11"
        cx="105.10291"
        cy="86.338615"
        rx="82.073677"
        ry="68.406113" />
     <path
-       d="m 88.625387,19.270497 c 58.955673,-8.986083 98.450643,27.461556 98.739453,65.529386 0.25541,33.664507 -23.64938,67.219357 -66.41216,68.539917 30.87599,-4.34129 50.95503,-47.63468 41.93982,-81.250738 C 150.69473,26.605827 110.50015,22.028496 77.326523,21.946529"
+       d="M 88.746282,19.270497 C 148.33277,10.284414 187.66162,48.498158 187.95352,86.565988 188.21166,120.2305 162.28499,147.30963 121.41947,153.3398 152.62582,148.99851 172.9197,105.70512 163.80803,72.089062 151.47975,26.605827 110.8551,22.028496 77.326523,21.946529"
        fill="#8ccdc3"
        id="path3"
-       style="stroke-width:1.19679"
+       style="stroke-width:1.20318"
        sodipodi:nodetypes="cscsc" />
     <g
        id="g11"
