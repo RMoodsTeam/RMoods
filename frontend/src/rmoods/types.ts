@@ -25,7 +25,7 @@ export interface Report {
 
 // Adapted to fit the Mantine inputs, so for example the date is a string
 export type ReportQuery = {
-  userNamePattern?: string;
+  userNamePattern: string;
   containedAnalysisKinds: NlpAnalysisKind[];
   startDate?: Date;
   endDate?: Date;

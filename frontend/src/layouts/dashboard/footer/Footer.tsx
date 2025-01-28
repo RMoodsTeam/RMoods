@@ -39,6 +39,7 @@ export default function DashboardFooterCentered() {
 
         <Group gap="xs" justify="flex-end" wrap="nowrap">
           <Anchor
+            id="footer-github"
             href="https://github.com/RMoodsTeam/RMoods"
             target="_blank"
             rel="noopener noreferrer"

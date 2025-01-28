@@ -34,3 +34,5 @@ jobs:
       - run: npm ci
       # - run: npm run component:headless
       - run: npm run e2e:headless
+        env:
+          CYPRESS_RMOODS_JWT: ${{secrets.CYPRESS_RMOODS_JWT}}
