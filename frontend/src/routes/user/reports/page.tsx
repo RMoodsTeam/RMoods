@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Anchor,
   Box,
+  Button,
   Center,
   Flex,
   Group,
@@ -32,11 +33,13 @@ import {
   IconArrowNarrowDown,
   IconArrowNarrowUp,
   IconCheck,
+  IconTrash,
   IconX,
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { addDays } from 'date-fns';
-import { truncateText, extractAnalysisKinds } from '../../../utility/util.ts';
+import { extractAnalysisKinds, truncateText } from '../../../utility/util.ts';
+import { notifications } from '@mantine/notifications';
 
 export type MyReportsPageReportQuery = Omit<
   ReportQuery,
@@ -294,6 +297,7 @@ const UserReportsPage = () => {
                 </Flex>
               </Table.Th>
               <Table.Th>Status</Table.Th>
+              <Table.Th></Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -304,9 +308,16 @@ const UserReportsPage = () => {
                     {report.title}
                   </Anchor>
                 </Table.Td>
-                <Table.Td>{extractAnalysisKinds(report.analyses).join(', ')}</Table.Td>
                 <Table.Td>
-                  <Tooltip label={report.description} withArrow multiline w={300}>
+                  {extractAnalysisKinds(report.analyses).join(', ')}
+                </Table.Td>
+                <Table.Td>
+                  <Tooltip
+                    label={report.description}
+                    withArrow
+                    multiline
+                    w={300}
+                  >
                     <Box>{truncateText(report.description, 45)}</Box>
                   </Tooltip>
                 </Table.Td>
@@ -315,6 +326,24 @@ const UserReportsPage = () => {
                 </Table.Td>
                 <Table.Td>
                   <Center>{renderStatus(report.status)}</Center>
+                </Table.Td>
+                <Table.Td>
+                  <Center>
+                    <Button color={'red'}>
+                      <IconTrash
+                        onClick={async () => {
+                          await RMoodsClient.deleteReportById(report.id);
+                          setReports(reports.filter((r) => r.id !== report.id));
+                          notifications.show({
+                            title: 'Report deleted',
+                            message: 'The report has been deleted',
+                          });
+                        }}
+                        size={24}
+                        color={'white'}
+                      />
+                    </Button>
+                  </Center>
                 </Table.Td>
               </Table.Tr>
             ))}

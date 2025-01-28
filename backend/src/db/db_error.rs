@@ -6,5 +6,6 @@ use thiserror::Error;
 pub enum DbError {
     SqlxError(#[from] sqlx::Error),
     ValidationError(#[from] ValidationError),
+    SerdeJsonError(#[from] serde_json::Error),
     NotFound(String),
 }

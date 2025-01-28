@@ -1,16 +1,10 @@
 use crate::app_error::AppError;
+use crate::auth::google::JwtUserInfo;
 use crate::auth::user::GoogleId;
 use crate::db::impls::report_query::ReportRepository;
 use crate::report::report::{Report, ReportId};
 use crate::AppState;
 use axum::extract::{Path, State};
-use axum::Json;
-use serde_with::serde_derive::Serialize;
-
-#[derive(Serialize)]
-pub struct DeleteReportResponse {
-    deleted: u64,
-}
 
 /// Deletes a report by ID.
 ///
@@ -18,14 +12,29 @@ pub struct DeleteReportResponse {
 pub async fn delete_report(
     State(state): State<AppState>,
     Path(id): Path<ReportId>,
-    user_id: GoogleId,
-) -> Result<Json<DeleteReportResponse>, AppError> {
+    jwt_user_info: JwtUserInfo,
+) -> Result<(), AppError> {
+    let user_id = jwt_user_info.id;
     match Report::owner_id_by_id(&id, &state.db).await? {
         Some(owner_id) if owner_id == user_id => {
             let deleted = Report::delete_by_id(&id, &state.db).await?;
-            Ok(Json(DeleteReportResponse { deleted }))
+            if deleted == 0 {
+                return Err(AppError::not_found());
+            }
+            log::info!("Report {} deleted by user {}", id, user_id);
+            Ok(())
         }
-        Some(_) => Err(AppError::unauthorized()),
-        None => Err(AppError::not_found()),
+        Some(_) => {
+            log::warn!(
+                "User {} tried to delete report {} but is not the owner",
+                user_id,
+                id
+            );
+            Err(AppError::unauthorized())
+        }
+        None => {
+            log::info!("Report {} not found", id);
+            Err(AppError::not_found())
+        }
     }
 }

@@ -66,4 +66,14 @@ export class RMoodsClient {
       return res.json();
     });
   }
+
+  static async deleteReportById(reportId: string): Promise<void> {
+    return await authFetch(`/report/${reportId}`, {
+      method: 'DELETE',
+    }).then((res) => {
+      if (!res.ok) {
+        throw new Error('Failed to delete report');
+      }
+    });
+  }
 }
