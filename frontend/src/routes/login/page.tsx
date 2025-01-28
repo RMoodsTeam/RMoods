@@ -8,6 +8,7 @@ import { Box, Card, Center, Stack, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../PageFallback.tsx';
+import BACKEND_URL from '../../constants/backendUrl.ts';
 
 /**
  * Login card with Google sign in button
@@ -16,9 +17,7 @@ import { PageFallback } from '../PageFallback.tsx';
 const LoginCard = () => {
   const navigate = useNavigate();
   const postGoogleCode = async (codeResponse: { code: string }) => {
-    // for test purposes it will stay at this URL for now
-    const url = 'http://localhost:8001/auth/login';
-    const response = await fetch(url, {
+    const response = await fetch(BACKEND_URL + '/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: codeResponse.code }),
