@@ -130,3 +130,7 @@ interface ReportDataRequest {
   size: number;
   sortBy: SortBy;
 }
+
+interface ReportDeleteResponse {
+  deleted: boolean;
+}

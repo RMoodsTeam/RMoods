@@ -37,6 +37,11 @@ impl AppError {
     pub fn not_found() -> Self {
         AppError::new(StatusCode::NOT_FOUND, "Resource not found")
     }
+
+    /// Shorthand for creating a 401 response.
+    pub fn unauthorized() -> Self {
+        AppError::new(StatusCode::UNAUTHORIZED, "Unauthorized")
+    }
 }
 
 impl IntoResponse for AppError {
