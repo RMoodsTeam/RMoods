@@ -54,8 +54,10 @@ impl DbStoredInner for Report {
         .await?
         .id;
 
-        for (_, analysis) in &self.analyses {
-            analysis.inner_save(report_id.as_str(), tx).await?;
+        if let Some(analyses) = &self.analyses {
+            for (_, analysis) in analyses {
+                analysis.inner_save(report_id.as_str(), tx).await?;
+            }
         }
 
         self.data_request.inner_save(report_id.as_str(), tx).await?;
@@ -67,8 +69,10 @@ impl DbStoredInner for Report {
     /// This method updates the report's title, description, public status, and status.
     /// The metadata and analyses map are not updated, as they are not expected to change.
     async fn inner_update(&self, tx: &mut Transaction<'_, Postgres>) -> Result<(), DbError> {
-        for (_, analysis) in &self.analyses {
-            analysis.inner_save(self.id.as_str(), tx).await?;
+        if let Some(analyses) = &self.analyses {
+            for (_, analysis) in analyses {
+                analysis.inner_save(self.id.as_str(), tx).await?;
+            }
         }
 
         sqlx::query!(
@@ -212,7 +216,7 @@ impl FromDb for Report {
             description: model.description,
             is_public: model.is_public,
             status,
-            analyses,
+            analyses: Some(analyses),
             processed_analyses: None,
             data_request,
             created_at: model.created_at,

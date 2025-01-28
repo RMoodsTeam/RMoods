@@ -444,14 +444,14 @@ mod tests {
             description: "".to_string(),
             is_public: true,
             status: ReportStatus::Success,
-            analyses: HashMap::from([(
+            analyses: Some(HashMap::from([(
                 NlpAnalysisKind::HateSpeech,
                 NlpAnalysis {
                     kind: NlpAnalysisKind::HateSpeech,
                     results: vec![],
                     generated_in: 0.0,
                 },
-            )]),
+            )])),
             data_request: FetcherDataRequest {
                 feed_kind: RedditFeedKind::UserPosts,
                 data_sources: vec![
@@ -481,7 +481,7 @@ mod tests {
             description: "Description 2".to_string(),
             is_public: true,
             status: ReportStatus::Success,
-            analyses: HashMap::from([
+            analyses: Some(HashMap::from([
                 (
                     NlpAnalysisKind::Sentiment,
                     NlpAnalysis {
@@ -498,7 +498,7 @@ mod tests {
                         generated_in: 0.0,
                     },
                 ),
-            ]),
+            ])),
             data_request: FetcherDataRequest {
                 feed_kind: RedditFeedKind::SubredditPosts,
                 data_sources: vec![
@@ -528,7 +528,7 @@ mod tests {
             description: "Description 3".to_string(),
             is_public: true,
             status: ReportStatus::Success,
-            analyses: HashMap::from([
+            analyses: Some(HashMap::from([
                 (
                     NlpAnalysisKind::Sentiment,
                     NlpAnalysis {
@@ -545,7 +545,7 @@ mod tests {
                         generated_in: 0.0,
                     },
                 ),
-            ]),
+            ])),
             data_request: FetcherDataRequest {
                 feed_kind: RedditFeedKind::SubredditPosts,
                 data_sources: vec![
@@ -585,14 +585,14 @@ mod tests {
             description: "Description 4".to_string(),
             is_public: false,
             status: ReportStatus::Success,
-            analyses: HashMap::from([(
+            analyses: Some(HashMap::from([(
                 NlpAnalysisKind::Sentiment,
                 NlpAnalysis {
                     kind: NlpAnalysisKind::Sentiment,
                     results: vec![],
                     generated_in: 0.0,
                 },
-            )]),
+            )])),
             data_request: FetcherDataRequest {
                 feed_kind: RedditFeedKind::SubredditPosts,
                 data_sources: vec![DataSource {
@@ -663,10 +663,9 @@ mod tests {
             .unwrap();
 
         assert_eq!(result.reports.len(), 2);
-        assert!(result
-            .reports
-            .iter()
-            .all(|r| r.analyses.contains_key(&NlpAnalysisKind::Sentiment)));
+        assert!(result.reports.clone().into_iter().all(|r| r
+            .analyses
+            .is_some_and(|a| a.contains_key(&NlpAnalysisKind::Sentiment))));
         assert!(!result.reports.iter().any(|r| r.id == r1.id));
     }
 
@@ -685,10 +684,9 @@ mod tests {
             .unwrap();
 
         assert_eq!(result.reports.len(), 1);
-        assert!(result
-            .reports
-            .iter()
-            .all(|r| r.analyses.contains_key(&NlpAnalysisKind::Clickbait)));
+        assert!(result.reports.clone().into_iter().all(|r| r
+            .analyses
+            .is_some_and(|a| a.contains_key(&NlpAnalysisKind::Clickbait))));
         assert_eq!(result.reports[0].id, r2.id);
     }
 

@@ -4,7 +4,7 @@ use crate::nlp::analysis_kind::NlpAnalysisKind;
 use crate::nlp::into_text_data::ToTextData;
 use crate::nlp::nlp_analysis::NlpAnalysis;
 use crate::report::nlp_processed::ProcessedNlpAnalysis;
-use crate::report::reddit_data_container::RedditDataContainer;
+use crate::report::reddit_data_container::{RedditDataContainer, RedditItem};
 use crate::report::report_error::ReportError;
 use crate::report::report_request::ReportRequest;
 use crate::report::report_status::ReportStatus;
@@ -18,6 +18,7 @@ use std::fmt::Debug;
 
 pub type ReportId = String;
 pub type ReportAnalysesMap = HashMap<NlpAnalysisKind, NlpAnalysis>;
+pub type ProcessedReportAnalysesMap = HashMap<NlpAnalysisKind, ProcessedNlpAnalysis<RedditItem>>;
 
 pub fn new_report_id() -> ReportId {
     nanoid!(10)
@@ -37,8 +38,8 @@ pub struct Report {
     /// Whether the report is public.
     pub is_public: bool,
     pub status: ReportStatus,
-    pub analyses: ReportAnalysesMap,
-    pub processed_analyses: Option<ProcessedNlpAnalysis>,
+    pub analyses: Option<ReportAnalysesMap>,
+    pub processed_analyses: Option<ProcessedReportAnalysesMap>,
     pub data_request: FetcherDataRequest,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -54,7 +55,7 @@ impl Report {
             description: request.description,
             is_public: request.is_public,
             status: ReportStatus::InProgress,
-            analyses: ReportAnalysesMap::new(),
+            analyses: None,
             processed_analyses: None,
             data_request: request.data_request,
             created_at: now,
@@ -66,7 +67,7 @@ impl Report {
         &self,
         request: ReportRequest,
         state: &mut AppState,
-    ) -> Result<ReportAnalysesMap, ReportError> {
+    ) -> Result<(ReportAnalysesMap, ProcessedReportAnalysesMap), ReportError> {
         let data = match request.data_request.feed_kind {
             RedditFeedKind::SubredditPosts => RedditDataContainer::SubredditPosts(
                 state.fetcher.fetch_feed(request.data_request).await?.0,
@@ -86,17 +87,20 @@ impl Report {
             .analyze_parallel(request.nlp_request, &text_data)
             .await?;
 
+        let mut processed_analyses = HashMap::new();
+
         for (_, analysis) in &analyses {
-            let items = data.values().unwrap();
+            let items = data.items();
             let processed = ProcessedNlpAnalysis::generate_from_analyses_map(analysis, items);
-            dbg!(processed);
+            processed_analyses.insert(analysis.kind, processed);
         }
 
-        Ok(analyses)
+        Ok((analyses, processed_analyses))
     }
 
-    pub fn fill(&mut self, analyses: ReportAnalysesMap) {
-        self.analyses = analyses;
+    pub fn fill(&mut self, analyses: (ReportAnalysesMap, ProcessedReportAnalysesMap)) {
+        self.analyses = Some(analyses.0);
+        self.processed_analyses = Some(analyses.1);
         self.status = ReportStatus::Success;
     }
 }

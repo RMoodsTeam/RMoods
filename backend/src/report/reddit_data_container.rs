@@ -1,8 +1,8 @@
 use crate::fetcher::model::post_comments::PostComments;
 use crate::fetcher::model::posts::Posts;
 use crate::fetcher::model::user_posts::UserPosts;
+use crate::fetcher::reddit::model::{RawComment, RawPost};
 use serde::Serialize;
-use serde_json::Value;
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum RedditDataContainer {
@@ -11,28 +11,34 @@ pub enum RedditDataContainer {
     UserPosts(UserPosts),
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub enum RedditItem {
+    Post(RawPost),
+    Comment(RawComment),
+}
+
 impl RedditDataContainer {
-    pub fn values(&self) -> Result<Vec<Value>, serde_json::Error> {
+    pub fn items(&self) -> Vec<RedditItem> {
         match self {
             RedditDataContainer::SubredditPosts(posts) => posts
                 .list
                 .iter()
-                .map(|post| serde_json::to_value(post))
+                .map(|post| RedditItem::Post(post.clone()))
                 .collect(),
             RedditDataContainer::PostComments(comments) => comments
                 .list
                 .iter()
-                .map(|comment| serde_json::to_value(comment))
+                .map(|comment| RedditItem::Comment(comment.clone()))
                 .collect(),
             RedditDataContainer::UserPosts(user_posts) => user_posts
                 .posts
                 .iter()
-                .map(|post| serde_json::to_value(post))
+                .map(|post| RedditItem::Post(post.clone()))
                 .chain(
                     user_posts
                         .comments
                         .iter()
-                        .map(|comment| serde_json::to_value(comment)),
+                        .map(|comment| RedditItem::Comment(comment.clone())),
                 )
                 .collect(),
         }

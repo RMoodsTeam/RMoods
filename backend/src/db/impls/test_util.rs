@@ -42,7 +42,7 @@ pub(super) fn get_test_report(title: String, user_id: GoogleId) -> Report {
         status: ReportStatus::InProgress,
         created_at: now,
         updated_at: now,
-        analyses: get_test_report_analyses(),
+        analyses: Some(get_test_report_analyses()),
         data_request: get_test_data_request(),
         processed_analyses: None,
     }
@@ -178,7 +178,7 @@ pub(super) async fn insert_test_reports() {
             status: get_random_report_status(),
             created_at: time,
             updated_at: time,
-            analyses: get_random_nlp_analyses(),
+            analyses: Some(get_random_nlp_analyses()),
             data_request: get_random_data_request(),
             processed_analyses: None,
         };
