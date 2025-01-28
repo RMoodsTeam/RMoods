@@ -17,7 +17,12 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
-import { DataSource, ReportFormValues, ReportFormValuesSchema, RowWrapper } from '../schema.ts';
+import {
+  DataSource,
+  ReportFormValues,
+  ReportFormValuesSchema,
+  RowWrapper,
+} from '../schema.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
 import { DataSourceTable } from '../DataSourceTable.tsx';
 import { transformJson } from '../transformJson.ts';
@@ -26,6 +31,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback.tsx';
 import { IconLock, IconWorld } from '@tabler/icons-react';
 import classes from './page.module.scss';
+import { Link, useNavigate } from 'react-router-dom';
 
 /**
  * Report component for creating a new report.
@@ -61,6 +67,8 @@ const Report = () => {
   const [rows, setRows] = useState<RowWrapper[]>([]); // Array to store all rows
 
   const [selectValue, setSelectValue] = useState('30');
+
+  const navigate = useNavigate();
 
   const handleSelectChange = (value) => {
     form.setFieldValue('size', value); // Update the form value
@@ -114,27 +122,28 @@ const Report = () => {
     <Stack>
       <Title order={1}>Create Report</Title>
       <form
-        onSubmit={form.onSubmit((values) => {
-          void values;
-          const validationResult = form.validate();
-          if (!validationResult.hasErrors) {
-            console.log('Form is valid');
-          } else {
-            console.log('Form is invalid');
-          }
-          const transformedValues = transformJson(
-            form.values as ReportFormValues
-          );
-          console.log(transformedValues);
-
-          RMoodsClient.requestReport(transformedValues)
-            .then((res: unknown) => {
-              console.log(res);
-            })
-            .catch((err: Error) => {
-              console.error(err);
-            });
-        })}
+      // The logic was moved to the submit button
+      // onSubmit={form.onSubmit((values) => {
+      //   void values;
+      //   const validationResult = form.validate();
+      //   if (!validationResult.hasErrors) {
+      //     console.log('Form is valid');
+      //   } else {
+      //     console.log('Form is invalid');
+      //   }
+      //   const transformedValues = transformJson(
+      //     form.values as ReportFormValues
+      //   );
+      //   console.log(transformedValues);
+      //
+      //   RMoodsClient.requestReport(transformedValues)
+      //     .then((res: unknown) => {
+      //       console.log(res);
+      //     })
+      //     .catch((err: Error) => {
+      //       console.error(err);
+      //     });
+      // })}
       >
         <Stack>
           <Card>
@@ -396,8 +405,24 @@ const Report = () => {
           <Group justify="flex-end">
             <Button
               type="submit"
-              onClick={() => {
-                console.log(transformJson(form.values as ReportFormValues));
+              onClick={(e) => {
+                e.preventDefault();
+                const validationResult = form.validate();
+                if (!validationResult.hasErrors) {
+                  const transformedValues = transformJson(form.values);
+                  RMoodsClient.requestReport(transformedValues)
+                    .then((res) => {
+                      console.log(res);
+                      form.reset();
+                      form.clearErrors();
+                      setRows([]);
+                      setSelectValue('30');
+                      navigate('/user/reports'); // Redirect after successful submission
+                    })
+                    .catch((err) => {
+                      console.error(err);
+                    });
+                }
               }}
             >
               Create Report
