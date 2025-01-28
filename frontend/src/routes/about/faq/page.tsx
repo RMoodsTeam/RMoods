@@ -1,5 +1,5 @@
 import Section from './Section.tsx';
-import { Box } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback.tsx';
 
@@ -9,7 +9,7 @@ import { PageFallback } from '../../PageFallback.tsx';
  */
 const About = () => {
   return (
-    <Box>
+    <Stack>
       <Section
         title="Who Are We?"
         content="We are a group of dedicated students passionate about technology and innovation. Our team is composed of individuals with
@@ -39,7 +39,7 @@ const About = () => {
                     with continuous enhancements to our NLP models and data analysis techniques. Today, we are proud of the progress we have
                     made and the insights we have uncovered."
       />
-    </Box>
+    </Stack>
   );
 };
 

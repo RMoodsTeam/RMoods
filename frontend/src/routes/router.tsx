@@ -17,6 +17,7 @@ import BrowseUsers from './browse/users/page.tsx';
 import Sandbox from './sandbox/page.tsx';
 import UserReports from './user/reports/page.tsx';
 import RMoodsProvider from '../providers/RMoodsProvider.tsx';
+import ReportView from './reportView/page.tsx';
 
 const router = createHashRouter([
   {
@@ -53,6 +54,10 @@ const router = createHashRouter([
       {
         path: '/browse/reports',
         element: <BrowseReports />,
+      },
+      {
+        path: '/report/:id',
+        element: <ReportView />,
       },
       {
         path: '/browse/users',
