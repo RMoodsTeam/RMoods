@@ -1,8 +1,6 @@
 import { Anchor, Group, ActionIcon, rem } from '@mantine/core';
 import {
-  IconBrandGithub,
-  IconBrandTwitter,
-  IconBrandYoutube,
+  IconBrandGithub
 } from '@tabler/icons-react';
 import classes from '../../shared/FooterCentered.module.scss';
 import { useNavigate } from 'react-router-dom';

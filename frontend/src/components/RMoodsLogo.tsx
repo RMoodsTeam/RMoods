@@ -7,9 +7,6 @@ interface RMoodsLogoProps {
 }
 
 const RMoodsLogo = ({ width = 60, height = 80 }: RMoodsLogoProps) => {
-  const { colorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
-
   return (
     <Group align="center" gap="xs">
       <Box w={width} h={height}>
