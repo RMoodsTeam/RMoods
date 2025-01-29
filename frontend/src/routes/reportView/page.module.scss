@@ -1,8 +1,12 @@
-.wrapper{
+.wrapper {
   flex: 1;
   align-items: center;
 }
 
 .item {
   width: 400px;
+}
+
+.accordion {
+  border-bottom: 0;
 }
