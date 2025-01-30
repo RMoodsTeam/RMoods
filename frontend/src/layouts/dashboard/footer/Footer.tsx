@@ -1,8 +1,6 @@
 import { Anchor, Group, ActionIcon, rem } from '@mantine/core';
 import {
-  IconBrandGithub,
-  IconBrandTwitter,
-  IconBrandYoutube,
+  IconBrandGithub
 } from '@tabler/icons-react';
 import classes from '../../shared/FooterCentered.module.scss';
 import { useNavigate } from 'react-router-dom';
@@ -45,20 +43,7 @@ export default function DashboardFooterCentered() {
             rel="noopener noreferrer"
           >
             <ActionIconComponent icon={IconBrandGithub} />
-          </Anchor>
-          <Anchor
-            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ActionIconComponent icon={IconBrandTwitter} />
-          </Anchor>
-          <Anchor
-            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ActionIconComponent icon={IconBrandYoutube} />
+
           </Anchor>
         </Group>
       </div>
