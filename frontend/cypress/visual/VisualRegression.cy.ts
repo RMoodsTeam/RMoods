@@ -8,6 +8,10 @@ describe('Visual Regression tests', () => {
     cy.visitPageAndScreenshotIt('about/faq');
   });
 
+  it('Creates "/about/thesis" snapshot', () => {
+    cy.visitPageAndScreenshotIt('about/thesis');
+  });
+
   it('Creates "/dashboard" snapshot', () => {
     cy.visitPageAndScreenshotIt('dashboard');
   });
@@ -26,5 +30,25 @@ describe('Visual Regression tests', () => {
 
   it('Creates "/user" snapshot', () => {
     cy.visitPageAndScreenshotIt('user');
+  });
+
+  it('Creates "/user/reports" snapshot', () => {
+    cy.visitPageAndScreenshotIt('user/reports');
+  });
+
+  it('Creates "/browse/reports" snapshot', () => {
+    cy.visitPageAndScreenshotIt('browse/reports');
+  });
+
+  it('Creates "/browse/users" snapshot', () => {
+    cy.visitPageAndScreenshotIt('browse/users');
+  });
+
+  it('Creates "/sandbox" snapshot', () => {
+    cy.visitPageAndScreenshotIt('sandbox');
+  });
+
+  it('Creates "/releases" snapshot', () => {
+    cy.visitPageAndScreenshotIt('releases');
   });
 });
