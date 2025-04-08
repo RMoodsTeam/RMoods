@@ -1,7 +1,7 @@
 use crate::auth::error::AuthError;
 use crate::auth::jwt::decode_jwt;
 use crate::auth::middleware::jwt_from_header_or_uri;
-use axum::async_trait;
+use crate::auth::user::{GoogleId, User};
 use axum::extract::FromRequestParts;
 use derive_getters::Getters;
 use http::request::Parts;
@@ -9,6 +9,7 @@ use http::StatusCode;
 use log_derive::logfn;
 use reqwest::{multipart::Form, Client};
 use serde::{Deserialize, Serialize};
+use std::future::Future;
 
 #[derive(Deserialize, Debug, Getters)]
 pub struct GoogleTokenResponse {
@@ -20,23 +21,6 @@ pub struct GoogleTokenResponse {
     id_token: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
-pub struct User {
-    /// Unique user ID
-    #[serde(rename = "sub")]
-    #[sqlx(rename = "google_id")]
-    pub id: String,
-    pub name: String,
-    pub given_name: String,
-    pub family_name: Option<String>,
-    /// URL to the user's picture
-    pub picture: String,
-    pub email: String,
-    pub email_verified: bool,
-}
-
-pub type GoogleId = String;
-
 #[derive(Serialize, Deserialize, Getters, Clone, Debug)]
 pub struct JwtUserInfo {
     pub(crate) id: GoogleId,
@@ -46,8 +30,7 @@ pub struct JwtUserInfo {
 ///
 /// With this trait implemented, the user info can be extracted by any Axum HTTP handler without
 /// jumping through extra hoops like obtaining an `Authorization` header and decoding the JWT.
-#[async_trait]
-impl<T> FromRequestParts<T> for JwtUserInfo {
+impl<T: Send + Sync> FromRequestParts<T> for JwtUserInfo {
     type Rejection = StatusCode;
 
     async fn from_request_parts(parts: &mut Parts, _: &T) -> Result<Self, Self::Rejection> {

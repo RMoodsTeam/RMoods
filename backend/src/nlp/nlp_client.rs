@@ -1,10 +1,11 @@
 use crate::env::{NLP_API_KEY, NLP_URL};
 use crate::nlp::analysis::NlpAnalysisKind;
 use crate::nlp::error::NlpError;
+use crate::nlp::nlp_request::NlpRequest;
 use crate::nlp::nlp_response::NlpAnalysis;
 use log_derive::logfn;
-use serde_json::Value;
 use serde_with::serde_derive::Serialize;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct NlpClient {
@@ -14,7 +15,7 @@ pub struct NlpClient {
 }
 
 #[derive(Serialize, Debug)]
-struct NlpRequest {
+struct NlpServiceRequest {
     text: Vec<String>,
 }
 
@@ -55,6 +56,7 @@ impl NlpClient {
             A::HateSpeech => "/hate-speech",
             A::Clickbait => "/clickbait",
             A::Keywords => "/keywords",
+            A::Llm => "/llm",
         };
         format!("{}{}", nlp_url, endpoint)
     }
@@ -69,7 +71,7 @@ impl NlpClient {
 
         log::debug!("Handling only first 10 inputs. Truncating each input to 100 characters.");
         // TODO: Add parallel processing for large inputs, input sampling
-        let nlp_request = NlpRequest {
+        let nlp_request = NlpServiceRequest {
             text: truncate_inputs(input, 100),
         };
 
@@ -88,10 +90,11 @@ impl NlpClient {
 
     pub async fn analyze_parallel(
         &self,
-        analysis_kinds: Vec<NlpAnalysisKind>,
+        nlp_request: NlpRequest,
         input: &Vec<String>,
-    ) -> Result<Vec<(NlpAnalysisKind, NlpAnalysis)>, NlpError> {
-        let futures = analysis_kinds
+    ) -> Result<HashMap<NlpAnalysisKind, NlpAnalysis>, NlpError> {
+        let futures = nlp_request
+            .analyses
             .clone()
             .into_iter()
             .map(|kind| self.analyze(kind, input))
@@ -102,9 +105,12 @@ impl NlpClient {
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(analysis_kinds
+        Ok(nlp_request
+            .analyses
             .into_iter()
             .zip(analyses.into_iter())
+            .collect::<Vec<_>>()
+            .into_iter()
             .collect())
     }
 }
@@ -115,6 +121,7 @@ mod tests {
 
     fn setup() {
         let _ = env_logger::builder().is_test(true).try_init();
+        dotenvy::dotenv().ok();
         std::env::set_var(NLP_URL, "http://localhost:8002");
     }
 
@@ -231,6 +238,19 @@ mod tests {
             .analyze(NlpAnalysisKind::Politics, &input)
             .await
             .unwrap();
+        dbg!(res);
+    }
+
+    #[ignore]
+    #[tokio::test]
+    async fn test_get_llm() {
+        setup();
+        let client = NlpClient::new();
+        let input = vec![
+            "Hello, world!".to_string(),
+            "Bonjour, le monde!".to_string(),
+        ];
+        let res = client.analyze(NlpAnalysisKind::Llm, &input).await.unwrap();
         dbg!(res);
     }
 }

@@ -12,6 +12,7 @@ import {
 import classes from './SidebarNested.module.scss';
 import { SidebarEntry, SidebarEntryProps } from './SidebarLinksGroup.tsx';
 import React from 'react';
+import RMoodsLogo from '../../../components/RMoodsLogo.tsx';
 
 const sidebarItems: SidebarEntryProps[] = [
   { label: 'Dashboard', icon: IconGauge, link: '/dashboard' },
@@ -65,7 +66,7 @@ const DesktopSidebar = () => {
       <nav className={classes.sidebar}>
         <div className={classes.header}>
           <Group justify="space-between">
-            <Code fw={700}>RMoods</Code>
+            <RMoodsLogo />
           </Group>
         </div>
 

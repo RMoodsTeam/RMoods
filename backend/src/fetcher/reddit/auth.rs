@@ -79,9 +79,6 @@ impl RedditApp {
         // Send the request and parse the response
         let res = http_client.execute(req).await?;
 
-        let token = res.json::<RedditAccessToken>().await?;
-
-        log::debug!("Fetched Access token: {:?}", token);
-        Ok(token)
+        Ok(res.json::<RedditAccessToken>().await?)
     }
 }

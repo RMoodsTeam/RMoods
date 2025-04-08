@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT google_id as \"id: String\", name, given_name, family_name, picture, email, email_verified\n            FROM users\n            WHERE google_id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: String",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "given_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "family_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "picture",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "email_verified",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "6b65732364b37fcd807322595a7329b7e1f50ac5b11318d7f275b05fdfd039fe"
+}

@@ -20,11 +20,15 @@ const Navbar = ({ onSidebarOpen }: NavbarProps) => {
         <Group justify="space-between">
           <Flex gap={10}>
             <Group>
-              <Burger onClick={onSidebarOpen} hiddenFrom={'md'} />
+              <Burger
+                id="sidebar-burger"
+                onClick={onSidebarOpen}
+                hiddenFrom={'md'}
+              />
               <Anchor component={Link} to="/" id="main-button">
                 Main
               </Anchor>
-              <Anchor component={Link} to="/about">
+              <Anchor component={Link} to="/about/faq">
                 About
               </Anchor>
               <Anchor component={Link} to="/report">

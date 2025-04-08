@@ -11,6 +11,7 @@ import {
   Select,
   Stack,
   Text,
+  Textarea,
   TextInput,
   Title,
 } from '@mantine/core';
@@ -18,8 +19,8 @@ import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
 import {
   DataSource,
-  ReportFormValidationSchema,
   ReportFormValues,
+  ReportFormValuesSchema,
   RowWrapper,
 } from '../schema.ts';
 import { zodResolver } from 'mantine-form-zod-resolver';
@@ -30,6 +31,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback.tsx';
 import { IconLock, IconWorld } from '@tabler/icons-react';
 import classes from './page.module.scss';
+import { Link, useNavigate } from 'react-router-dom';
 
 /**
  * Report component for creating a new report.
@@ -39,8 +41,9 @@ import classes from './page.module.scss';
 const Report = () => {
   const form = useForm<ReportFormValues>({
     initialValues: {
-      name: '',
-      resourceKind: 'subredditPosts',
+      title: '',
+      description: '',
+      feedKind: 'subredditPosts',
       isPublic: 'true',
       size: '30',
       sortBy: 'hot',
@@ -55,14 +58,17 @@ const Report = () => {
         hateSpeech: false,
         clickbait: false,
         trolling: false,
+        llm: false,
       },
     },
-    validate: zodResolver(ReportFormValidationSchema),
+    validate: zodResolver(ReportFormValuesSchema),
   });
 
   const [rows, setRows] = useState<RowWrapper[]>([]); // Array to store all rows
 
   const [selectValue, setSelectValue] = useState('30');
+
+  const navigate = useNavigate();
 
   const handleSelectChange = (value) => {
     form.setFieldValue('size', value); // Update the form value
@@ -116,27 +122,28 @@ const Report = () => {
     <Stack>
       <Title order={1}>Create Report</Title>
       <form
-        onSubmit={form.onSubmit((values) => {
-          void values;
-          const validationResult = form.validate();
-          if (!validationResult.hasErrors) {
-            console.log('Form is valid');
-          } else {
-            console.log('Form is invalid');
-          }
-          const transformedValues = transformJson(
-            form.values as ReportFormValues
-          );
-          console.log(transformedValues);
-
-          RMoodsClient.requestReport(transformedValues)
-            .then((res: unknown) => {
-              console.log(res);
-            })
-            .catch((err: Error) => {
-              console.error(err);
-            });
-        })}
+      // The logic was moved to the submit button
+      // onSubmit={form.onSubmit((values) => {
+      //   void values;
+      //   const validationResult = form.validate();
+      //   if (!validationResult.hasErrors) {
+      //     console.log('Form is valid');
+      //   } else {
+      //     console.log('Form is invalid');
+      //   }
+      //   const transformedValues = transformJson(
+      //     form.values as ReportFormValues
+      //   );
+      //   console.log(transformedValues);
+      //
+      //   RMoodsClient.requestReport(transformedValues)
+      //     .then((res: unknown) => {
+      //       console.log(res);
+      //     })
+      //     .catch((err: Error) => {
+      //       console.error(err);
+      //     });
+      // })}
       >
         <Stack>
           <Card>
@@ -148,7 +155,24 @@ const Report = () => {
               </Text>
               <TextInput
                 placeholder="eg. Sentiment on r/AskReddit"
-                {...form.getInputProps('name')}
+                {...form.getInputProps('title')}
+              />
+            </Stack>
+          </Card>
+
+          <Card>
+            <Stack>
+              <Title order={2}>Description</Title>
+              <Text>
+                Add a description to your report. It may help others understand
+                what it's about and what conclusions can be drawn from it.
+              </Text>
+              <Textarea
+                placeholder="Enter your description"
+                minRows={5}
+                autosize
+                maxRows={5}
+                {...form.getInputProps('description')}
               />
             </Stack>
           </Card>
@@ -362,6 +386,13 @@ const Report = () => {
                     type: 'checkbox',
                   })}
                 />
+                <Checkbox
+                  value={form.values.analyses.llm}
+                  label="LLM Detection"
+                  {...form.getInputProps('analyses.llm', {
+                    type: 'checkbox',
+                  })}
+                />
               </Stack>
               {form.errors.analyses && ( // Display the error message
                 <Input.Error className={classes.error}>
@@ -374,8 +405,24 @@ const Report = () => {
           <Group justify="flex-end">
             <Button
               type="submit"
-              onClick={() => {
-                console.log(transformJson(form.values as ReportFormValues));
+              onClick={(e) => {
+                e.preventDefault();
+                const validationResult = form.validate();
+                if (!validationResult.hasErrors) {
+                  const transformedValues = transformJson(form.values);
+                  RMoodsClient.requestReport(transformedValues)
+                    .then((res) => {
+                      console.log(res);
+                      form.reset();
+                      form.clearErrors();
+                      setRows([]);
+                      setSelectValue('30');
+                      navigate('/user/reports'); // Redirect after successful submission
+                    })
+                    .catch((err) => {
+                      console.error(err);
+                    });
+                }
               }}
             >
               Create Report

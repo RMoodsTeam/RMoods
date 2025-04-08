@@ -16,13 +16,16 @@ import BrowseReports from './browse/reports/page.tsx';
 import BrowseUsers from './browse/users/page.tsx';
 import Sandbox from './sandbox/page.tsx';
 import UserReports from './user/reports/page.tsx';
+import RMoodsProvider from '../providers/RMoodsProvider.tsx';
 
 const router = createHashRouter([
   {
     element: (
       <WebsocketProvider>
         <ProtectedRoute>
-          <DashboardLayout />
+          <RMoodsProvider>
+            <DashboardLayout />
+          </RMoodsProvider>
         </ProtectedRoute>
       </WebsocketProvider>
     ),

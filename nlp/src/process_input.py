@@ -7,7 +7,7 @@ from src.logger_config import logger
 
 def process_inputs(f: Callable[[str], AnalysisResult], texts: List[str]) -> List[AnalysisResult]:
     """Process input texts."""
-    caller_name = inspect.stack()[1].function
+    caller_name = inspect.stack()[3].function
     results = []
     for (i, text) in enumerate(texts):
         logger.info(f"{caller_name}: Processing text {i + 1}/{len(texts)} - {(i + 1) / len(texts) * 100:.2f}%")

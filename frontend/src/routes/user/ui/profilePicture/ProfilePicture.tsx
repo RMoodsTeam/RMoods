@@ -13,6 +13,8 @@ interface ProfilePictureProps {
   alt: string;
 }
 
+const PICTURE_SIZE = 250;
+
 /**
  * ProfilePicture component that displays a user's profile picture.
  * @param {ProfilePictureProps} props - The props for the ProfilePicture component.
@@ -20,16 +22,16 @@ interface ProfilePictureProps {
  * @param {string} props.alt - The alt text for the profile picture.
  * @returns {JSX.Element} The ProfilePicture component.
  */
-const ProfilePicture: React.FC<ProfilePictureProps> = ({ src, alt }) => {
-  const resizedSrc = changeDefaultGoogleProfilePictureSize(src, 250);
+const ProfilePicture = ({ src, alt }: ProfilePictureProps) => {
+  const resizedSrc = changeDefaultGoogleProfilePictureSize(src, PICTURE_SIZE);
 
   return (
     <Flex className={classes.flex}>
       <Image
         src={resizedSrc}
         alt={alt}
-        w={'250px'}
-        h={'250px'}
+        w={`${PICTURE_SIZE}px`}
+        h={`${PICTURE_SIZE}px`}
         fit="contain"
         radius="50%"
         referrerPolicy="no-referrer"

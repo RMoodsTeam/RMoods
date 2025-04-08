@@ -1,14 +1,11 @@
-import { Box, Flex, Loader, Text } from '@mantine/core';
-import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
+import { Box, Flex } from '@mantine/core';
 import UserCard from './ui/userCard/UserCard.tsx';
 import StatisticItem from './ui/statisticItem/StatisticItem.tsx';
-import { JwtClaims } from '../../rmoods/jwt.ts';
-import authFetch from '../../rmoods/client/authFetch.ts';
-import { useQuery } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../PageFallback.tsx';
 import classes from './page.module.scss';
+import { useAtomValue } from 'jotai';
+import { userInfoAtom } from '../../atoms.ts';
 
 /**
  * User interface representing the user data.
@@ -35,51 +32,20 @@ const statistics = {
 };
 
 /**
- * Fetches the user data from the server.
- * @returns {Promise<User>} The user data.
- */
-const fetchUserData = async (): Promise<User> => {
-  const token = Cookies.get('RMOODS_JWT');
-  if (!token) {
-    throw new Error('No JWT token found');
-  }
-
-  const data = jwtDecode<JwtClaims>(token);
-  const id = data.userInfo.id;
-  const response = await authFetch(`http://localhost:8001/api/user?id=${id}`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch user data');
-  }
-
-  return response.json();
-};
-
-/**
  * UserPage component that displays the user's profile and statistics.
  * @returns {JSX.Element} The UserPage component.
  */
 const UserPage = () => {
-  const { data, error, isLoading } = useQuery<User, Error>({
-    queryKey: ['userData'],
-    queryFn: fetchUserData,
-  });
+  const userInfo = useAtomValue(userInfoAtom);
 
-  if (isLoading) {
-    return (
-      <Flex className={classes.loader}>
-        <Loader color="blue" size={40} />
-      </Flex>
-    );
-  }
-
-  if (error) {
-    return <Text>Error: {error.message}</Text>;
+  if (!userInfo) {
+    throw new Error('No user info found');
   }
 
   return (
     <Flex className={classes.flexOuter}>
       <Box className={classes.userDataBox}>
-        {data && <UserCard user={data} />}
+        <UserCard user={userInfo} />
       </Box>
       <Flex className={classes.flexInner}>
         <Box className={classes.column}>

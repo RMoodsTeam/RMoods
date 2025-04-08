@@ -5,9 +5,12 @@ use serde::Serialize;
 use serde_json::json;
 
 use crate::auth::error::AuthError;
+use crate::db::db_error::DbError;
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::reddit::error::RedditError;
 use crate::nlp::error::NlpError;
+use crate::report::report_error::ReportError;
+use crate::validation::validation_error::ValidationError;
 
 /// Public-facing error kind. Contains an HTTP status code and a message describing the error.
 #[derive(Debug, Getters, Clone, Serialize)]
@@ -33,6 +36,11 @@ impl AppError {
     /// Shorthand for creating a 404 response.
     pub fn not_found() -> Self {
         AppError::new(StatusCode::NOT_FOUND, "Resource not found")
+    }
+
+    /// Shorthand for creating a 401 response.
+    pub fn unauthorized() -> Self {
+        AppError::new(StatusCode::UNAUTHORIZED, "Unauthorized")
     }
 }
 
@@ -77,6 +85,9 @@ impl From<FetcherError> for AppError {
                 }
                 _ => AppError::internal_server_error(),
             },
+            // Even though it's a validation error, invalid data should never be passed into the Fetcher
+            // so we treat it as an internal server error.
+            FetcherError::ValidationError(e) => AppError::internal_server_error(),
             _ => AppError::internal_server_error(),
         }
     }
@@ -88,9 +99,21 @@ impl From<NlpError> for AppError {
     }
 }
 
-impl From<sqlx::Error> for AppError {
-    fn from(_value: sqlx::Error) -> Self {
+impl From<DbError> for AppError {
+    fn from(_value: DbError) -> Self {
         AppError::internal_server_error()
+    }
+}
+
+impl From<ValidationError> for AppError {
+    fn from(value: ValidationError) -> Self {
+        AppError::new(StatusCode::BAD_REQUEST, value.to_string())
+    }
+}
+
+impl From<ReportError> for AppError {
+    fn from(value: ReportError) -> Self {
+        AppError::new(StatusCode::INTERNAL_SERVER_ERROR, &value.to_string())
     }
 }
 

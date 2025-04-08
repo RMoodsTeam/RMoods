@@ -1,4 +1,4 @@
-use crate::fetcher::feed_request::FetcherFeedRequest;
+use crate::fetcher::data_request::FetcherDataRequest;
 use crate::fetcher::fetcher_error::FetcherError;
 use crate::fetcher::model::reddit_data::{RedditAboutData, RedditFeedData};
 use crate::fetcher::reddit::ratelimit_headers::RatelimitHeaders;
@@ -7,6 +7,7 @@ use crate::fetcher::reddit::{
     error::RedditError,
     model::{MoreComments, RawComment},
 };
+use crate::validation::validated::Validated;
 use log::{debug, info};
 use log_derive::logfn;
 
@@ -37,9 +38,13 @@ impl RMoodsFetcher {
     #[logfn(err = "ERROR", fmt = "Failed to fetch feed: {0}")]
     pub async fn fetch_feed<T: RedditFeedData>(
         &mut self,
-        request: FetcherFeedRequest,
+        request: FetcherDataRequest,
     ) -> Result<(T, u16), FetcherError> {
         info!("Fetching feed: {:?}", request);
+
+        if let Err(e) = request.validate() {
+            return Err(e.into());
+        }
 
         let requests_to_make = request.size.clone().into();
         // TODO: allow for multiple data sources
