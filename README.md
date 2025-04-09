@@ -24,7 +24,7 @@
   </strong>
 </div>
 
-## Introducion
+## Introduction
 RMoods is a comprehensive NLP analysis tool for Reddit. It leverages advanced natural language processing techniques to analyze post and comments under each subreddit to see the reaction of user for each topic.
 
 ## Index
