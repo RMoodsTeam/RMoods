@@ -1,4 +1,4 @@
-name: Python NLP Tests
+name: Python NLP
 
 on:
   push:

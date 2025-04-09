@@ -13,8 +13,7 @@
   <img src="https://github.com/RMoodsTeam/RMoods/actions/workflows/nlp.yml/badge.svg" alt="NLP">
   <img src="https://github.com/RMoodsTeam/RMoods/actions/workflows/static.yml/badge.svg" alt="Pages">
   <br/>
-  <img src="https://img.shields.io/website?url=https%3A%2F%2Frmoods.net&label=Website" alt="Website">
-  <img src="https://img.shields.io/date/1738321200?label=Project%20due%20in&cacheSeconds=60" alt="Relative date">
+
 </div>
 
 <div align="center">
@@ -103,17 +102,17 @@ sh .github/install_hooks.sh
 **Each folder contains models and configuration files needed to run them. Models are avaliable on https://huggingface.co/ directly or on our GoogleDrive:**<br>
 
 
-| Model Name | Link | Language |
-|------------|------|-------|
-| Hate Speech   | [Link](https://drive.google.com/drive/folders/19VR2THdanIgfQAjLUMARUawKkkg9tL2w?usp=sharing) | :poland: :england: |
-| Clickbait   | [Link](https://drive.google.com/drive/folders/1N01cgGwJ_MOhP5J3PqXbF5bXKs821lIw?usp=sharing) | :england: |
-| Sarcasm   | [Link](https://drive.google.com/drive/folders/1URQ4wQXP6dLauo3PjnuPIFmQvYaBAz5m?usp=sharing) | :england: |
-| Language   | [Link](https://drive.google.com/drive/folders/1Yfm3zLxjUGwdRs2QtPSITjtpvR1-1YDn?usp=sharing) | :globe_with_meridians: |
-| Political    | [Link](https://drive.google.com/drive/folders/1chlgnuJ2Z3mDZd299zr4Zfhh9pAKiehC?usp=sharing) | :england: |
-| Spam   | [Link](https://drive.google.com/drive/folders/1p3lPzdUioYmtohtIsAlfEXTDgUfL97Cl?usp=sharing) | :england: |
-| Sentiment    | [Link](https://drive.google.com/drive/folders/1wFb57YgGH_SiymhYGN3BVsr644u776Lz?usp=sharing) | :poland: :england: |
-| KeyWords | [Link](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) | :globe_with_meridians: |
-| LLM | [Link](https://drive.google.com/drive/folders/1V7G3umvlR-ngVh1lHS90duOoDpTN0kyE?usp=sharing) | :england:
+| Model Name                                                                                          | Language       |
+|-----------------------------------------------------------------------------------------------------|----------------|
+| [Hate Speech](https://drive.google.com/drive/folders/19VR2THdanIgfQAjLUMARUawKkkg9tL2w?usp=sharing) | :poland: :uk:  |
+| [Clickbait](https://drive.google.com/drive/folders/1N01cgGwJ_MOhP5J3PqXbF5bXKs821lIw?usp=sharing)   | :uk:           |
+| [Sarcasm](https://drive.google.com/drive/folders/1URQ4wQXP6dLauo3PjnuPIFmQvYaBAz5m?usp=sharing)     | :uk:           |
+| [Language](https://drive.google.com/drive/folders/1Yfm3zLxjUGwdRs2QtPSITjtpvR1-1YDn?usp=sharing)    | :earth_africa: |
+| [Political](https://drive.google.com/drive/folders/1chlgnuJ2Z3mDZd299zr4Zfhh9pAKiehC?usp=sharing)   | :uk:           |
+| [Spam](https://drive.google.com/drive/folders/1p3lPzdUioYmtohtIsAlfEXTDgUfL97Cl?usp=sharing)        | :uk:           |
+| [Sentiment](https://drive.google.com/drive/folders/1wFb57YgGH_SiymhYGN3BVsr644u776Lz?usp=sharing)   | :poland: :uk:  |
+| [KeyWords](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)                           | :earth_africa: |
+| [LLM](https://drive.google.com/drive/folders/1V7G3umvlR-ngVh1lHS90duOoDpTN0kyE?usp=sharing)         | :uk:           |
 
  **Models that we are using and avaliable languages for them are specified in [nlp/version_models.json](nlp/version_models.json)**
  
