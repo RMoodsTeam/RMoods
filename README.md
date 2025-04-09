@@ -74,7 +74,7 @@ sh .github/install_hooks.sh
    cd RMoods
    ```
 2. **Setup environment variables for backend and NLP as shown in .env.example**
-3. **Database can be run local or remotly. To set up a local database, follow the steps in [backend/README.md](backend/README.md)**
+3. **Database can be run local or remotely. To set up a local database, follow the steps in [backend/README.md](backend/README.md)**
 4. **To run NLP we need models folder located under ```nlp/``` . Current file structure looks like below:**
 ```
 .
