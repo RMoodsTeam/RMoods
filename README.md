@@ -25,7 +25,9 @@
 </div>
 
 ## Introduction
-RMoods is a comprehensive NLP analysis tool for Reddit. It leverages advanced natural language processing techniques to analyze post and comments under each subreddit to see the reaction of user for each topic.
+RMoods is a comprehensive NLP analysis tool for Reddit.
+It leverages advanced natural language processing techniques
+to analyze post and comments under each subreddit to see the reaction of user for each topic.
 
 ## Index
 - [About](#about)
@@ -38,7 +40,9 @@ RMoods is a comprehensive NLP analysis tool for Reddit. It leverages advanced na
 - [Authors](#authors)
 
 ## About
-RMoods is designed to provide deep insights into the vast amount of data generated on Reddit. By applying advanced NLP techniques, RMoods can analyze the sentiment, detect sarcasm, identify key topics, and much more. This tool is invaluable for researchers, marketers, and anyone interested in understanding the behavior and trends within Reddit communities.
+RMoods is designed to provide deep insights into the vast amount of data generated on Reddit.
+By applying advanced NLP techniques, RMoods can analyze the sentiment, detect sarcasm, identify key topics, and much more.
+This tool is invaluable for researchers, marketers, and anyone interested in understanding the behavior and trends within Reddit communities.
 
 
 ## Features
@@ -68,38 +72,10 @@ sh .github/install_hooks.sh
 ## Setup
 ### Installation
 
-1. **Clone the repository**
-   ```sh
-   git clone https://github.com/RMoodsTeam/RMoods.git
-   cd RMoods
-   ```
-2. **Setup environment variables for backend and NLP as shown in .env.example**
-3. **Database can be run local or remotely. To set up a local database, follow the steps in [backend/README.md](backend/README.md)**
-4. **To run NLP we need models folder located under ```nlp/``` . Current file structure looks like below:**
-```
-.
-└── nlp/
-    └── models/
-        ├── clickbait/
-        │   └── english/
-        ├── hate_speech/
-        │   ├── english/
-        │   └── polish/
-        ├── language/
-        │   └── all/
-        ├── llm/
-        │   └── english/
-        ├── political/
-        │   └── english/
-        ├── sarcasm/
-        │   └── english/
-        ├── sentiment/
-        │   ├── english/
-        │   └── polish/
-        └── spam/
-            └── english/
-```
-**Each folder contains models and configuration files needed to run them. Models are available on https://huggingface.co/ directly or on our GoogleDrive:**<br>
+1. **Setup environment variables for backend and NLP as shown in .env.example**
+2. **Database can be run local or remotely. To set up a local database, follow the steps in [backend/README.md](backend/README.md)**
+**Each folder contains models and configuration files needed to run them.
+Models are available on https://huggingface.co/ directly or on our GoogleDrive:**<br>
 
 
 | Model Name                                                                                          | Language       |
