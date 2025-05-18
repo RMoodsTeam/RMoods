@@ -31,7 +31,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback.tsx';
 import { IconLock, IconWorld } from '@tabler/icons-react';
 import classes from './page.module.scss';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import PageTitle from '../../../components/PageTitle.tsx';
 
 /**
  * Report component for creating a new report.
@@ -437,6 +438,7 @@ const Report = () => {
 export default function () {
   return (
     <ErrorBoundary FallbackComponent={PageFallback}>
+      <PageTitle title="Create Report" />
       <Report />
     </ErrorBoundary>
   );

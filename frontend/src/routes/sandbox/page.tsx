@@ -17,6 +17,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import authFetch from '../../rmoods/client/authFetch';
 import { IconAlertCircle } from '@tabler/icons-react';
+import PageTitle from '../../components/PageTitle.tsx';
 
 const fetchNlpResponse = async (text, analysis) => {
   const response = await authFetch(`/sandbox?analysis=${analysis}`, {
@@ -124,6 +125,7 @@ const NlpSandbox = () => {
 export default function () {
   return (
     <ErrorBoundary FallbackComponent={PageFallback}>
+      <PageTitle title="Sandbox" />
       <NlpSandbox />
     </ErrorBoundary>
   );
