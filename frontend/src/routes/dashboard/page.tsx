@@ -1,6 +1,7 @@
 import { Title } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../PageFallback.tsx';
+import PageTitle from '../../components/PageTitle.tsx';
 
 /**
  * Dashboard page, gets user info asynchronously
@@ -17,6 +18,7 @@ const Dashboard = () => {
 export default function () {
   return (
     <ErrorBoundary FallbackComponent={PageFallback}>
+      <PageTitle title="Dashboard" />
       <Dashboard />
     </ErrorBoundary>
   );

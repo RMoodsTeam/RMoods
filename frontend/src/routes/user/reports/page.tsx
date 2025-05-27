@@ -40,6 +40,7 @@ import dayjs from 'dayjs';
 import { addDays } from 'date-fns';
 import { extractAnalysisKinds, truncateText } from '../../../utility/util.ts';
 import { notifications } from '@mantine/notifications';
+import PageTitle from '../../../components/PageTitle.tsx';
 
 export type MyReportsPageReportQuery = Omit<
   ReportQuery,
@@ -361,6 +362,7 @@ const UserReportsPage = () => {
 export default function () {
   return (
     <ErrorBoundary FallbackComponent={PageFallback}>
+      <PageTitle title="Your Reports" />
       <UserReportsPage />
     </ErrorBoundary>
   );

@@ -35,6 +35,7 @@ import dayjs from 'dayjs';
 import { addDays } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { extractAnalysisKinds, truncateText } from '../../../utility/util.ts';
+import PageTitle from '../../../components/PageTitle.tsx';
 
 /**
  * Converts a date to a Unix timestamp in seconds, adjusted for local timezone.
@@ -109,21 +110,31 @@ const BrowseReportsPage = () => {
   useEffect(() => {
     const browseReports = async () => {
       const queryParams = new URLSearchParams(location.search);
-      if (filters.perPage) queryParams.set('per_page', filters.perPage.toString());
-      if (filters.titlePattern) queryParams.set('title', filters.titlePattern)
+      if (filters.perPage)
+        queryParams.set('per_page', filters.perPage.toString());
+      if (filters.titlePattern) queryParams.set('title', filters.titlePattern);
       else queryParams.delete('title');
-      if (filters.startDate) queryParams.set('start_date', processStartDate(filters.startDate).toString());
-      if (filters.endDate) queryParams.set('end_date', processEndDate(filters.endDate).toString());
+      if (filters.startDate)
+        queryParams.set(
+          'start_date',
+          processStartDate(filters.startDate).toString()
+        );
+      if (filters.endDate)
+        queryParams.set('end_date', processEndDate(filters.endDate).toString());
 
       queryParams.delete('analyses');
       if (filters.containedAnalysisKinds.length !== 0) {
-        filters.containedAnalysisKinds.forEach((kind) => queryParams.append('analyses', kind))
+        filters.containedAnalysisKinds.forEach((kind) =>
+          queryParams.append('analyses', kind)
+        );
       }
 
-      if (filters.userNamePattern) queryParams.set('username', filters.userNamePattern);
+      if (filters.userNamePattern)
+        queryParams.set('username', filters.userNamePattern);
       else queryParams.delete('username');
 
-      if (filters.includeMyReports) queryParams.set('mine', filters.includeMyReports.toString());
+      if (filters.includeMyReports)
+        queryParams.set('mine', filters.includeMyReports.toString());
       queryParams.set('page', page.toString());
 
       navigate({ search: queryParams.toString() });
@@ -209,18 +220,20 @@ const BrowseReportsPage = () => {
     }
   };
 
-  const sortedReports = data?.reports ? [...data.reports].sort((a, b) => {
-    const fieldA = a[sortField as keyof Report];
-    const fieldB = b[sortField as keyof Report];
+  const sortedReports = data?.reports
+    ? [...data.reports].sort((a, b) => {
+        const fieldA = a[sortField as keyof Report];
+        const fieldB = b[sortField as keyof Report];
 
-    if (fieldA < fieldB) {
-      return sortOrder === 'asc' ? -1 : 1;
-    }
-    if (fieldA > fieldB) {
-      return sortOrder === 'asc' ? 1 : -1;
-    }
-    return 0;
-  }) : [];
+        if (fieldA < fieldB) {
+          return sortOrder === 'asc' ? -1 : 1;
+        }
+        if (fieldA > fieldB) {
+          return sortOrder === 'asc' ? 1 : -1;
+        }
+        return 0;
+      })
+    : [];
 
   if (isLoading) {
     return <Loader />;
@@ -289,9 +302,16 @@ const BrowseReportsPage = () => {
                     {report.title}
                   </Anchor>
                 </Table.Td>
-                <Table.Td>{extractAnalysisKinds(report.analyses).join(', ')}</Table.Td>
                 <Table.Td>
-                  <Tooltip label={report.description} withArrow multiline w={300}>
+                  {extractAnalysisKinds(report.analyses).join(', ')}
+                </Table.Td>
+                <Table.Td>
+                  <Tooltip
+                    label={report.description}
+                    withArrow
+                    multiline
+                    w={300}
+                  >
                     <Box>{truncateText(report.description, 45)}</Box>
                   </Tooltip>
                 </Table.Td>
@@ -307,17 +327,21 @@ const BrowseReportsPage = () => {
         </Table>
 
         <Center>
-          <Pagination total={data?.totalPages ?? 1} value={page} onChange={setPage} />
+          <Pagination
+            total={data?.totalPages ?? 1}
+            value={page}
+            onChange={setPage}
+          />
         </Center>
       </Stack>
     </Box>
   );
 };
 
-
 export default function () {
   return (
     <ErrorBoundary FallbackComponent={PageFallback}>
+      <PageTitle title="Report Browser" />
       <BrowseReportsPage />
     </ErrorBoundary>
   );

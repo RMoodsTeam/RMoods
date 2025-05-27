@@ -2,6 +2,7 @@ import Section from './Section.tsx';
 import { Box } from '@mantine/core';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../../PageFallback.tsx';
+import PageTitle from '../../../components/PageTitle.tsx';
 
 /**
  * About page, contains information about the project and the team.
@@ -46,6 +47,7 @@ const About = () => {
 export default function () {
   return (
     <ErrorBoundary FallbackComponent={PageFallback}>
+      <PageTitle title="FAQ" />
       <About />
     </ErrorBoundary>
   );

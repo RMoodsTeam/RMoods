@@ -9,6 +9,7 @@ import { notifications } from '@mantine/notifications';
 import { ErrorBoundary } from 'react-error-boundary';
 import { PageFallback } from '../PageFallback.tsx';
 import BACKEND_URL from '../../constants/backendUrl.ts';
+import PageTitle from '../../components/PageTitle.tsx';
 
 /**
  * Login card with Google sign in button
@@ -86,6 +87,7 @@ const Login = () => {
 export default function () {
   return (
     <ErrorBoundary FallbackComponent={PageFallback}>
+      <PageTitle title="Login" />
       <Login />
     </ErrorBoundary>
   );
